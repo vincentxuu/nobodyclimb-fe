@@ -3,11 +3,11 @@
  *
  * 對應 apps/web/src/components/crag/info-card.tsx
  */
-import React, { ReactNode } from 'react'
-import { StyleSheet, View } from 'react-native'
 
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { ReactNode } from 'react'
+import { StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface InfoCardProps {
   title: string

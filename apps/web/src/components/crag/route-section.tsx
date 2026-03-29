@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
 import { Eye, Filter, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import React, { useEffect, useMemo, useState } from 'react'
 import { RouteBasicInfo } from '@/components/crag/RouteBasicInfo'
-import { RouteHeader } from '@/components/crag/RouteHeader'
 import { RouteContentSections } from '@/components/crag/RouteContentSections'
+import { RouteHeader } from '@/components/crag/RouteHeader'
 
 interface RouteType {
   id: string
@@ -60,7 +60,9 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
   // 從路線資料中提取所有分區名稱（過濾掉空值）
   const areaNames = useMemo(() => {
-    const uniqueAreas = [...new Set(routes.map((r) => r.area).filter((area) => area && area.trim()))]
+    const uniqueAreas = [
+      ...new Set(routes.map((r) => r.area).filter((area) => area && area.trim())),
+    ]
     return uniqueAreas.sort()
   }, [routes])
 
@@ -144,7 +146,9 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
   return (
     <div>
-      <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('routeInfoTitle')}</h2>
+      <h2 className="mb-4 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+        {t('routeInfoTitle')}
+      </h2>
 
       {/* 篩選區 */}
       <div className="mb-6 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -190,7 +194,9 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
             {gradeRanges.map((range) => (
               <button
                 key={range.value}
-                onClick={() => setSelectedGrade(selectedGrade === range.value ? 'all' : range.value)}
+                onClick={() =>
+                  setSelectedGrade(selectedGrade === range.value ? 'all' : range.value)
+                }
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   selectedGrade === range.value
                     ? 'bg-[#FFE70C] text-[#1B1A1A]'
@@ -239,15 +245,11 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-[#1B1A1A] truncate">
-                  {route.name}
-                </span>
+                <span className="text-sm font-medium text-[#1B1A1A] truncate">{route.name}</span>
                 <span className="inline-flex rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-[#1B1A1A]">
                   {route.grade}
                 </span>
-                <span className="text-xs text-gray-500 hidden sm:inline">
-                  {route.type}
-                </span>
+                <span className="text-xs text-gray-500 hidden sm:inline">{route.type}</span>
               </div>
               {route.englishName && route.englishName !== route.name && (
                 <div className="text-xs text-gray-400 truncate mt-0.5">{route.englishName}</div>
@@ -265,22 +267,13 @@ export const CragRouteSection: React.FC<CragRouteSectionProps> = ({
 
       {/* 路線詳情彈窗 */}
       {selectedRoute && (
-        <RouteDetailModal
-          route={selectedRoute}
-          onClose={() => setSelectedRoute(null)}
-        />
+        <RouteDetailModal route={selectedRoute} onClose={() => setSelectedRoute(null)} />
       )}
     </div>
   )
 }
 
-function RouteDetailModal({
-  route,
-  onClose,
-}: {
-  route: RouteType
-  onClose: () => void
-}) {
+function RouteDetailModal({ route, onClose }: { route: RouteType; onClose: () => void }) {
   // 防止背景滾動
   useEffect(() => {
     document.body.style.overflow = 'hidden'

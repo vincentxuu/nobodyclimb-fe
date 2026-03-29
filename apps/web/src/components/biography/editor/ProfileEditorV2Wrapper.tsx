@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { biographyService } from '@/lib/api/services'
-import type { BiographyV2, StoryCategory, StoryQuestion } from '@/lib/types/biography-v2'
-import { createEmptyBiographyV2 } from '@/lib/types/biography-v2'
 import { SYSTEM_TAG_DIMENSION_LIST } from '@/lib/constants/biography-tags'
 import { useQuestions } from '@/lib/hooks/useQuestions'
+import type { BiographyV2, StoryCategory, StoryQuestion } from '@/lib/types/biography-v2'
+import { createEmptyBiographyV2 } from '@/lib/types/biography-v2'
 import { useAuthStore } from '@/store/authStore'
 import ProfileEditor from './ProfileEditor'
 
@@ -156,7 +156,9 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
       cover_image: bio.cover_url ?? undefined,
       climbing_start_year: bio.climbing_start_year?.toString() ?? undefined,
       frequent_locations: bio.frequent_locations ? bio.frequent_locations.join(', ') : undefined,
-      favorite_route_type: bio.favorite_route_types ? bio.favorite_route_types.join(', ') : undefined,
+      favorite_route_type: bio.favorite_route_types
+        ? bio.favorite_route_types.join(', ')
+        : undefined,
       social_links: bio.social_links ? JSON.stringify(bio.social_links) : undefined,
       visibility: bio.visibility ?? undefined,
       tags_data: JSON.stringify({
@@ -164,21 +166,30 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         custom_tags: bio.custom_tags,
       }),
       one_liners_data: JSON.stringify(
-        bio.one_liners.reduce((acc, item) => {
-          acc[item.question_id] = { answer: item.answer, visibility: 'public' }
-          return acc
-        }, {} as Record<string, { answer: string; visibility: string }>)
+        bio.one_liners.reduce(
+          (acc, item) => {
+            acc[item.question_id] = { answer: item.answer, visibility: 'public' }
+            return acc
+          },
+          {} as Record<string, { answer: string; visibility: string }>
+        )
       ),
       stories_data: JSON.stringify(
-        bio.stories.reduce((acc, item) => {
-          if (!acc['uncategorized']) acc['uncategorized'] = {}
-          acc['uncategorized'][item.question_id] = {
-            answer: item.content,
-            visibility: 'public',
-            updated_at: new Date().toISOString(),
-          }
-          return acc
-        }, {} as Record<string, Record<string, { answer: string; visibility: string; updated_at: string }>>)
+        bio.stories.reduce(
+          (acc, item) => {
+            if (!acc['uncategorized']) acc['uncategorized'] = {}
+            acc['uncategorized'][item.question_id] = {
+              answer: item.content,
+              visibility: 'public',
+              updated_at: new Date().toISOString(),
+            }
+            return acc
+          },
+          {} as Record<
+            string,
+            Record<string, { answer: string; visibility: string; updated_at: string }>
+          >
+        )
       ),
       basic_info_data: JSON.stringify({
         name: bio.name,
@@ -191,9 +202,10 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
       }),
       height_cm: bio.height_cm ?? null,
       arm_span_cm: bio.arm_span_cm ?? null,
-      grade_targets: bio.grade_targets && bio.grade_targets.length > 0
-        ? JSON.stringify(bio.grade_targets)
-        : null,
+      grade_targets:
+        bio.grade_targets && bio.grade_targets.length > 0
+          ? JSON.stringify(bio.grade_targets)
+          : null,
     }
   }, [])
 
@@ -220,7 +232,9 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
     } catch (err) {
       console.error('Failed to save biography:', err)
       const message = err instanceof Error ? err.message : ''
-      setError(message.toLowerCase().includes('timeout') ? '儲存逾時，請稍後再試' : '儲存失敗，請稍後再試')
+      setError(
+        message.toLowerCase().includes('timeout') ? '儲存逾時，請稍後再試' : '儲存失敗，請稍後再試'
+      )
       throw err
     } finally {
       // no-op: autosave should not block editing
@@ -284,11 +298,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
 
   return (
     <div className={className}>
-      {error && (
-        <div className="mb-4 rounded-lg bg-red-50 p-3 text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-red-600">{error}</div>}
 
       {isPublishing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
@@ -305,7 +315,11 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         storyQuestionsByCategory={storyQuestionsByCategory}
         onChange={handleChange}
         onSave={handleSave}
-        previewHref={(biography.slug || biography.id) ? `/biography/profile/${biography.slug || biography.id}` : '#'}
+        previewHref={
+          biography.slug || biography.id
+            ? `/biography/profile/${biography.slug || biography.id}`
+            : '#'
+        }
         onPublish={handlePublish}
       />
     </div>

@@ -1,6 +1,6 @@
+import { FONT_SIZE, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import { Tabs } from 'expo-router'
-import { Home, Users, User, Compass } from 'lucide-react-native'
-import { SEMANTIC_COLORS, FONT_SIZE } from '@nobodyclimb/constants'
+import { Compass, Home, User, Users } from 'lucide-react-native'
 
 const ICON_SIZE = 24
 

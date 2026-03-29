@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
+import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
+import { fetchCragAreas, fetchCragById, fetchCragRouteById } from '@/lib/api/server-fetch'
+import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
+import type { RouteDetailData } from '@/lib/crag-data'
 import RouteDetailClient from './RouteDetailClient'
 import RouteDetailFallback from './RouteDetailFallback'
-import { fetchCragById, fetchCragRouteById, fetchCragAreas } from '@/lib/api/server-fetch'
-import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
-import type { RouteDetailData } from '@/lib/crag-data'
-import { SITE_URL, SITE_NAME, OG_IMAGE } from '@/lib/constants'
 
 // 強制動態渲染，確保在 runtime 取得正確的 API URL
 export const dynamic = 'force-dynamic'
@@ -34,7 +34,8 @@ function generateRouteJsonLd(data: RouteDetailData) {
     '@id': `${SITE_URL}/crag/${crag.id}/route/${route.id}`,
     name: route.name,
     alternateName: route.englishName !== route.name ? route.englishName : undefined,
-    description: route.description || `${route.name} 是位於${crag.name}的攀岩路線，難度 ${route.grade}`,
+    description:
+      route.description || `${route.name} 是位於${crag.name}的攀岩路線，難度 ${route.grade}`,
     url: `${SITE_URL}/crag/${crag.id}/route/${route.id}`,
     image: route.images?.[0] || `${SITE_URL}${OG_IMAGE}`,
     containedInPlace: {

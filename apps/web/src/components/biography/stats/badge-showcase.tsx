@@ -1,18 +1,18 @@
 'use client'
 
-import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import {
+  BADGE_CATEGORIES,
+  BADGE_COLORS,
+  BADGES,
+  type BadgeCategory,
+  getBadgesByCategory,
+} from '@/lib/constants/badges'
+import type { BadgeProgress } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { BadgeGrid } from './badge-card'
 import { BadgeIcon } from './badge-icon'
-import {
-  BADGES,
-  BADGE_CATEGORIES,
-  BADGE_COLORS,
-  getBadgesByCategory,
-  type BadgeCategory,
-} from '@/lib/constants/badges'
-import type { BadgeProgress } from '@/lib/types'
 
 interface BadgeShowcaseProps {
   badgeProgress: BadgeProgress[]
@@ -32,9 +32,7 @@ export function BadgeShowcase({ badgeProgress, className }: BadgeShowcaseProps) 
 
   // 獲取顯示的徽章
   const displayBadges =
-    selectedCategory === 'all'
-      ? Object.values(BADGES)
-      : getBadgesByCategory(selectedCategory)
+    selectedCategory === 'all' ? Object.values(BADGES) : getBadgesByCategory(selectedCategory)
 
   // 按解鎖狀態排序（已解鎖在前）
   const sortedBadges = [...displayBadges].sort((a, b) => {
@@ -163,9 +161,7 @@ export function CompactBadgeDisplay({
   const remainingCount = Math.max(0, unlockedBadges.length - maxDisplay)
 
   if (unlockedBadges.length === 0) {
-    return (
-      <div className={cn('text-sm text-text-subtle', className)}>{t('noBadgesUnlocked')}</div>
-    )
+    return <div className={cn('text-sm text-text-subtle', className)}>{t('noBadgesUnlocked')}</div>
   }
 
   return (
@@ -173,9 +169,7 @@ export function CompactBadgeDisplay({
       {displayBadges.map((p) => (
         <BadgeIcon key={p.badge_id} badge={p.badge_id} size="sm" showTooltip />
       ))}
-      {remainingCount > 0 && (
-        <span className="text-sm text-text-subtle">+{remainingCount}</span>
-      )}
+      {remainingCount > 0 && <span className="text-sm text-text-subtle">+{remainingCount}</span>}
     </div>
   )
 }

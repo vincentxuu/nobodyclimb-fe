@@ -1,19 +1,19 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Image from 'next/image'
+import type { RankId } from '@nobodyclimb/types'
 import { motion } from 'framer-motion'
-import { Eye, Users, MessageCircle } from 'lucide-react'
+import { Eye, MessageCircle, Users } from 'lucide-react'
+import Image from 'next/image'
+import { useMemo, useState } from 'react'
+import { RankBadge } from '@/components/rank/RankBadge'
+import { ShareButton } from '@/components/shared/share-button'
 import { Biography, BiographySocialLinks } from '@/lib/types'
 import { getDefaultCoverUrl } from '@/lib/utils/image'
-import { FollowButton } from '../follow-button'
-import { CompactSocialLinks } from '../social-links'
-import { BiographyLikeButton } from '../biography-like-button'
-import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
+import { BiographyLikeButton } from '../biography-like-button'
+import { FollowButton } from '../follow-button'
 import { ProfileAvatar } from '../shared'
-import { RankBadge } from '@/components/rank/RankBadge'
-import type { RankId } from '@nobodyclimb/types'
+import { CompactSocialLinks } from '../social-links'
 
 interface HeroSectionProps {
   person: Biography
@@ -92,16 +92,10 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
                   {person.name}
                 </h1>
                 {person.user_rank_id && person.user_rank_id !== 'foothill' && (
-                  <RankBadge
-                    tier={person.user_rank_id as RankId}
-                    size="md"
-                    showTooltip
-                  />
+                  <RankBadge tier={person.user_rank_id as RankId} size="md" showTooltip />
                 )}
               </div>
-              <p className="text-sm text-text-subtle md:text-base">
-                {person.title}
-              </p>
+              <p className="text-sm text-text-subtle md:text-base">{person.title}</p>
               {/* 社群連結 */}
               <CompactSocialLinks socialLinks={socialLinks} className="mt-2" />
             </div>
@@ -159,7 +153,12 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
                 className="text-gray-500 hover:text-gray-700"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>

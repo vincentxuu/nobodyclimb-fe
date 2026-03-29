@@ -3,22 +3,29 @@
  *
  * 趣味冷知識區塊，對應 apps/web/src/components/home/fun-fact-section.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import { StyleSheet, View, Pressable, Linking } from 'react-native'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
-import { Lightbulb, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-} from 'react-native-reanimated'
 
-import { Text, Spinner } from '@/components/ui'
+import {
+  BORDER_RADIUS,
+  BRAND_YELLOW,
+  DURATION,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ChevronDown, ChevronUp, ExternalLink, Lightbulb } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { Linking, Pressable, StyleSheet, View } from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
+import { XStack, YStack } from 'tamagui'
 import { FadeIn } from '@/components/animation'
-import { BORDER_RADIUS, BRAND_YELLOW, DURATION, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { springConfigStandard, EASING } from '@/theme/animations'
+import { Text } from '@/components/ui'
+import { EASING, springConfigStandard } from '@/theme/animations'
 
 interface FunFact {
   id: string
@@ -46,12 +53,12 @@ interface FunFactsData {
 
 // 每週七天對應的類別
 const DAILY_CATEGORIES = [
-  'taiwan',      // 週日
-  'record',      // 週一
-  'history',     // 週二
-  'technique',   // 週三
-  'gear',        // 週四
-  'culture',     // 週五
+  'taiwan', // 週日
+  'record', // 週一
+  'history', // 週二
+  'technique', // 週三
+  'gear', // 週四
+  'culture', // 週五
   'competition', // 週六
 ] as const
 
@@ -115,7 +122,8 @@ export function FunFactSection() {
           const categoryFacts = data.facts.filter((fact) => fact.category === todayCategory)
 
           if (categoryFacts.length > 0) {
-            const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+            const dateSeed =
+              today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
             const index = Math.floor(seededRandom(dateSeed) * categoryFacts.length)
             setCurrentFact(categoryFacts[index])
             setCategoryLabel(CATEGORY_LABELS[todayCategory] || todayCategory)
@@ -150,14 +158,17 @@ export function FunFactSection() {
     setIsRevealed((prev) => !prev)
   }, [])
 
-  const handleLinkPress = useCallback(async (url: string) => {
-    // 內部連結用 router，外部連結用 Linking
-    if (url.startsWith('/')) {
-      router.push(url as any)
-    } else if (await Linking.canOpenURL(url)) {
-      await Linking.openURL(url)
-    }
-  }, [router])
+  const handleLinkPress = useCallback(
+    async (url: string) => {
+      // 內部連結用 router，外部連結用 Linking
+      if (url.startsWith('/')) {
+        router.push(url as any)
+      } else if (await Linking.canOpenURL(url)) {
+        await Linking.openURL(url)
+      }
+    },
+    [router]
+  )
 
   if (isLoading) {
     return (

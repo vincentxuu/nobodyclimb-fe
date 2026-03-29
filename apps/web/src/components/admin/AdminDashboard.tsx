@@ -1,25 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { formatTaipei } from '@/lib/utils'
-import { statsService, notificationService } from '@/lib/api/services'
 import {
-  MountainSnow,
-  MapPin,
-  Users,
-  Video,
-  FileText,
-  Building2,
-  Bell,
-  TrendingUp,
-  RefreshCw,
+  Activity,
   AlertCircle,
   ArrowRight,
   BarChart3,
+  Bell,
+  Building2,
+  FileText,
+  MapPin,
+  MountainSnow,
+  RefreshCw,
+  TrendingUp,
   UserCheck,
-  Activity,
+  Users,
+  Video,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { notificationService, statsService } from '@/lib/api/services'
+import { formatTaipei } from '@/lib/utils'
 
 interface SiteStats {
   crags: number
@@ -132,9 +132,12 @@ export default function AdminDashboard() {
   ]
 
   // 計算通知已讀率
-  const readRate = notificationStats && notificationStats.total > 0
-    ? Math.round(((notificationStats.total - notificationStats.unread) / notificationStats.total) * 100)
-    : 0
+  const readRate =
+    notificationStats && notificationStats.total > 0
+      ? Math.round(
+          ((notificationStats.total - notificationStats.unread) / notificationStats.total) * 100
+        )
+      : 0
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -145,9 +148,7 @@ export default function AdminDashboard() {
           <p className="mt-1 text-sm text-wb-60">
             網站數據概覽和快速操作
             {siteStats?.updatedAt && (
-              <span className="text-xs ml-2">
-                (更新於 {formatTaipei(siteStats.updatedAt)})
-              </span>
+              <span className="text-xs ml-2">(更新於 {formatTaipei(siteStats.updatedAt)})</span>
             )}
           </p>
         </div>
@@ -189,7 +190,9 @@ export default function AdminDashboard() {
       {notificationStats && (
         <div>
           <div className="flex items-center justify-between mb-3 md:mb-4">
-            <h2 className="text-base md:text-lg font-semibold text-wb-100">通知系統 (過去 24 小時)</h2>
+            <h2 className="text-base md:text-lg font-semibold text-wb-100">
+              通知系統 (過去 24 小時)
+            </h2>
             <Link
               href="/admin/notifications"
               className="text-sm text-wb-100 hover:text-brand-yellow-100 flex items-center gap-1 transition-colors"
@@ -206,7 +209,9 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-wb-70">發送總數</p>
-                  <p className="text-xl md:text-2xl font-bold text-wb-100">{notificationStats.total}</p>
+                  <p className="text-xl md:text-2xl font-bold text-wb-100">
+                    {notificationStats.total}
+                  </p>
                 </div>
               </div>
             </div>
@@ -217,7 +222,9 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-wb-70">未讀通知</p>
-                  <p className="text-xl md:text-2xl font-bold text-wb-100">{notificationStats.unread}</p>
+                  <p className="text-xl md:text-2xl font-bold text-wb-100">
+                    {notificationStats.unread}
+                  </p>
                 </div>
               </div>
             </div>
@@ -228,7 +235,9 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-xs md:text-sm text-wb-70">有通知的用戶</p>
-                  <p className="text-xl md:text-2xl font-bold text-wb-100">{notificationStats.usersWithNotifications}</p>
+                  <p className="text-xl md:text-2xl font-bold text-wb-100">
+                    {notificationStats.usersWithNotifications}
+                  </p>
                 </div>
               </div>
             </div>

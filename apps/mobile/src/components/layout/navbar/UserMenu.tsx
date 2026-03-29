@@ -3,27 +3,27 @@
  *
  * 用戶選單，對應 apps/web/src/components/layout/navbar/UserMenu.tsx
  */
-import React, { useCallback, useRef } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { useRouter } from 'expo-router'
+
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
 import {
-  User,
-  ListChecks,
-  Image,
-  FileText,
+  Bell,
   Bookmark,
-  Settings,
+  FileText,
+  Image,
+  ListChecks,
   LogOut,
   PenSquare,
+  Settings,
   Upload,
-  Bell,
+  User,
 } from 'lucide-react-native'
+import React, { useCallback, useRef } from 'react'
+import { Pressable, StyleSheet } from 'react-native'
 import { XStack, YStack } from 'tamagui'
-
+import { Avatar, Button, Divider, IconButton, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { Text, Button, Avatar, IconButton, Divider } from '@/components/ui'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 /**
  * 用戶選單組件
@@ -45,16 +45,22 @@ export function UserMenu() {
   }, [])
 
   // 選單項目點擊
-  const handleMenuItemPress = useCallback((path: string) => {
-    bottomSheetRef.current?.close()
-    router.push(path as any)
-  }, [router])
+  const handleMenuItemPress = useCallback(
+    (path: string) => {
+      bottomSheetRef.current?.close()
+      router.push(path as any)
+    },
+    [router]
+  )
 
   // 創作項目點擊
-  const handleCreateItemPress = useCallback((path: string) => {
-    createSheetRef.current?.close()
-    router.push(path as any)
-  }, [router])
+  const handleCreateItemPress = useCallback(
+    (path: string) => {
+      createSheetRef.current?.close()
+      router.push(path as any)
+    },
+    [router]
+  )
 
   // 登出
   const handleLogout = useCallback(async () => {
@@ -69,25 +75,14 @@ export function UserMenu() {
   }, [router])
 
   const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-      />
-    ),
+    (props: any) => <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />,
     []
   )
 
   // 未登入時顯示登入按鈕
   if (!isAuthenticated) {
     return (
-      <Button
-        variant="secondary"
-        size="sm"
-        onPress={handleLogin}
-        style={styles.loginButton}
-      >
+      <Button variant="secondary" size="sm" onPress={handleLogin} style={styles.loginButton}>
         <Text fontWeight="500">登入</Text>
       </Button>
     )
@@ -116,10 +111,7 @@ export function UserMenu() {
 
         {/* 用戶頭像 */}
         <Pressable onPress={handleOpenUserMenu}>
-          <Avatar
-            size="sm"
-            source={user?.avatar ? { uri: user.avatar } : undefined}
-          />
+          <Avatar size="sm" source={user?.avatar ? { uri: user.avatar } : undefined} />
         </Pressable>
       </XStack>
 
@@ -136,10 +128,7 @@ export function UserMenu() {
         <BottomSheetView style={styles.sheetContent}>
           {/* 用戶資訊 */}
           <XStack alignItems="center" gap={SPACING.sm} marginBottom={SPACING.md}>
-            <Avatar
-              size="lg"
-              source={user?.avatar ? { uri: user.avatar } : undefined}
-            />
+            <Avatar size="lg" source={user?.avatar ? { uri: user.avatar } : undefined} />
             <YStack flex={1}>
               <Text fontWeight="600">{user?.username || '用戶'}</Text>
               <Text variant="small" color="textSubtle">
@@ -241,16 +230,10 @@ function MenuItem({ icon, label, onPress, labelColor }: MenuItemProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.menuItem,
-        pressed && styles.menuItemPressed,
-      ]}
+      style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
     >
       {icon}
-      <Text
-        style={labelColor ? { color: labelColor } : undefined}
-        fontWeight="500"
-      >
+      <Text style={labelColor ? { color: labelColor } : undefined} fontWeight="500">
         {label}
       </Text>
     </Pressable>

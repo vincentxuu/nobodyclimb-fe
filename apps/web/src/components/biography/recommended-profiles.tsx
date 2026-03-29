@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { BiographyCard } from '@/components/biography/biography-list'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { BiographyCard } from '@/components/biography/biography-list'
-import { useTranslations } from 'next-intl'
 
 interface RecommendedProfilesProps {
   currentId: string
@@ -29,9 +29,7 @@ export function RecommendedProfiles({ currentId, limit = 3 }: RecommendedProfile
 
         if (response.success) {
           // 排除當前人物誌，取得推薦列表
-          const filtered = response.data
-            .filter((p) => p.id !== currentId)
-            .slice(0, limit)
+          const filtered = response.data.filter((p) => p.id !== currentId).slice(0, limit)
           setProfiles(filtered)
         } else {
           setError(t('loadError'))

@@ -47,7 +47,6 @@ function readCragData(cragId) {
 function writeCragData(cragId, data) {
   const filePath = path.join(CRAGS_DIR, `${cragId}.json`)
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
-  console.log(`  已寫入: ${filePath}`)
 }
 
 // 解析多行文字為陣列 (過濾空行)
@@ -87,7 +86,9 @@ function parseTransportation(text, existingTransportation = []) {
         descriptionEn: existing.descriptionEn || '',
       }
     }
-    return existingTransportation[index] || { type: '', description: line.trim(), descriptionEn: '' }
+    return (
+      existingTransportation[index] || { type: '', description: line.trim(), descriptionEn: '' }
+    )
   })
 }
 
@@ -294,7 +295,6 @@ function updateCragInfo(crag, excelInfo) {
 function processRoutesSheet(workbook, stats) {
   const sheet = workbook.Sheets['路線資料']
   if (!sheet) {
-    console.log('找不到「路線資料」工作表')
     return {}
   }
 
@@ -363,18 +363,11 @@ function main() {
   const args = process.argv.slice(2)
 
   if (args.length === 0) {
-    console.log('使用方式: node scripts/excel-to-routes.js <excel-file>')
-    console.log('')
-    console.log('範例:')
-    console.log('  node scripts/excel-to-routes.js output/routes-longdong.xlsx')
     process.exit(1)
   }
 
   const excelFile = args[0]
   const filePath = path.isAbsolute(excelFile) ? excelFile : path.join(process.cwd(), excelFile)
-
-  console.log('=== 路線資料匯入工具 ===\n')
-  console.log(`讀取檔案: ${filePath}\n`)
 
   const workbook = readExcelFile(filePath)
   if (!workbook) {
@@ -396,14 +389,12 @@ function main() {
 
   if (cragInfo && cragInfo['岩場ID']) {
     targetCragId = cragInfo['岩場ID']
-    console.log(`處理岩場資訊: ${targetCragId}`)
 
     const cragData = readCragData(targetCragId)
     if (cragData) {
       const changes = updateCragInfo(cragData.crag, cragInfo)
       if (changes.length > 0) {
         stats.cragInfoUpdated = true
-        console.log(`  岩場資訊已更新`)
       }
 
       // 2. 處理路線資料工作表
@@ -411,7 +402,6 @@ function main() {
 
       if (cragGroups[targetCragId]) {
         const rows = cragGroups[targetCragId]
-        console.log(`處理路線資料: ${rows.length} 條`)
 
         // 建立路線 ID 對照表
         const routeMap = {}
@@ -444,18 +434,13 @@ function main() {
         writeCragData(targetCragId, cragData)
         stats.cragsUpdated = 1
       } else {
-        console.log('  無變更')
       }
     }
   } else {
     // 沒有岩場資訊工作表，只處理路線資料
     const cragGroups = processRoutesSheet(workbook, stats)
 
-    console.log(`找到 ${Object.keys(cragGroups).length} 個岩場的路線資料\n`)
-
     for (const [cragId, rows] of Object.entries(cragGroups)) {
-      console.log(`處理岩場: ${cragId} (${rows.length} 條路線)`)
-
       const cragData = readCragData(cragId)
       if (!cragData) {
         stats.errors.push(`找不到岩場: ${cragId}`)
@@ -488,29 +473,17 @@ function main() {
         writeCragData(cragId, cragData)
         stats.cragsUpdated++
         stats.routesUpdated += routesUpdatedInCrag
-        console.log(`  更新了 ${routesUpdatedInCrag} 條路線`)
       } else {
-        console.log(`  無變更`)
       }
     }
   }
 
-  // 輸出統計
-  console.log('\n=== 匯入統計 ===')
-  console.log(`更新岩場數: ${stats.cragsUpdated}`)
   if (stats.cragInfoUpdated) {
-    console.log(`岩場資訊: 已更新`)
   }
-  console.log(`更新路線數: ${stats.routesUpdated}`)
-  console.log(`新增 YouTube 影片: ${stats.youtubeAdded}`)
-  console.log(`新增 Instagram 貼文: ${stats.instagramAdded}`)
 
   if (stats.errors.length > 0) {
-    console.log(`\n=== 警告/錯誤 (${stats.errors.length}) ===`)
-    stats.errors.forEach((err) => console.log(`  - ${err}`))
+    stats.errors.forEach((err) => {})
   }
-
-  console.log('\n完成!')
 }
 
 main()

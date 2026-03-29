@@ -3,7 +3,7 @@
  *
  * 未儲存變更提示，對應 apps/web/src/components/shared/unsaved-changes-prompt.tsx
  */
-import React, { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Alert, BackHandler } from 'react-native'
 
 interface UnsavedChangesPromptProps {
@@ -52,16 +52,13 @@ export function UnsavedChangesPrompt({
 
   // 攔截 Android 返回鍵
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        if (hasChanges) {
-          showPrompt()
-          return true // 阻止默認返回行為
-        }
-        return false // 允許默認返回行為
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (hasChanges) {
+        showPrompt()
+        return true // 阻止默認返回行為
       }
-    )
+      return false // 允許默認返回行為
+    })
 
     return () => backHandler.remove()
   }, [hasChanges, showPrompt])

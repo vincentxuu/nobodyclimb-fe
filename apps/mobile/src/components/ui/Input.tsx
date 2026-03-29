@@ -3,25 +3,18 @@
  *
  * 基於設計系統的輸入框組件
  */
-import React, { useState, useCallback, forwardRef } from 'react'
+
 import {
-  TextInput,
-  View,
-  StyleSheet,
-  type TextInputProps,
-  type ViewStyle,
-} from 'react-native'
-import { useSharedValue, withTiming } from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  INPUT_SPECS,
-  FONT_SIZE,
   FONT_WEIGHT,
+  INPUT_SPECS,
+  SEMANTIC_COLORS,
   SPACING,
   WB_COLORS,
 } from '@nobodyclimb/constants'
+import React, { forwardRef, useCallback, useState } from 'react'
+import { StyleSheet, TextInput, type TextInputProps, View, type ViewStyle } from 'react-native'
+import { useSharedValue, withTiming } from 'react-native-reanimated'
 import { DURATION, EASING } from '@/theme/animations'
-
 
 export type InputState = 'default' | 'focused' | 'error' | 'disabled'
 
@@ -115,14 +108,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   )
 
   return (
-    <View
-      style={[
-        styles.container,
-        borderStyle,
-        disabled && styles.disabled,
-        containerStyle,
-      ]}
-    >
+    <View style={[styles.container, borderStyle, disabled && styles.disabled, containerStyle]}>
       {leftElement && <View style={styles.leftElement}>{leftElement}</View>}
       <TextInput
         ref={ref}

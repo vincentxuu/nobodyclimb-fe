@@ -3,10 +3,11 @@
  *
  * 基礎頁面佈局，處理 Safe Area Insets
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle, StatusBar } from 'react-native'
-import { SafeAreaView, type Edge } from 'react-native-safe-area-context'
+
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import React from 'react'
+import { StatusBar, StyleSheet, View, type ViewStyle } from 'react-native'
+import { type Edge, SafeAreaView } from 'react-native-safe-area-context'
 
 export interface ScreenLayoutProps {
   /** 子元素 */
@@ -51,10 +52,7 @@ export function ScreenLayout({
   statusBarStyle = 'dark-content',
 }: ScreenLayoutProps) {
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor }, style]}
-      edges={edges}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor }, style]} edges={edges}>
       <StatusBar barStyle={statusBarStyle} backgroundColor={backgroundColor} />
       {header}
       <View style={[styles.content, contentStyle]}>{children}</View>

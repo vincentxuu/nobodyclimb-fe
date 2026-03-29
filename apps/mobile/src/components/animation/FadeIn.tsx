@@ -6,10 +6,10 @@
 import React, { useEffect } from 'react'
 import { type ViewStyle } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withDelay,
+  withTiming,
 } from 'react-native-reanimated'
 import { fadeInConfig } from '@/theme/animations'
 
@@ -46,21 +46,14 @@ export function FadeIn({
   const opacity = useSharedValue(initialOpacity)
 
   useEffect(() => {
-    opacity.value = withDelay(
-      delay,
-      withTiming(1, { duration, easing: fadeInConfig.easing })
-    )
+    opacity.value = withDelay(delay, withTiming(1, { duration, easing: fadeInConfig.easing }))
   }, [delay, duration, opacity])
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }))
 
-  return (
-    <Animated.View style={[animatedStyle, style]}>
-      {children}
-    </Animated.View>
-  )
+  return <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>
 }
 
 export default FadeIn

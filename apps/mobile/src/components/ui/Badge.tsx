@@ -3,16 +3,17 @@
  *
  * 標籤/徽章組件
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+
 import {
-  SEMANTIC_COLORS,
   BORDER_RADIUS,
-  SPACING,
   FONT_SIZE,
   FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  SPACING,
   WB_COLORS,
 } from '@nobodyclimb/constants'
+import React from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { Text } from './Text'
 
 export type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'accent'
@@ -81,12 +82,7 @@ function getVariantStyles(variant: BadgeVariant): {
  * <Badge variant="error">錯誤</Badge>
  * ```
  */
-export function Badge({
-  children,
-  variant = 'default',
-  size = 'md',
-  style,
-}: BadgeProps) {
+export function Badge({ children, variant = 'default', size = 'md', style }: BadgeProps) {
   const { backgroundColor, textColor } = getVariantStyles(variant)
   const isSmall = size === 'sm'
 

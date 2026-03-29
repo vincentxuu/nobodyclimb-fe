@@ -1,9 +1,9 @@
 'use client'
 
-import { Tag, CircleDot, Ruler, User, Youtube } from 'lucide-react'
+import { CircleDot, Ruler, Tag, User, Youtube } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { getRouteName } from '@/lib/route-utils'
-import { useTranslations } from 'next-intl'
 
 export interface RoutePreviewData {
   id: string
@@ -45,11 +45,7 @@ function getYoutubeEmbedUrl(url: string): string {
   return url
 }
 
-export function RoutePreviewPanel({
-  route,
-  cragName,
-  onClose,
-}: RoutePreviewPanelProps) {
+export function RoutePreviewPanel({ route, cragName, onClose }: RoutePreviewPanelProps) {
   const t = useTranslations('CragPage')
   const hasYoutubeVideos = route.youtubeVideos && route.youtubeVideos.length > 0
   const displayName = getRouteName(route.name, route.englishName)
@@ -87,9 +83,7 @@ export function RoutePreviewPanel({
                 <Ruler size={14} />
                 {t('routeLengthLabel')}
               </div>
-              <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
-                {route.length}
-              </div>
+              <div className="mt-1 text-base font-semibold text-[#1B1A1A]">{route.length}</div>
             </div>
           )}
           {route.boltCount !== undefined && route.boltCount > 0 && (
@@ -98,9 +92,7 @@ export function RoutePreviewPanel({
                 <CircleDot size={14} />
                 {t('routeBoltLabel')}
               </div>
-              <div className="mt-1 text-base font-semibold text-[#1B1A1A]">
-                {route.boltCount}
-              </div>
+              <div className="mt-1 text-base font-semibold text-[#1B1A1A]">{route.boltCount}</div>
             </div>
           )}
           {route.firstAscent && (
@@ -153,10 +145,7 @@ export function RoutePreviewPanel({
         {/* 返回按鈕 */}
         {onClose && (
           <div className="flex justify-end">
-            <Button
-              variant="outline"
-              onClick={onClose}
-            >
+            <Button variant="outline" onClick={onClose}>
               {t('backToCragIntro')}
             </Button>
           </div>

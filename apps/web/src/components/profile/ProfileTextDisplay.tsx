@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 interface ProfileTextDisplayProps {
   text: string
@@ -43,9 +43,7 @@ export default function ProfileTextDisplay({
   // 標籤式顯示
   if (asTags && tags.length > 0) {
     return (
-      <div
-        className={`w-full rounded-sm border border-[#B6B3B3] bg-white p-3 ${minHeight}`}
-      >
+      <div className={`w-full rounded-sm border border-[#B6B3B3] bg-white p-3 ${minHeight}`}>
         <div className="flex flex-wrap gap-1.5">
           {visibleTags.map((tag, index) => (
             <span

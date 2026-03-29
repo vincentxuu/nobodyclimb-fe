@@ -3,18 +3,18 @@
  *
  * 快速回應列，對應 apps/web/src/components/biography/display/QuickReactionBar.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
+
+import { BRAND_YELLOW, RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useCallback, useEffect, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withSpring,
 } from 'react-native-reanimated'
-
-import { apiClient } from '@/lib/api'
 import { Text } from '@/components/ui'
-import { BRAND_YELLOW, RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { apiClient } from '@/lib/api'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -55,10 +55,7 @@ function QuickReactionButton({
   }))
 
   const handlePress = () => {
-    scale.value = withSequence(
-      withSpring(1.15, { damping: 10 }),
-      withSpring(1, { damping: 10 })
-    )
+    scale.value = withSequence(withSpring(1.15, { damping: 10 }), withSpring(1, { damping: 10 }))
     onPress()
   }
 
@@ -67,26 +64,15 @@ function QuickReactionButton({
 
   return (
     <AnimatedPressable
-      style={[
-        styles.button,
-        buttonSize,
-        isReacted && styles.buttonReacted,
-        animatedStyle,
-      ]}
+      style={[styles.button, buttonSize, isReacted && styles.buttonReacted, animatedStyle]}
       onPress={handlePress}
     >
       <Text style={{ fontSize }}>{reaction.emoji}</Text>
-      <Text
-        variant="small"
-        style={isReacted ? styles.labelReacted : styles.label}
-      >
+      <Text variant="small" style={isReacted ? styles.labelReacted : styles.label}>
         {reaction.label}
       </Text>
       {count > 0 && (
-        <Text
-          variant="small"
-          style={isReacted ? styles.countReacted : styles.count}
-        >
+        <Text variant="small" style={isReacted ? styles.countReacted : styles.count}>
           {count}
         </Text>
       )}
@@ -103,16 +89,14 @@ interface QuickReactionBarProps {
   size?: 'sm' | 'md'
 }
 
-export function QuickReactionBar({
-  contentType,
-  contentId,
-  size = 'sm',
-}: QuickReactionBarProps) {
-  const [reactions, setReactions] = useState<Record<string, { count: number; isReacted: boolean }>>({
-    me_too: { count: 0, isReacted: false },
-    plus_one: { count: 0, isReacted: false },
-    well_said: { count: 0, isReacted: false },
-  })
+export function QuickReactionBar({ contentType, contentId, size = 'sm' }: QuickReactionBarProps) {
+  const [reactions, setReactions] = useState<Record<string, { count: number; isReacted: boolean }>>(
+    {
+      me_too: { count: 0, isReacted: false },
+      plus_one: { count: 0, isReacted: false },
+      well_said: { count: 0, isReacted: false },
+    }
+  )
 
   // 從 API 獲取初始回應狀態
   useEffect(() => {
@@ -136,7 +120,7 @@ export function QuickReactionBar({
           })
           setReactions(mapped)
         }
-      } catch (error) {
+      } catch (_error) {
         // 靜默失敗，保持預設值
       }
     }
@@ -152,17 +136,17 @@ export function QuickReactionBar({
         return {
           ...prev,
           [reactionId]: {
-            count: newIsReacted
-              ? current.count + 1
-              : Math.max(0, current.count - 1),
+            count: newIsReacted ? current.count + 1 : Math.max(0, current.count - 1),
             isReacted: newIsReacted,
           },
         }
       })
 
       try {
-        await apiClient.post(`/content/${contentType}/${contentId}/reactions`, { reaction_id: reactionId })
-      } catch (error) {
+        await apiClient.post(`/content/${contentType}/${contentId}/reactions`, {
+          reaction_id: reactionId,
+        })
+      } catch (_error) {
         // 回滾
         setReactions((prev) => {
           const current = prev[reactionId]
@@ -170,9 +154,7 @@ export function QuickReactionBar({
           return {
             ...prev,
             [reactionId]: {
-              count: newIsReacted
-                ? current.count + 1
-                : Math.max(0, current.count - 1),
+              count: newIsReacted ? current.count + 1 : Math.max(0, current.count - 1),
               isReacted: newIsReacted,
             },
           }

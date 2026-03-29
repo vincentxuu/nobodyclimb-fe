@@ -1,4 +1,4 @@
-import { PipelineStep, PipelineContext } from '../types';
+import { PipelineContext, PipelineStep } from '../types'
 
 export const semanticCacheStep: PipelineStep = {
   id: 'semantic-cache',
@@ -11,30 +11,35 @@ export const semanticCacheStep: PipelineStep = {
   provides: ['earlyReturn'],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
-    const { pipelineConfig, earlyQueryVector, queryService, isAnonymousNoHistory } = ctx;
+    const { pipelineConfig, earlyQueryVector, queryService, isAnonymousNoHistory } = ctx
 
     if (!pipelineConfig.semantic_cache_enabled || !earlyQueryVector || !isAnonymousNoHistory) {
-      return ctx;
+      return ctx
     }
 
-    const semanticCached = await queryService.checkSemanticCache(earlyQueryVector, pipelineConfig.semantic_cache_threshold);
+    const semanticCached = await queryService.checkSemanticCache(
+      earlyQueryVector,
+      pipelineConfig.semantic_cache_threshold
+    )
 
     if (semanticCached) {
       // 記錄快取命中日誌
-      queryService.logQuery({
-        userId: null,
-        query: ctx.request.query,
-        response: '',
-        sources: [],
-        latencyMs: Date.now() - ctx.startTime,
-        tokenCount: 0,
-        cacheHit: true,
-        pipelineTrace: JSON.stringify({ cache: { type: 'semantic' } }),
-      }).catch(() => {});
+      queryService
+        .logQuery({
+          userId: null,
+          query: ctx.request.query,
+          response: '',
+          sources: [],
+          latencyMs: Date.now() - ctx.startTime,
+          tokenCount: 0,
+          cacheHit: true,
+          pipelineTrace: JSON.stringify({ cache: { type: 'semantic' } }),
+        })
+        .catch(() => {})
 
-      ctx.earlyReturn = semanticCached;
+      ctx.earlyReturn = semanticCached
     }
 
-    return ctx;
+    return ctx
   },
-};
+}

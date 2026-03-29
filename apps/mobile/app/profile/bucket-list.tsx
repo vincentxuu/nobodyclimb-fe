@@ -4,36 +4,21 @@
  * 對應 apps/web/src/app/profile/bucket-list/page.tsx
  * 使用 GET /bucket-list/:biographyId 取得人生清單
  */
-import React, { useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  CheckCircle2,
-  Circle,
-  Mountain,
-  MapPin,
-} from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, IconButton } from '@/components/ui'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { CheckCircle2, ChevronLeft, Circle, MapPin, Mountain, Plus } from 'lucide-react-native'
+import { useCallback } from 'react'
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { IconButton, Text } from '@/components/ui'
 import {
-  useBucketList,
-  useToggleBucketItem,
-  useDeleteBucketItem,
   type BucketListItem,
+  useBucketList,
+  useDeleteBucketItem,
+  useToggleBucketItem,
 } from '@/lib/hooks'
 
 interface BucketCardProps {
@@ -71,11 +56,7 @@ function BucketCard({ item, onToggle, onDelete, index }: BucketCardProps) {
           )}
         </Pressable>
         <View style={styles.bucketContent}>
-          <Text
-            variant="body"
-            fontWeight="500"
-            style={isCompleted && styles.completedText}
-          >
+          <Text variant="body" fontWeight="500" style={isCompleted && styles.completedText}>
             {item.title}
           </Text>
           {item.target_location && (

@@ -1,12 +1,11 @@
 'use client'
 
-import * as React from 'react'
-import { useEffect } from 'react'
 import { motion, useAnimation, type Variants } from 'framer-motion'
-import { PersonStanding, PartyPopper, AlertTriangle, User } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { CharacterState } from '@/lib/games/rope-system/types'
+import { AlertTriangle, PartyPopper, PersonStanding, User } from 'lucide-react'
+import { useEffect } from 'react'
 import { ANIMATION_DURATION } from '@/lib/games/rope-system/constants'
+import type { CharacterState } from '@/lib/games/rope-system/types'
+import { cn } from '@/lib/utils'
 
 interface ClimberCharacterProps {
   /** 角色位置 (0-100)，0 為底部，100 為頂部 */
@@ -96,12 +95,7 @@ export function ClimberCharacter({
   }
 
   return (
-    <div
-      className={cn(
-        'relative h-full w-full',
-        className
-      )}
-    >
+    <div className={cn('relative h-full w-full', className)}>
       {/* 繩索 */}
       <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-gradient-to-b from-[#8B7355] to-[#6B5344]" />
 

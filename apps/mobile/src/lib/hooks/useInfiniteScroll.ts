@@ -4,7 +4,7 @@
  * 對應 apps/web/src/lib/hooks/useInfiniteScroll.ts
  * React Native 版本使用 FlatList 的 onEndReached
  */
-import { useState, useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 interface UseInfiniteScrollOptions {
   threshold?: number

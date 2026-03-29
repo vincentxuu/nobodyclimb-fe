@@ -3,16 +3,16 @@
  *
  * 精選影片區，對應 apps/web/src/components/home/featured-videos-section.tsx
  */
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Pressable, FlatList, Dimensions, Linking, Image } from 'react-native'
-import { YStack, XStack } from 'tamagui'
-import { useRouter } from 'expo-router'
-import { Play, Eye } from 'lucide-react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 
-import { Text, Button, Skeleton } from '@/components/ui'
-import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Eye, Play } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { Dimensions, FlatList, Image, Linking, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import { XStack } from 'tamagui'
+import { FadeIn, SlideUp } from '@/components/animation'
+import { Button, Skeleton, Text } from '@/components/ui'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const CARD_WIDTH = SCREEN_WIDTH * 0.7
@@ -44,18 +44,11 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
     >
       <Pressable
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.videoCard,
-          pressed && styles.videoCardPressed,
-        ]}
+        style={({ pressed }) => [styles.videoCard, pressed && styles.videoCardPressed]}
       >
         {/* 縮圖 */}
         <View style={styles.thumbnailContainer}>
-          <Image
-            source={{ uri: video.thumbnailUrl }}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: video.thumbnailUrl }} style={styles.thumbnail} resizeMode="cover" />
           {/* 播放按鈕 */}
           <View style={styles.playButtonOverlay}>
             <View style={styles.playButton}>
@@ -177,11 +170,7 @@ export function FeaturedVideosSection() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           renderItem={({ item, index }) =>
-            typeof item === 'number' ? (
-              <VideoSkeleton />
-            ) : (
-              <VideoCard video={item} index={index} />
-            )
+            typeof item === 'number' ? <VideoSkeleton /> : <VideoCard video={item} index={index} />
           }
           ItemSeparatorComponent={() => <View style={{ width: SPACING[4] }} />}
         />

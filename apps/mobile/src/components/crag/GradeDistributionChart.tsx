@@ -4,10 +4,11 @@
  * 水平長條圖顯示路線難度分佈
  * 對應 apps/web/src/components/crag/grade-distribution-chart.tsx
  */
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 // 難度範圍的顏色對應
 const gradeColors: Record<string, string> = {
@@ -44,14 +45,7 @@ const gradeToRange: Record<string, string> = {
 }
 
 // 所有範圍的順序
-const allRanges = [
-  '5.6-5.9',
-  '5.10a-5.10d',
-  '5.11a-5.11d',
-  '5.12a-5.12d',
-  '5.13a-5.13d',
-  '5.14+',
-]
+const allRanges = ['5.6-5.9', '5.10a-5.10d', '5.11a-5.11d', '5.12a-5.12d', '5.13a-5.13d', '5.14+']
 
 /**
  * 從難度字串陣列計算各範圍的路線數量

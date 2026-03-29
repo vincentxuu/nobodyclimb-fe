@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 
 export function HeroIntroSection() {

@@ -1,5 +1,4 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Input } from '../ui/Input'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, TrendingUp, Bell, CheckCircle, BarChart3 } from 'lucide-react'
-import { notificationService } from '@/lib/api/services'
-import { useToast } from '@/components/ui/use-toast'
+import { BarChart3, Bell, CheckCircle, Loader2, TrendingUp } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { useToast } from '@/components/ui/use-toast'
+import { notificationService } from '@/lib/api/services'
 
 interface NotificationStatsData {
   overview: {
@@ -147,7 +147,9 @@ export default function NotificationStats() {
             {stats.byType.map((item) => (
               <div key={item.type} className="flex items-center gap-3">
                 <div className="w-24 text-sm text-gray-600 truncate">
-                  {typeLabelsKeys[item.type] ? t(typeLabelsKeys[item.type] as Parameters<typeof t>[0]) : item.type}
+                  {typeLabelsKeys[item.type]
+                    ? t(typeLabelsKeys[item.type] as Parameters<typeof t>[0])
+                    : item.type}
                 </div>
                 <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
                   <div

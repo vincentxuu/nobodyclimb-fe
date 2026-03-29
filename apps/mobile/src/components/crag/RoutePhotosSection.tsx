@@ -4,33 +4,32 @@
  * 對應 apps/web/src/components/crag/RoutePhotosSection.tsx
  * 以 grid 方式顯示路線照片，點擊可全螢幕檢視
  */
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { Camera, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react-native'
 import React, { useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  Pressable,
-  Modal,
   ActivityIndicator,
   Dimensions,
+  Modal,
+  Pressable,
   StatusBar,
+  StyleSheet,
+  View,
 } from 'react-native'
-import { Image } from 'expo-image'
-import { Camera, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useRoutePhotos } from '@/lib/hooks/useRoutePhotos'
 import type { PhotoItem } from '@/lib/hooks/useRoutePhotos'
-import { RouteMediaForm, type RouteMediaFormRef } from './RouteMediaForm'
+import { useRoutePhotos } from '@/lib/hooks/useRoutePhotos'
 import { useCreateRouteStory } from '@/lib/hooks/useRouteStories'
 import { useAuthStore } from '@/store/authStore'
+import { RouteMediaForm, type RouteMediaFormRef } from './RouteMediaForm'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const NUM_COLUMNS = 3
 const GRID_GAP = SPACING.xs
-const PHOTO_SIZE =
-  (SCREEN_WIDTH - SPACING.md * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS
+const PHOTO_SIZE = (SCREEN_WIDTH - SPACING.md * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS
 
 interface RoutePhotosSectionProps {
   routeId: string
@@ -100,12 +99,11 @@ export function RoutePhotosSection({
             )}
           </View>
           {isLoggedIn && (
-            <Pressable
-              style={styles.addButton}
-              onPress={() => mediaFormRef.current?.open()}
-            >
+            <Pressable style={styles.addButton} onPress={() => mediaFormRef.current?.open()}>
               <Plus size={16} color="#2563EB" />
-              <Text variant="caption" style={{ color: '#2563EB' }}>分享</Text>
+              <Text variant="caption" style={{ color: '#2563EB' }}>
+                分享
+              </Text>
             </Pressable>
           )}
         </View>
@@ -144,9 +142,7 @@ export function RoutePhotosSection({
                 {/* Overlay for "+N more" on last visible photo */}
                 {index === MAX_VISIBLE - 1 && photos.length > MAX_VISIBLE && (
                   <View style={styles.moreOverlay}>
-                    <Text style={styles.moreText}>
-                      +{photos.length - MAX_VISIBLE}
-                    </Text>
+                    <Text style={styles.moreText}>+{photos.length - MAX_VISIBLE}</Text>
                   </View>
                 )}
               </Pressable>
@@ -220,16 +216,10 @@ export function RoutePhotosSection({
           {/* Navigation arrows */}
           {photos.length > 1 && (
             <>
-              <Pressable
-                style={[styles.navButton, styles.navButtonLeft]}
-                onPress={goToPrevious}
-              >
+              <Pressable style={[styles.navButton, styles.navButtonLeft]} onPress={goToPrevious}>
                 <ChevronLeft size={28} color="#FFFFFF" />
               </Pressable>
-              <Pressable
-                style={[styles.navButton, styles.navButtonRight]}
-                onPress={goToNext}
-              >
+              <Pressable style={[styles.navButton, styles.navButtonRight]} onPress={goToNext}>
                 <ChevronRight size={28} color="#FFFFFF" />
               </Pressable>
             </>

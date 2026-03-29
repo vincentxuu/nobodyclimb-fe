@@ -14,9 +14,7 @@ import type { Question } from './types'
 const questionsCache: Record<string, Question[]> = {}
 
 /** 取得指定類別的題目（異步） */
-export async function fetchQuestionsByCategory(
-  categoryId: string
-): Promise<Question[]> {
+export async function fetchQuestionsByCategory(categoryId: string): Promise<Question[]> {
   // 檢查快取
   if (questionsCache[categoryId]) {
     return questionsCache[categoryId]
@@ -61,9 +59,7 @@ export function clearQuestionsCache(): void {
  * 此函數保留僅為向後兼容，返回快取中的資料
  */
 export function getQuestionsByCategory(categoryId: string): Question[] {
-  console.warn(
-    'getQuestionsByCategory() 已棄用，請使用 fetchQuestionsByCategory() 異步函數'
-  )
+  console.warn('getQuestionsByCategory() 已棄用，請使用 fetchQuestionsByCategory() 異步函數')
   return questionsCache[categoryId] || []
 }
 

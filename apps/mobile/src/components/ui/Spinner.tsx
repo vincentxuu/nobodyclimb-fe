@@ -3,16 +3,9 @@
  *
  * 載入指示器組件
  */
-import React from 'react'
-import { ActivityIndicator, View, StyleSheet, type ViewStyle } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated'
-import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+
+import { BRAND_YELLOW, SPACING } from '@nobodyclimb/constants'
+import { ActivityIndicator, StyleSheet, View, type ViewStyle } from 'react-native'
 import { Text } from './Text'
 
 export type SpinnerSize = 'sm' | 'md' | 'lg'
@@ -44,12 +37,7 @@ const SIZE_MAP: Record<SpinnerSize, 'small' | 'large'> = {
  * <Spinner color="#FF0000" />
  * ```
  */
-export function Spinner({
-  size = 'md',
-  color = BRAND_YELLOW[100],
-  label,
-  style,
-}: SpinnerProps) {
+export function Spinner({ size = 'md', color = BRAND_YELLOW[100], label, style }: SpinnerProps) {
   return (
     <View style={[styles.container, style]}>
       <ActivityIndicator size={SIZE_MAP[size]} color={color} />
@@ -74,10 +62,7 @@ export interface FullScreenSpinnerProps extends SpinnerProps {
 /**
  * 全螢幕載入指示器
  */
-export function FullScreenSpinner({
-  visible = true,
-  ...props
-}: FullScreenSpinnerProps) {
+export function FullScreenSpinner({ visible = true, ...props }: FullScreenSpinnerProps) {
   if (!visible) return null
 
   return (

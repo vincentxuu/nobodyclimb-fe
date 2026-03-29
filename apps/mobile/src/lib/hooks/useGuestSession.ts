@@ -4,14 +4,14 @@
  * 對應 apps/web/src/lib/hooks/useGuestSession.ts
  * 追蹤未登入訪客的瀏覽行為，判斷是否達到分享資格
  */
-import { useEffect, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
+import { useAuthStore } from '@/store/authStore'
 import {
-  useGuestSessionStore,
   type GuestSession,
   SYNC_INTERVAL,
   TIME_TRACK_INTERVAL,
+  useGuestSessionStore,
 } from '@/store/guestSessionStore'
-import { useAuthStore } from '@/store/authStore'
 
 export type { GuestSession }
 

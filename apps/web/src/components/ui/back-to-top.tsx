@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronUp } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
 export const BackToTop: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false)

@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter, Link } from '@/i18n/navigation'
-import { Button } from '@/components/ui/button'
 import { useTranslations } from 'next-intl'
-import { useAuthStore } from '@/store/authStore'
-import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
-import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
+import { useState } from 'react'
+import { DEFAULT_AVATARS, generateAvatarElement } from '@/components/shared/avatar-options'
 import { NotificationCenter } from '@/components/shared/notification-center'
+import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Link, useRouter } from '@/i18n/navigation'
+import { useAuthStore } from '@/store/authStore'
 
 const menuItemBaseClass =
   "cursor-pointer font-['Noto_Sans_CJK_TC'] text-sm font-medium leading-5 tracking-[0.01em] hover:bg-gray-100"
@@ -159,10 +159,7 @@ export default function UserMenu() {
                       </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator className="my-1 bg-[#EBEAEA]" />
-                    <DropdownMenuItem
-                      className={logoutMenuItemClass}
-                      onClick={() => signOut()}
-                    >
+                    <DropdownMenuItem className={logoutMenuItemClass} onClick={() => signOut()}>
                       {t('logout')}
                     </DropdownMenuItem>
                   </>

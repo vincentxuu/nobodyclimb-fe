@@ -4,16 +4,16 @@
  * 精選故事區，對應 apps/web/src/components/home/featured-stories-section.tsx
  * 並行呼叫 3 個 popular API，合併排序後取不重複作者的前 3 筆
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { StyleSheet, View, Pressable, FlatList, Dimensions } from 'react-native'
-import { YStack, XStack } from 'tamagui'
-import { useRouter } from 'expo-router'
-import { ArrowRightCircle, Mountain, MessageCircle } from 'lucide-react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 
-import { Text, Button, Spinner, Avatar, Card, CardContent } from '@/components/ui'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ArrowRightCircle, MessageCircle, Mountain } from 'lucide-react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Dimensions, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import { XStack, YStack } from 'tamagui'
 import { FadeIn, SlideUp } from '@/components/animation'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { Avatar, Button, Card, CardContent, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -141,7 +141,11 @@ function StoryCard({ content, index }: { content: FeaturedContent; index: number
 
   const handlePress = () => {
     // 對齊 Web：連結到 /story/{type}/{id}
-    const typeMap = { 'core-story': 'core-stories', 'one-liner': 'one-liners', 'story': 'stories' } as const
+    const typeMap = {
+      'core-story': 'core-stories',
+      'one-liner': 'one-liners',
+      story: 'stories',
+    } as const
     const routeType = typeMap[content.type]
     router.push(`/story/${routeType}/${content.id}` as any)
   }
@@ -198,7 +202,9 @@ function StorySkeleton() {
       <Card style={styles.storyCard}>
         <CardContent style={styles.storyCardContent}>
           <View style={[styles.skeletonText, { width: 80 }]} />
-          <View style={[styles.skeletonText, { width: '100%', height: 60, marginTop: SPACING[2] }]} />
+          <View
+            style={[styles.skeletonText, { width: '100%', height: 60, marginTop: SPACING[2] }]}
+          />
           <View style={styles.authorSection}>
             <XStack alignItems="center" gap={SPACING[3]}>
               <View style={styles.skeletonAvatar} />
@@ -242,9 +248,7 @@ export function FeaturedStoriesSection() {
 
       const coreData = coreStoriesRes.data
       if (coreData?.success && coreData.data) {
-        allContents.push(
-          ...coreData.data.map((item) => ({ ...item, type: 'core-story' as const }))
-        )
+        allContents.push(...coreData.data.map((item) => ({ ...item, type: 'core-story' as const })))
       }
 
       const oneLinerData = oneLinersRes.data
@@ -256,9 +260,7 @@ export function FeaturedStoriesSection() {
 
       const storyData = storiesRes.data
       if (storyData?.success && storyData.data) {
-        allContents.push(
-          ...storyData.data.map((item) => ({ ...item, type: 'story' as const }))
-        )
+        allContents.push(...storyData.data.map((item) => ({ ...item, type: 'story' as const })))
       }
 
       // 根據 like_count 排序，選取不重複作者的前 3 個

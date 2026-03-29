@@ -15,10 +15,7 @@ const nextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../..'),
 
   // 排除開發依賴和不需要的套件，減少 bundle 大小
-  serverExternalPackages: [
-    'jsdom',
-    'isomorphic-dompurify',
-  ],
+  serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
 
   // 從 output file tracing 中排除開發依賴和未使用的套件
   outputFileTracingExcludes: {

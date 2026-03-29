@@ -3,25 +3,25 @@
  *
  * 對應 apps/web/src/app/auth/login/page.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
+
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ArrowRight, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  TextInput,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
-import { Eye, EyeOff, Mail, Lock, LogIn, ArrowRight } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { XStack, YStack } from 'tamagui'
+import { Button, Link, Spinner, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { Text, Button, Link, Spinner } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE, RADIUS } from '@nobodyclimb/constants'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -88,11 +88,7 @@ export default function LoginScreen() {
                     {error}
                   </Text>
                   <Pressable onPress={clearError}>
-                    <Text
-                      variant="small"
-                      color="textMain"
-                      style={styles.clearButton}
-                    >
+                    <Text variant="small" color="textMain" style={styles.clearButton}>
                       清除
                     </Text>
                   </Pressable>
@@ -103,11 +99,7 @@ export default function LoginScreen() {
               <YStack width="100%" gap={SPACING.md}>
                 {/* Email */}
                 <View style={styles.inputContainer}>
-                  <Mail
-                    size={16}
-                    color={SEMANTIC_COLORS.textMuted}
-                    style={styles.inputIcon}
-                  />
+                  <Mail size={16} color={SEMANTIC_COLORS.textMuted} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
                     placeholder="電子郵件"
@@ -123,11 +115,7 @@ export default function LoginScreen() {
                 {/* Password */}
                 <YStack gap={SPACING.xs}>
                   <View style={styles.inputContainer}>
-                    <Lock
-                      size={16}
-                      color={SEMANTIC_COLORS.textMuted}
-                      style={styles.inputIcon}
-                    />
+                    <Lock size={16} color={SEMANTIC_COLORS.textMuted} style={styles.inputIcon} />
                     <TextInput
                       style={styles.input}
                       placeholder="密碼"

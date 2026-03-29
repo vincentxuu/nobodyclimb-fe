@@ -1,7 +1,7 @@
 'use client'
 
+import { BADGE_COLORS, type BadgeDefinition, getBadgeById } from '@/lib/constants/badges'
 import { cn } from '@/lib/utils'
-import { type BadgeDefinition, getBadgeById, BADGE_COLORS } from '@/lib/constants/badges'
 
 interface BadgeIconProps {
   badge: BadgeDefinition | string

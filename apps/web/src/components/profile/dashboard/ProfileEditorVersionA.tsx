@@ -10,38 +10,38 @@
  * - 桌面體驗優先
  */
 
-import React, { useState, useCallback, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  User,
-  Gauge,
-  Link2,
   BookOpen,
-  Sparkles,
-  MapPin,
+  Check,
+  ChevronLeft,
+  Circle,
+  Gauge,
   Globe,
   ImageIcon,
+  Link2,
+  MapPin,
   Save,
-  ChevronLeft,
-  Check,
-  Circle,
+  Sparkles,
+  User,
 } from 'lucide-react'
+import React, { useCallback, useMemo, useState } from 'react'
+import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
 import { Button } from '@/components/ui/button'
-import { useProfile } from '../ProfileContext'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
-import { calculateStoryProgress, CORE_STORY_QUESTIONS } from '@/lib/constants/biography-stories'
+import { CORE_STORY_QUESTIONS, calculateStoryProgress } from '@/lib/constants/biography-stories'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import BasicInfoSection from '../BasicInfoSection'
-import ClimbingInfoSection from '../ClimbingInfoSection'
-import ClimbingExperienceSection from '../ClimbingExperienceSection'
-import SocialLinksSection from '../SocialLinksSection'
-import PublicSettingSection from '../PublicSettingSection'
 import BiographyAvatarSection from '../BiographyAvatarSection'
+import ClimbingExperienceSection from '../ClimbingExperienceSection'
 import ClimbingFootprintsSection from '../ClimbingFootprintsSection'
-import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
-import { SocialLinks, AdvancedStories } from '../types'
-import { mapProfileDataToApi, CORE_STORY_FIELD_MAP } from '../mappers'
+import ClimbingInfoSection from '../ClimbingInfoSection'
+import { CORE_STORY_FIELD_MAP, mapProfileDataToApi } from '../mappers'
+import { useProfile } from '../ProfileContext'
+import PublicSettingSection from '../PublicSettingSection'
+import SocialLinksSection from '../SocialLinksSection'
+import { AdvancedStories, SocialLinks } from '../types'
 
 type TabType =
   | 'avatar'
@@ -61,14 +61,54 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { id: 'avatar', icon: <ImageIcon className="h-4 w-4" />, title: '頭像與封面', description: '個人形象照片' },
-  { id: 'basic', icon: <User className="h-4 w-4" />, title: '基本資料', description: '暱稱、一句話介紹' },
-  { id: 'climbing', icon: <Gauge className="h-4 w-4" />, title: '攀岩資訊', description: '年資、常去的地方' },
-  { id: 'social', icon: <Link2 className="h-4 w-4" />, title: '社群連結', description: 'Instagram、YouTube' },
-  { id: 'core-stories', icon: <BookOpen className="h-4 w-4" />, title: '核心故事', description: '與攀岩的相遇' },
-  { id: 'advanced-stories', icon: <Sparkles className="h-4 w-4" />, title: '小故事', description: '更多攀岩故事' },
-  { id: 'footprints', icon: <MapPin className="h-4 w-4" />, title: '攀岩足跡', description: '去過的地點' },
-  { id: 'settings', icon: <Globe className="h-4 w-4" />, title: '公開設定', description: '隱私設定' },
+  {
+    id: 'avatar',
+    icon: <ImageIcon className="h-4 w-4" />,
+    title: '頭像與封面',
+    description: '個人形象照片',
+  },
+  {
+    id: 'basic',
+    icon: <User className="h-4 w-4" />,
+    title: '基本資料',
+    description: '暱稱、一句話介紹',
+  },
+  {
+    id: 'climbing',
+    icon: <Gauge className="h-4 w-4" />,
+    title: '攀岩資訊',
+    description: '年資、常去的地方',
+  },
+  {
+    id: 'social',
+    icon: <Link2 className="h-4 w-4" />,
+    title: '社群連結',
+    description: 'Instagram、YouTube',
+  },
+  {
+    id: 'core-stories',
+    icon: <BookOpen className="h-4 w-4" />,
+    title: '核心故事',
+    description: '與攀岩的相遇',
+  },
+  {
+    id: 'advanced-stories',
+    icon: <Sparkles className="h-4 w-4" />,
+    title: '小故事',
+    description: '更多攀岩故事',
+  },
+  {
+    id: 'footprints',
+    icon: <MapPin className="h-4 w-4" />,
+    title: '攀岩足跡',
+    description: '去過的地點',
+  },
+  {
+    id: 'settings',
+    icon: <Globe className="h-4 w-4" />,
+    title: '公開設定',
+    description: '隱私設定',
+  },
 ]
 
 interface ProfileEditorVersionAProps {
@@ -84,10 +124,7 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
   const [hasChanges, setHasChanges] = useState(false)
 
   // 快取當前 tab 配置，避免重複查詢
-  const activeTabConfig = useMemo(
-    () => TABS.find((t) => t.id === activeTab),
-    [activeTab]
-  )
+  const activeTabConfig = useMemo(() => TABS.find((t) => t.id === activeTab), [activeTab])
 
   // 計算完成狀態
   const getTabCompletion = (tabId: TabType): boolean => {
@@ -256,7 +293,9 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
       case 'advanced-stories':
         return (
           <AdvancedStoryEditor
-            biography={(profileData.advancedStories ?? {}) as AdvancedStories & Record<string, string>}
+            biography={
+              (profileData.advancedStories ?? {}) as AdvancedStories & Record<string, string>
+            }
             onSave={handleAdvancedStorySave}
             onClose={() => {}}
             className="max-h-none border-0 shadow-none"
@@ -292,11 +331,7 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
               )}
               <h1 className="text-lg font-semibold">編輯人物誌</h1>
             </div>
-            <Button
-              size="sm"
-              onClick={handleSaveAll}
-              disabled={isSaving || !hasChanges}
-            >
+            <Button size="sm" onClick={handleSaveAll} disabled={isSaving || !hasChanges}>
               {isSaving ? '儲存中...' : '儲存'}
             </Button>
           </div>
@@ -309,16 +344,12 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600'
+                    activeTab === tab.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
                   {tab.icon}
                   {tab.title}
-                  {getTabCompletion(tab.id) && (
-                    <Check className="h-3 w-3 text-green-400" />
-                  )}
+                  {getTabCompletion(tab.id) && <Check className="h-3 w-3 text-green-400" />}
                 </button>
               ))}
             </div>
@@ -399,11 +430,7 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
 
           {/* 儲存按鈕 */}
           <div className="mt-8 border-t pt-6">
-            <Button
-              className="w-full"
-              onClick={handleSaveAll}
-              disabled={isSaving || !hasChanges}
-            >
+            <Button className="w-full" onClick={handleSaveAll} disabled={isSaving || !hasChanges}>
               <Save className="mr-2 h-4 w-4" />
               {isSaving ? '儲存中...' : hasChanges ? '儲存變更' : '已儲存'}
             </Button>
@@ -427,12 +454,8 @@ export default function ProfileEditorVersionA({ onBack }: ProfileEditorVersionAP
               className="rounded-lg bg-white p-6 shadow-sm"
             >
               <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {activeTabConfig?.title}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {activeTabConfig?.description}
-                </p>
+                <h2 className="text-lg font-semibold text-gray-900">{activeTabConfig?.title}</h2>
+                <p className="text-sm text-gray-500">{activeTabConfig?.description}</p>
               </div>
               {renderTabContent()}
             </motion.div>

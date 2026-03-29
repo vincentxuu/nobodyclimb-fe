@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 import { normalizeNewlines } from '@/lib/utils'
 
 interface RelatedStory {
@@ -24,7 +23,7 @@ interface RelatedStoriesProps {
 const TYPE_LABELS = {
   'core-stories': '核心故事',
   'one-liners': '一句話',
-  'stories': '小故事',
+  stories: '小故事',
 }
 
 export function RelatedStories({ stories, authorName }: RelatedStoriesProps) {
@@ -35,9 +34,7 @@ export function RelatedStories({ stories, authorName }: RelatedStoriesProps) {
   return (
     <div className="mt-12">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-[#1B1A1A]">
-          來自 {authorName} 的更多故事
-        </h2>
+        <h2 className="text-xl font-semibold text-[#1B1A1A]">來自 {authorName} 的更多故事</h2>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

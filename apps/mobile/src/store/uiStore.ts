@@ -3,8 +3,9 @@
  *
  * 對應 apps/web/src/store/uiStore.ts
  */
+
+import { Appearance } from 'react-native'
 import { create } from 'zustand'
-import { Appearance, ColorSchemeName } from 'react-native'
 
 type ThemeMode = 'light' | 'dark' | 'system'
 

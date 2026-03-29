@@ -1,7 +1,6 @@
-import React from 'react'
 import { render } from '@testing-library/react-native'
-import { CircularProgress, ProgressBar, BarChart, StatCard } from '../progress-chart'
 import { BadgeShowcase } from '../badge-showcase'
+import { BarChart, CircularProgress, ProgressBar, StatCard } from '../progress-chart'
 
 describe('CircularProgress', () => {
   it('renders percentage text', () => {
@@ -9,7 +8,7 @@ describe('CircularProgress', () => {
     expect(getByText('75%')).toBeTruthy()
   })
   it('renders all size variants without crashing', () => {
-    (['sm', 'md', 'lg', 'xl'] as const).forEach(size => {
+    ;(['sm', 'md', 'lg', 'xl'] as const).forEach((size) => {
       expect(() => render(<CircularProgress value={50} size={size} />)).not.toThrow()
     })
   })
@@ -24,7 +23,10 @@ describe('ProgressBar', () => {
 
 describe('BarChart', () => {
   it('renders bar labels', () => {
-    const data = [{ label: '1月', value: 5 }, { label: '2月', value: 12 }]
+    const data = [
+      { label: '1月', value: 5 },
+      { label: '2月', value: 12 },
+    ]
     const { getByText } = render(<BarChart data={data} />)
     expect(getByText('1月')).toBeTruthy()
     expect(getByText('2月')).toBeTruthy()
@@ -48,7 +50,13 @@ describe('StatCard', () => {
 
 describe('BadgeShowcase', () => {
   const MOCK_BADGES = [
-    { id: '1', name: '初登頂', category: 'achievement', description: '首次完攀', earned_at: '2024-01-01' },
+    {
+      id: '1',
+      name: '初登頂',
+      category: 'achievement',
+      description: '首次完攀',
+      earned_at: '2024-01-01',
+    },
   ]
   it('renders badge names', () => {
     const { getByText } = render(<BadgeShowcase badges={MOCK_BADGES} />)

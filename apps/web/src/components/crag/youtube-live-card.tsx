@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
-import { Youtube, ExternalLink } from 'lucide-react'
+import { ExternalLink, Youtube } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import React from 'react'
 
 interface YouTubeLiveCardProps {
   videoId: string
@@ -47,11 +47,7 @@ export const YouTubeLiveCard: React.FC<YouTubeLiveCardProps> = ({
         />
       </div>
 
-      {description && (
-        <p className="mt-3 text-sm text-gray-500">
-          {description}
-        </p>
-      )}
+      {description && <p className="mt-3 text-sm text-gray-500">{description}</p>}
     </div>
   )
 }

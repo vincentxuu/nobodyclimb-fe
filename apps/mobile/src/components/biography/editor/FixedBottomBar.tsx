@@ -1,11 +1,10 @@
-import React from 'react'
-import { View, Pressable, ActivityIndicator } from 'react-native'
-import { XStack, Text } from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Eye, Loader2 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { SaveStatus } from '@nobodyclimb/types'
+import { useRouter } from 'expo-router'
+import { Eye } from 'lucide-react-native'
+import { ActivityIndicator, Pressable, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text, XStack } from 'tamagui'
 
 interface FixedBottomBarProps {
   /** 儲存狀態 */

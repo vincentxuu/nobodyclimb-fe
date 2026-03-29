@@ -18,15 +18,17 @@ const PopularityFilter: React.FC<PopularityFilterProps> = ({
   selectedPopularity,
   onPopularityChange,
 }) => {
-  const selectedLabel = VIDEO_POPULARITY_OPTIONS.find(opt => opt.value === selectedPopularity)?.label || '全部'
+  const selectedLabel =
+    VIDEO_POPULARITY_OPTIONS.find((opt) => opt.value === selectedPopularity)?.label || '全部'
 
   return (
     <div className="w-full md:w-40">
-      <Select value={selectedPopularity} onValueChange={(value) => onPopularityChange(value as VideoPopularity | 'all')}>
+      <Select
+        value={selectedPopularity}
+        onValueChange={(value) => onPopularityChange(value as VideoPopularity | 'all')}
+      >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="熱門程度">
-            {selectedLabel}
-          </SelectValue>
+          <SelectValue placeholder="熱門程度">{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {VIDEO_POPULARITY_OPTIONS.map((option) => (

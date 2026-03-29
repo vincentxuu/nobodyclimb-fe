@@ -1,6 +1,6 @@
-import { useMemo, useState, useCallback } from 'react'
-import { useDebounce } from './useDebounce'
+import { useCallback, useMemo, useState } from 'react'
 import type { RouteSidebarItem } from '@/lib/crag-data'
+import { useDebounce } from './useDebounce'
 
 // 預編譯的正則表達式（避免每次過濾時重新編譯）
 const GRADE_PATTERNS = {
@@ -57,28 +57,28 @@ export function useRouteFilter(routes: RouteSidebarItem[]): UseRouteFilterResult
 
   // 設置函數
   const setSearchQuery = useCallback((query: string) => {
-    setFilterState(prev => ({ ...prev, searchQuery: query }))
+    setFilterState((prev) => ({ ...prev, searchQuery: query }))
   }, [])
 
   const setSelectedArea = useCallback((area: string) => {
-    setFilterState(prev => ({
+    setFilterState((prev) => ({
       ...prev,
       selectedArea: area,
       // 區域改變時重置 sector
-      selectedSector: 'all'
+      selectedSector: 'all',
     }))
   }, [])
 
   const setSelectedSector = useCallback((sector: string) => {
-    setFilterState(prev => ({ ...prev, selectedSector: sector }))
+    setFilterState((prev) => ({ ...prev, selectedSector: sector }))
   }, [])
 
   const setSelectedGrade = useCallback((grade: string) => {
-    setFilterState(prev => ({ ...prev, selectedGrade: grade as GradeFilter }))
+    setFilterState((prev) => ({ ...prev, selectedGrade: grade as GradeFilter }))
   }, [])
 
   const setSelectedType = useCallback((type: string) => {
-    setFilterState(prev => ({ ...prev, selectedType: type }))
+    setFilterState((prev) => ({ ...prev, selectedType: type }))
   }, [])
 
   const resetFilters = useCallback(() => {

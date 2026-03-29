@@ -1,28 +1,33 @@
-import { GraphState } from '../state';
-import { startSpan, endSpan } from '../../../utils/langfuse';
+import { endSpan, startSpan } from '../../../utils/langfuse'
+import { GraphState } from '../state'
 
 export async function mmrNode(state: GraphState): Promise<Partial<GraphState>> {
   const span = startSpan(state.langfuseTrace ?? null, 'mmr', {
     candidateCount: (state.scoredCandidates ?? []).length,
-  });
+  })
   try {
     // Plan-and-Execute 已完成 synthesis，跳過 post-retrieval
     if (state.skipPostRetrieval) {
-      endSpan(span, { output: { skipped: true } });
+      endSpan(span, { output: { skipped: true } })
       return {
         rerankedMatches: (state.scoredCandidates ?? []).map((m) => ({ ...m, finalScore: m.score })),
         trace: { mmr_selection: { skipped_reason: 'skipPostRetrieval' } },
-      };
+      }
     }
 
-    const { pipelineConfig } = state;
-    const scoredCandidates = state.scoredCandidates ?? [];
-    const documents = state.documents ?? new Map();
-    const effectiveLimit = pipelineConfig.max_results;
+    const { pipelineConfig } = state
+    const scoredCandidates = state.scoredCandidates ?? []
+    const documents = state.documents ?? new Map()
+    const effectiveLimit = pipelineConfig.max_results
 
-    const mmrSelected = state.queryService.applyMMR(scoredCandidates, documents, pipelineConfig.mmr_lambda, effectiveLimit);
+    const mmrSelected = state.queryService.applyMMR(
+      scoredCandidates,
+      documents,
+      pipelineConfig.mmr_lambda,
+      effectiveLimit
+    )
 
-    endSpan(span, { output: { selectedCount: mmrSelected.length } });
+    endSpan(span, { output: { selectedCount: mmrSelected.length } })
     return {
       rerankedMatches: mmrSelected.map((m) => ({ ...m, finalScore: m.score })),
       trace: {
@@ -33,9 +38,9 @@ export async function mmrNode(state: GraphState): Promise<Partial<GraphState>> {
           popularity_weight: pipelineConfig.popularity_weight,
         },
       },
-    };
+    }
   } catch (err) {
-    endSpan(span, { level: 'ERROR', metadata: { error: String(err) } });
-    throw err;
+    endSpan(span, { level: 'ERROR', metadata: { error: String(err) } })
+    throw err
   }
 }

@@ -3,14 +3,8 @@
  *
  * FlatList 子項目進入動畫
  */
-import React, { useCallback, ReactElement } from 'react'
-import {
-  FlatList,
-  FlatListProps,
-  ListRenderItem,
-  ViewStyle,
-  StyleProp,
-} from 'react-native'
+import { ReactElement, useCallback } from 'react'
+import { FlatList, FlatListProps, ListRenderItem, StyleProp, ViewStyle } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 
 interface AnimatedListProps<T> extends Omit<FlatListProps<T>, 'renderItem'> {

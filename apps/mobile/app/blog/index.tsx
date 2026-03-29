@@ -3,24 +3,18 @@
  *
  * 對應 apps/web/src/app/blog/page.tsx
  */
-import React, { useState, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import { ChevronLeft, Calendar, User, ChevronRight, Plus } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, SearchInput, IconButton, Card, Button } from '@/components/ui'
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { Calendar, ChevronLeft, Plus, User } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Card, IconButton, SearchInput, Text } from '@/components/ui'
+import { type Post, usePosts } from '@/lib/hooks'
 import { useAuthStore } from '@/store/authStore'
-import { usePosts, type Post } from '@/lib/hooks'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface ArticleCardProps {
   article: Post
@@ -57,12 +51,7 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
               {article.title}
             </Text>
             {article.excerpt ? (
-              <Text
-                variant="small"
-                color="textSubtle"
-                numberOfLines={2}
-                style={styles.excerpt}
-              >
+              <Text variant="small" color="textSubtle" numberOfLines={2} style={styles.excerpt}>
                 {article.excerpt}
               </Text>
             ) : null}
@@ -119,11 +108,7 @@ export default function BlogListScreen() {
   )
 
   const renderItem = ({ item, index }: { item: Post; index: number }) => (
-    <ArticleCard
-      article={item}
-      onPress={() => handleArticlePress(item.id)}
-      index={index}
-    />
+    <ArticleCard article={item} onPress={() => handleArticlePress(item.id)} index={index} />
   )
 
   return (
@@ -177,9 +162,7 @@ export default function BlogListScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text color="textSubtle">
-                {searchTerm
-                  ? `找不到符合「${searchTerm}」的文章`
-                  : '暫無文章'}
+                {searchTerm ? `找不到符合「${searchTerm}」的文章` : '暫無文章'}
               </Text>
             </View>
           }

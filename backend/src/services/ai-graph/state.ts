@@ -1,7 +1,7 @@
-import { Annotation } from '@langchain/langgraph';
-import { PipelineContext } from '../pipeline/types';
-import { LangfuseTraceClient } from 'langfuse';
-import { AIProvider } from './providers/types';
+import { Annotation } from '@langchain/langgraph'
+import { LangfuseTraceClient } from 'langfuse'
+import { PipelineContext } from '../pipeline/types'
+import { AIProvider } from './providers/types'
 
 /**
  * LangGraph Graph State
@@ -59,6 +59,7 @@ export const GraphStateAnnotation = Annotation.Root({
   // Similar route
   isSimRouteSearch: Annotation<boolean | undefined>(),
   excludeRouteId: Annotation<string | null | undefined>(),
+  excludeRouteIds: Annotation<string[] | undefined>(),
   referenceRouteInfo: Annotation<string | null | undefined>(),
 
   // 預載資料
@@ -135,6 +136,7 @@ export const GraphStateAnnotation = Annotation.Root({
     reducer: (a, b) => [...(a ?? []), ...(b ?? [])],
   }),
   circuitBreaker: Annotation<PipelineContext['circuitBreaker']>(),
+  climbed_route_ids: Annotation<string[] | null | undefined>(),
 
   // ---------- LangGraph 新增欄位 ----------
   /** Langfuse trace 實例，由 GraphService 注入，nodes 用來建立 span */
@@ -143,6 +145,6 @@ export const GraphStateAnnotation = Annotation.Root({
   llmProvider: Annotation<AIProvider | undefined>(),
   /** 注入的 embedding provider，embedding node 透過此介面呼叫 embed */
   embeddingProvider: Annotation<AIProvider | undefined>(),
-});
+})
 
-export type GraphState = typeof GraphStateAnnotation.State;
+export type GraphState = typeof GraphStateAnnotation.State

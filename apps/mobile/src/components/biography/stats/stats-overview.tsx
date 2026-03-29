@@ -3,11 +3,11 @@
  *
  * 對應 apps/web/src/components/biography/stats/stats-overview.tsx
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import { Eye, Mountain, Users, Target, BookOpen, MapPin } from 'lucide-react-native'
+
 import { BRAND_YELLOW, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
-import { STORY_FIELD_COUNTS, type BiographyStats } from '@nobodyclimb/types'
+import { type BiographyStats, STORY_FIELD_COUNTS } from '@nobodyclimb/types'
+import { BookOpen, Eye, MapPin, Mountain, Target, Users } from 'lucide-react-native'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { Text } from '../../ui/Text'
 import { CircularProgress, ProgressBar, StatCard } from './progress-chart'
 
@@ -30,9 +30,7 @@ export function StatsOverview({ stats, style }: StatsOverviewProps) {
 
   // 計算目標完成率
   const goalCompletionRate =
-    stats.bucket_list.total > 0
-      ? (stats.bucket_list.completed / stats.bucket_list.total) * 100
-      : 0
+    stats.bucket_list.total > 0 ? (stats.bucket_list.completed / stats.bucket_list.total) * 100 : 0
 
   return (
     <View style={[styles.container, style]}>
@@ -90,11 +88,7 @@ export function StatsOverview({ stats, style }: StatsOverviewProps) {
             故事完成度
           </Text>
           <View style={styles.progressContent}>
-            <CircularProgress
-              value={storyCompletionRate}
-              size="lg"
-              color={BRAND_YELLOW[100]}
-            />
+            <CircularProgress value={storyCompletionRate} size="lg" color={BRAND_YELLOW[100]} />
             <View style={styles.progressBars}>
               <ProgressBar
                 value={stats.stories.core_completed}

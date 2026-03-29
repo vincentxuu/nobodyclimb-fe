@@ -3,31 +3,31 @@
  *
  * 對應 apps/web/src/app/auth/profile-setup/basic-info/page.tsx
  */
-import React, { useState, useCallback } from 'react'
+
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Camera, User } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
-import { User, Camera } from 'lucide-react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
-import { Text, Button, Avatar, ProgressBar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE, RADIUS } from '@nobodyclimb/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { XStack, YStack } from 'tamagui'
+import { Avatar, Button, ProgressBar, Text } from '@/components/ui'
 
 export default function BasicInfoScreen() {
   const router = useRouter()
 
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
-  const [avatarUri, setAvatarUri] = useState<string | null>(null)
+  const [avatarUri, _setAvatarUri] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   // 處理下一步
@@ -48,10 +48,7 @@ export default function BasicInfoScreen() {
   }, [displayName, router])
 
   // 處理選擇頭像
-  const handleSelectAvatar = useCallback(() => {
-    // TODO: 實作圖片選擇 (expo-image-picker)
-    console.log('選擇頭像')
-  }, [])
+  const handleSelectAvatar = useCallback(() => {}, [])
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -82,9 +79,7 @@ export default function BasicInfoScreen() {
               {/* 標題 */}
               <YStack gap={SPACING.xs}>
                 <Text variant="h2">完善您的個人資料</Text>
-                <Text color="textSubtle">
-                  讓其他攀岩愛好者認識您
-                </Text>
+                <Text color="textSubtle">讓其他攀岩愛好者認識您</Text>
               </YStack>
 
               {/* 頭像選擇 */}
@@ -159,9 +154,7 @@ export default function BasicInfoScreen() {
                   disabled={!displayName.trim() || isLoading}
                   style={styles.nextButton}
                 >
-                  <Text style={styles.buttonText}>
-                    {isLoading ? '處理中...' : '下一步'}
-                  </Text>
+                  <Text style={styles.buttonText}>{isLoading ? '處理中...' : '下一步'}</Text>
                 </Button>
                 <Button
                   variant="ghost"

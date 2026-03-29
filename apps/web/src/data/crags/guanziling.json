@@ -38,16 +38,8 @@
       "max": 18,
       "unit": "m"
     },
-    "seasons": [
-      "秋",
-      "冬",
-      "春"
-    ],
-    "seasonsEn": [
-      "Autumn",
-      "Winter",
-      "Spring"
-    ],
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
     "access": {
       "approach": "10-15分鐘徒步",
       "approachEn": "10-15 minutes hiking",
@@ -66,13 +58,7 @@
         }
       ]
     },
-    "amenities": [
-      "泥漿溫泉",
-      "餐廳",
-      "民宿",
-      "停車場",
-      "便利商店"
-    ],
+    "amenities": ["泥漿溫泉", "餐廳", "民宿", "停車場", "便利商店"],
     "amenitiesEn": [
       "Mud hot springs",
       "Restaurants",
@@ -210,9 +196,7 @@
       "description": "使用「雪山飛狐」同樣的第一個 Bolt，難關在路線中間 V3~V4，後半段只有耐力問題。",
       "boltCount": 10,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=1gPCPCeKtqs"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=1gPCPCeKtqs"]
     },
     {
       "id": "GZ-ULTIMATE-004",
@@ -348,9 +332,7 @@
       "description": "岩質不佳，可能是最容易崩岩的路線，有石灰岩點蝕特殊的紅白混合牆面。",
       "boltCount": 6,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Hcchhl1XB-4"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=Hcchhl1XB-4"]
     },
     {
       "id": "GZ-ASSEMBLING-001",
@@ -503,9 +485,7 @@
       "description": "集合場的簡單路線。",
       "boltCount": 4,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=R4Nibd60FHc"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=R4Nibd60FHc"]
     },
     {
       "id": "GZ-ASSEMBLING-009",
@@ -521,9 +501,7 @@
       "description": "需要很好的平衡技巧來克服第三個 Bolt 附近的難關。",
       "boltCount": 5,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=oM0Y7ERnpVQ"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=oM0Y7ERnpVQ"]
     },
     {
       "id": "GZ-ASSEMBLING-010",
@@ -634,9 +612,7 @@
       "description": "從台灣島左側起攀，攀過大外傾面到第五個 Bolt，橫渡大陸第五個 Bolt。需要指力及腳法技巧。",
       "boltCount": 6,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=tkgaSJoffrI"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=tkgaSJoffrI"]
     },
     {
       "id": "GZ-TAIWAN-007",

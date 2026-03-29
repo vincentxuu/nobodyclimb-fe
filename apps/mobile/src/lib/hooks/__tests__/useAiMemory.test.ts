@@ -1,8 +1,8 @@
-import { renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react-native'
 import React from 'react'
-import { useAiMemory, useDeleteAiMemory } from '../useAiMemory'
 import { apiClient } from '@/lib/api'
+import { useAiMemory, useDeleteAiMemory } from '../useAiMemory'
 
 jest.mock('@/lib/api')
 const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>
@@ -14,8 +14,20 @@ const createWrapper = () => {
 }
 
 const MOCK_MEMORIES = [
-  { id: '1', memory_key: 'climbing_level', memory_type: 'fact', content: '5.10a', updated_at: '2024-01-01T00:00:00Z' },
-  { id: '2', memory_key: 'preferred_region', memory_type: 'preference', content: '龍洞', updated_at: '2024-01-02T00:00:00Z' },
+  {
+    id: '1',
+    memory_key: 'climbing_level',
+    memory_type: 'fact',
+    content: '5.10a',
+    updated_at: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: '2',
+    memory_key: 'preferred_region',
+    memory_type: 'preference',
+    content: '龍洞',
+    updated_at: '2024-01-02T00:00:00Z',
+  },
 ]
 
 describe('useAiMemory', () => {

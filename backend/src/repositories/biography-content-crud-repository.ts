@@ -1,13 +1,5 @@
-import { D1Database } from '@cloudflare/workers-types';
-import {
-  BiographyCoreStory,
-  BiographyOneLiner,
-  BiographyStory,
-  CoreStoryQuestion,
-  OneLinerQuestion,
-  StoryCategory,
-  StoryQuestion,
-} from '../types';
+import { D1Database } from '@cloudflare/workers-types'
+import { CoreStoryQuestion, OneLinerQuestion, StoryCategory, StoryQuestion } from '../types'
 
 /**
  * 人物誌內容 CRUD 資料庫操作
@@ -23,10 +15,10 @@ export class BiographyContentCrudRepository {
    * 取得所有題目資料
    */
   async getAllQuestions(): Promise<{
-    coreQuestions: CoreStoryQuestion[];
-    oneLinerQuestions: OneLinerQuestion[];
-    storyCategories: StoryCategory[];
-    storyQuestions: StoryQuestion[];
+    coreQuestions: CoreStoryQuestion[]
+    oneLinerQuestions: OneLinerQuestion[]
+    storyCategories: StoryCategory[]
+    storyQuestions: StoryQuestion[]
   }> {
     const [coreQuestions, oneLinerQuestions, storyCategories, storyQuestions] = await Promise.all([
       this.db
@@ -53,14 +45,14 @@ export class BiographyContentCrudRepository {
            FROM story_questions WHERE is_active = 1 ORDER BY category_id, display_order`
         )
         .all<StoryQuestion>(),
-    ]);
+    ])
 
     return {
       coreQuestions: coreQuestions.results || [],
       oneLinerQuestions: oneLinerQuestions.results || [],
       storyCategories: storyCategories.results || [],
       storyQuestions: storyQuestions.results || [],
-    };
+    }
   }
 
   // ═══════════════════════════════════════════
@@ -80,9 +72,9 @@ export class BiographyContentCrudRepository {
          ORDER BY cs.display_order`
       )
       .bind(biographyId)
-      .all();
+      .all()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -97,21 +89,17 @@ export class BiographyContentCrudRepository {
          WHERE cs.id = ?`
       )
       .bind(storyId)
-      .first();
+      .first()
 
-    return result;
+    return result
   }
 
   /**
    * 新增或更新核心故事
    */
-  async upsertCoreStory(
-    biographyId: string,
-    questionId: string,
-    content: string
-  ): Promise<void> {
-    const now = new Date().toISOString();
-    const id = crypto.randomUUID();
+  async upsertCoreStory(biographyId: string, questionId: string, content: string): Promise<void> {
+    const now = new Date().toISOString()
+    const id = crypto.randomUUID()
 
     await this.db
       .prepare(
@@ -121,7 +109,7 @@ export class BiographyContentCrudRepository {
          DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at`
       )
       .bind(id, biographyId, questionId, content, now, now)
-      .run();
+      .run()
   }
 
   // ═══════════════════════════════════════════
@@ -141,9 +129,9 @@ export class BiographyContentCrudRepository {
          ORDER BY ol.display_order`
       )
       .bind(biographyId)
-      .all();
+      .all()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -158,9 +146,9 @@ export class BiographyContentCrudRepository {
          WHERE ol.id = ?`
       )
       .bind(oneLinerId)
-      .first();
+      .first()
 
-    return result;
+    return result
   }
 
   /**
@@ -173,8 +161,8 @@ export class BiographyContentCrudRepository {
     questionText: string | null = null,
     source: string = 'system'
   ): Promise<void> {
-    const now = new Date().toISOString();
-    const id = crypto.randomUUID();
+    const now = new Date().toISOString()
+    const id = crypto.randomUUID()
 
     await this.db
       .prepare(
@@ -184,17 +172,14 @@ export class BiographyContentCrudRepository {
          DO UPDATE SET answer = excluded.answer, question_text = excluded.question_text, updated_at = excluded.updated_at`
       )
       .bind(id, biographyId, questionId, questionText, answer, source, now, now)
-      .run();
+      .run()
   }
 
   /**
    * 刪除一句話
    */
   async deleteOneLiner(oneLinerId: string): Promise<void> {
-    await this.db
-      .prepare(`DELETE FROM biography_one_liners WHERE id = ?`)
-      .bind(oneLinerId)
-      .run();
+    await this.db.prepare(`DELETE FROM biography_one_liners WHERE id = ?`).bind(oneLinerId).run()
   }
 
   // ═══════════════════════════════════════════
@@ -211,19 +196,22 @@ export class BiographyContentCrudRepository {
       LEFT JOIN story_questions sq ON s.question_id = sq.id
       LEFT JOIN story_categories sc ON s.category_id = sc.id
       WHERE s.biography_id = ? AND s.is_hidden = 0
-    `;
-    const params: (string | number)[] = [biographyId];
+    `
+    const params: (string | number)[] = [biographyId]
 
     if (categoryId) {
-      query += ' AND s.category_id = ?';
-      params.push(categoryId);
+      query += ' AND s.category_id = ?'
+      params.push(categoryId)
     }
 
-    query += ' ORDER BY s.category_id, s.display_order';
+    query += ' ORDER BY s.category_id, s.display_order'
 
-    const result = await this.db.prepare(query).bind(...params).all();
+    const result = await this.db
+      .prepare(query)
+      .bind(...params)
+      .all()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -238,9 +226,9 @@ export class BiographyContentCrudRepository {
          WHERE s.id = ?`
       )
       .bind(storyId)
-      .first();
+      .first()
 
-    return result;
+    return result
   }
 
   /**
@@ -254,9 +242,9 @@ export class BiographyContentCrudRepository {
     questionText: string | null = null,
     source: string = 'system'
   ): Promise<void> {
-    const now = new Date().toISOString();
-    const id = crypto.randomUUID();
-    const wordCount = content.length;
+    const now = new Date().toISOString()
+    const id = crypto.randomUUID()
+    const wordCount = content.length
 
     await this.db
       .prepare(
@@ -265,18 +253,26 @@ export class BiographyContentCrudRepository {
          ON CONFLICT (biography_id, question_id)
          DO UPDATE SET content = excluded.content, question_text = excluded.question_text, category_id = excluded.category_id, character_count = excluded.character_count, updated_at = excluded.updated_at`
       )
-      .bind(id, biographyId, questionId, questionText, categoryId, content, source, wordCount, now, now)
-      .run();
+      .bind(
+        id,
+        biographyId,
+        questionId,
+        questionText,
+        categoryId,
+        content,
+        source,
+        wordCount,
+        now,
+        now
+      )
+      .run()
   }
 
   /**
    * 刪除小故事
    */
   async deleteStory(storyId: string): Promise<void> {
-    await this.db
-      .prepare(`DELETE FROM biography_stories WHERE id = ?`)
-      .bind(storyId)
-      .run();
+    await this.db.prepare(`DELETE FROM biography_stories WHERE id = ?`).bind(storyId).run()
   }
 
   // ═══════════════════════════════════════════
@@ -303,9 +299,9 @@ export class BiographyContentCrudRepository {
          LIMIT ?`
       )
       .bind(maxPerAuthor, limit)
-      .all();
+      .all()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -328,16 +324,20 @@ export class BiographyContentCrudRepository {
          LIMIT ?`
       )
       .bind(maxPerAuthor, limit)
-      .all();
+      .all()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
    * 取得熱門小故事（每位作者最多 2 則）
    */
-  async getPopularStories(limit: number = 10, categoryId?: string, maxPerAuthor: number = 2): Promise<any[]> {
-    const categoryFilter = categoryId ? 'AND s.category_id = ?' : '';
+  async getPopularStories(
+    limit: number = 10,
+    categoryId?: string,
+    maxPerAuthor: number = 2
+  ): Promise<any[]> {
+    const categoryFilter = categoryId ? 'AND s.category_id = ?' : ''
     const query = `
       WITH ranked AS (
         SELECT s.*, sq.title, sq.subtitle, sc.name as category_name, sc.icon as category_icon,
@@ -352,17 +352,20 @@ export class BiographyContentCrudRepository {
       SELECT * FROM ranked WHERE rn <= ?
       ORDER BY like_count DESC
       LIMIT ?
-    `;
+    `
 
-    const params: (string | number)[] = [];
+    const params: (string | number)[] = []
     if (categoryId) {
-      params.push(categoryId);
+      params.push(categoryId)
     }
-    params.push(maxPerAuthor, limit);
+    params.push(maxPerAuthor, limit)
 
-    const result = await this.db.prepare(query).bind(...params).all();
+    const result = await this.db
+      .prepare(query)
+      .bind(...params)
+      .all()
 
-    return result.results || [];
+    return result.results || []
   }
 
   // ═══════════════════════════════════════════
@@ -384,9 +387,9 @@ export class BiographyContentCrudRepository {
          WHERE cs.id = ? AND cs.is_hidden = 0`
       )
       .bind(storyId)
-      .first();
+      .first()
 
-    return result;
+    return result
   }
 
   /**
@@ -404,9 +407,9 @@ export class BiographyContentCrudRepository {
          WHERE ol.id = ? AND ol.is_hidden = 0`
       )
       .bind(oneLinerId)
-      .first();
+      .first()
 
-    return result;
+    return result
   }
 
   /**
@@ -425,9 +428,9 @@ export class BiographyContentCrudRepository {
          WHERE s.id = ? AND s.is_hidden = 0`
       )
       .bind(storyId)
-      .first();
+      .first()
 
-    return result;
+    return result
   }
 
   // ═══════════════════════════════════════════
@@ -441,8 +444,8 @@ export class BiographyContentCrudRepository {
     const result = await this.db
       .prepare(`SELECT user_id FROM biographies WHERE id = ?`)
       .bind(biographyId)
-      .first<{ user_id: string }>();
+      .first<{ user_id: string }>()
 
-    return result?.user_id || null;
+    return result?.user_id || null
   }
 }

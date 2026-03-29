@@ -3,11 +3,10 @@
  *
  * 匿名頭像，對應 apps/web/src/components/biography/display/AnonymousAvatar.tsx
  */
-import React from 'react'
-import { StyleSheet, View } from 'react-native'
-import { User } from 'lucide-react-native'
 
-import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { User } from 'lucide-react-native'
+import { StyleSheet, View } from 'react-native'
 
 interface AnonymousAvatarProps {
   /** 頭像尺寸 */

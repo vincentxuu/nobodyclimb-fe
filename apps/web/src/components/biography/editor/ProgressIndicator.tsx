@@ -1,8 +1,8 @@
 'use client'
 
+import { BarChart3, Check, ChevronRight, LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { Check, ChevronRight, BarChart3, LucideIcon } from 'lucide-react'
 
 interface ProgressIndicatorProps {
   /** 各區塊的完成狀態 */
@@ -80,9 +80,7 @@ export function ProgressIndicator({
             onClick={() => onSectionClick?.(section.id)}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left',
-              activeSection === section.id
-                ? 'bg-brand-accent/10'
-                : 'hover:bg-[#F5F5F5]',
+              activeSection === section.id ? 'bg-brand-accent/10' : 'hover:bg-[#F5F5F5]',
               !onSectionClick && 'cursor-default'
             )}
           >
@@ -90,9 +88,7 @@ export function ProgressIndicator({
             <div
               className={cn(
                 'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
-                section.isCompleted
-                  ? 'bg-brand-accent text-brand-dark'
-                  : 'bg-[#EBEAEA]'
+                section.isCompleted ? 'bg-brand-accent text-brand-dark' : 'bg-[#EBEAEA]'
               )}
             >
               {section.isCompleted ? (
@@ -105,10 +101,7 @@ export function ProgressIndicator({
             {/* Label & Progress */}
             <div className="flex-1 min-w-0">
               <span
-                className={cn(
-                  'text-sm',
-                  section.isCompleted ? 'text-[#1B1A1A]' : 'text-[#6D6C6C]'
-                )}
+                className={cn('text-sm', section.isCompleted ? 'text-[#1B1A1A]' : 'text-[#6D6C6C]')}
               >
                 {section.label}
               </span>
@@ -120,9 +113,7 @@ export function ProgressIndicator({
             </div>
 
             {/* Arrow */}
-            {onSectionClick && (
-              <ChevronRight size={16} className="text-[#B6B3B3]" />
-            )}
+            {onSectionClick && <ChevronRight size={16} className="text-[#B6B3B3]" />}
           </button>
         ))}
       </div>
@@ -130,9 +121,7 @@ export function ProgressIndicator({
       {/* Completion Message */}
       {overallProgress === 100 && (
         <div className="mt-4 p-3 bg-brand-accent/20 rounded-lg">
-          <p className="text-sm text-[#1B1A1A] text-center">
-            {t('progressComplete')}
-          </p>
+          <p className="text-sm text-[#1B1A1A] text-center">{t('progressComplete')}</p>
         </div>
       )}
     </div>

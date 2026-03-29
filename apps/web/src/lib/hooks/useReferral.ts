@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 
 /**
  * Valid referral sources (must match backend REFERRAL_SOURCES)

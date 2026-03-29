@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Edit2, Trash2, Eye, Loader2 } from 'lucide-react'
+import { Edit2, Eye, Loader2, Trash2 } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
+import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { postService } from '@/lib/api/services'
 import { useToast } from '@/components/ui/use-toast'
-import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
+import { postService } from '@/lib/api/services'
 
 // 文章類型定義
 interface Article {
@@ -52,12 +52,7 @@ const ArticleCard = ({ article, onDelete, isDeleting }: ArticleCardProps) => {
         {/* 封面圖片區域 */}
         <div className="relative h-[160px] w-full flex-shrink-0 overflow-hidden bg-gray-100 md:h-[120px] md:w-[200px]">
           {article.cover_image ? (
-            <Image
-              src={article.cover_image}
-              alt={article.title}
-              fill
-              className="object-cover"
-            />
+            <Image src={article.cover_image} alt={article.title} fill className="object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center text-gray-400">
               {t('noCoverImage')}
@@ -70,9 +65,7 @@ const ArticleCard = ({ article, onDelete, isDeleting }: ArticleCardProps) => {
           {/* 狀態和日期 */}
           <div className="mb-1 flex items-center justify-between md:mb-1">
             <div className="flex items-center gap-2">
-              <span
-                className={`rounded px-2 py-0.5 text-xs ${statusColor[article.status]}`}
-              >
+              <span className={`rounded px-2 py-0.5 text-xs ${statusColor[article.status]}`}>
                 {statusLabel[article.status]}
               </span>
               {article.tags && article.tags.length > 0 && (
@@ -142,50 +135,52 @@ const ArticleCard = ({ article, onDelete, isDeleting }: ArticleCardProps) => {
 const EmptyState = () => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="py-12 text-center">
-    <p className="mb-4 text-[#6D6C6C]">{t('noArticlesYet')}</p>
-    <Link href="/blog/create">
-      <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">{t('writeFirstArticle')}</Button>
-    </Link>
-  </div>
-)
+    <div className="py-12 text-center">
+      <p className="mb-4 text-[#6D6C6C]">{t('noArticlesYet')}</p>
+      <Link href="/blog/create">
+        <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+          {t('writeFirstArticle')}
+        </Button>
+      </Link>
+    </div>
+  )
 }
 
 // 載入狀態元件
 const LoadingState = () => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="flex items-center justify-center py-12">
-    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
-    <span className="ml-2 text-[#6D6C6C]">{t('loading')}</span>
-  </div>
-)
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
+      <span className="ml-2 text-[#6D6C6C]">{t('loading')}</span>
+    </div>
+  )
 }
 
 // 錯誤狀態元件
 const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void }) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="py-12 text-center">
-    <p className="mb-4 text-red-600">{message}</p>
-    <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
-      {t('retry')}
-    </Button>
-  </div>
-)
+    <div className="py-12 text-center">
+      <p className="mb-4 text-red-600">{message}</p>
+      <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+        {t('retry')}
+      </Button>
+    </div>
+  )
 }
 
 // 新增文章按鈕元件
 const NewArticleButton = () => {
   const t = useTranslations('ProfilePage')
   return (
-  <Link href="/blog/create">
-    <Button className="flex items-center gap-2 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
-      <Edit2 size={18} />
-      {t('publishArticle')}
-    </Button>
-  </Link>
-)
+    <Link href="/blog/create">
+      <Button className="flex items-center gap-2 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+        <Edit2 size={18} />
+        {t('publishArticle')}
+      </Button>
+    </Link>
+  )
 }
 
 export default function ArticlesPage() {

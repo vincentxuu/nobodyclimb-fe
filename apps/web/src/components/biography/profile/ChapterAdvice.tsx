@@ -1,13 +1,17 @@
 'use client'
 
-import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Lock, Loader2 } from 'lucide-react'
-import { biographyContentService } from '@/lib/api/services'
-import { useAdviceToSelfStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { normalizeNewlines } from '@/lib/utils'
+import { Loader2, Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useMemo } from 'react'
+import { biographyContentService } from '@/lib/api/services'
+import {
+  useAdviceToSelfStory,
+  useCoreStoryCommentMutation,
+  useCoreStoryLikeMutation,
+} from '@/lib/hooks/useCoreStories'
+import { normalizeNewlines } from '@/lib/utils'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 interface ChapterAdviceProps {
   biographyId: string
@@ -88,9 +92,7 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
           <span className="mb-2 inline-block text-sm font-medium uppercase tracking-wider text-brand-dark">
             {t('chapter4')}
           </span>
-          <h2 className="text-2xl font-semibold text-gray-900">
-            {t('chapter4Title')}
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('chapter4Title')}</h2>
         </div>
 
         {/* 內容框 - 像是一張便條紙 */}

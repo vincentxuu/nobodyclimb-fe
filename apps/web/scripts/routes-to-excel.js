@@ -92,7 +92,11 @@ function cragToExcelData(crag) {
     { 欄位: '最低高度', 值: crag.height?.min || '', 說明: '單位：公尺' },
     { 欄位: '最高高度', 值: crag.height?.max || '', 說明: '單位：公尺' },
     { 欄位: '適合季節', 值: (crag.seasons || []).join(', '), 說明: '春, 夏, 秋, 冬（逗號分隔）' },
-    { 欄位: '英文季節', 值: (crag.seasonsEn || []).join(', '), 說明: 'Spring, Summer, Autumn, Winter' },
+    {
+      欄位: '英文季節',
+      值: (crag.seasonsEn || []).join(', '),
+      說明: 'Spring, Summer, Autumn, Winter',
+    },
     { 欄位: '接近時間', 值: crag.access?.approach || '', 說明: '' },
     { 欄位: '英文接近時間', 值: crag.access?.approachEn || '', 說明: '' },
     { 欄位: '停車場', 值: crag.access?.parking || '', 說明: '' },
@@ -152,15 +156,12 @@ function routesToExcelData(routes, areaMap, cragId, cragName) {
 
 // 匯出單一岩場
 function exportCrag(cragId) {
-  console.log(`處理岩場: ${cragId}`)
-
   const data = readCragData(cragId)
   if (!data) return false
 
   const { crag, areas, routes } = data
 
   if (!routes || routes.length === 0) {
-    console.log(`  跳過: ${cragId} 沒有路線資料`)
     return false
   }
 
@@ -213,7 +214,10 @@ function exportCrag(cragId) {
     { 欄位: '圖片', 說明: '每行一個圖片路徑' },
     { 欄位: '---', 說明: '--- 路線資料 ---' },
     { 欄位: 'YouTube影片', 說明: '每行一個連結，支援 youtube.com/watch?v=xxx, youtu.be/xxx' },
-    { 欄位: 'Instagram貼文', 說明: '每行一個連結，支援 instagram.com/p/xxx, instagram.com/reel/xxx' },
+    {
+      欄位: 'Instagram貼文',
+      說明: '每行一個連結，支援 instagram.com/p/xxx, instagram.com/reel/xxx',
+    },
     { 欄位: '---', 說明: '--- 操作說明 ---' },
     { 欄位: '儲存格換行', 說明: 'Windows: Alt+Enter / Mac: Option+Enter' },
   ]
@@ -225,7 +229,6 @@ function exportCrag(cragId) {
   const outputPath = path.join(OUTPUT_DIR, `routes-${cragId}.xlsx`)
   XLSX.writeFile(workbook, outputPath)
 
-  console.log(`  完成: ${outputPath} (${routes.length} 條路線)`)
   return true
 }
 
@@ -233,8 +236,6 @@ function exportCrag(cragId) {
 function main() {
   const args = process.argv.slice(2)
   const targetCrag = args[0]
-
-  console.log('=== 路線資料匯出工具 ===\n')
 
   if (targetCrag) {
     // 匯出指定岩場
@@ -245,19 +246,14 @@ function main() {
   } else {
     // 匯出所有岩場
     const crags = getCragFiles()
-    console.log(`找到 ${crags.length} 個岩場檔案\n`)
 
-    let successCount = 0
+    let _successCount = 0
     for (const cragId of crags) {
       if (exportCrag(cragId)) {
-        successCount++
+        _successCount++
       }
     }
-
-    console.log(`\n總計匯出 ${successCount} 個岩場`)
   }
-
-  console.log(`\n輸出目錄: ${OUTPUT_DIR}`)
 }
 
 main()

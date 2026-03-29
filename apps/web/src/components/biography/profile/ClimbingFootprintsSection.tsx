@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, ChevronDown, ChevronUp, Calendar, Lock } from 'lucide-react'
-import { Biography, ClimbingLocationRecord } from '@/lib/types'
-import { climbingLocationService } from '@/lib/api/services'
-import { getCountryFlag } from '@/lib/utils/country'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, ChevronDown, ChevronUp, Loader2, Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { climbingLocationService } from '@/lib/api/services'
+import { Biography, ClimbingLocationRecord } from '@/lib/types'
+import { getCountryFlag } from '@/lib/utils/country'
 
 interface ClimbingFootprintsSectionProps {
   person: Biography
@@ -80,8 +80,9 @@ function TimelineLocationItem({
                 transition={{ duration: 0.2 }}
               >
                 <p
-                  className={`whitespace-pre-wrap text-sm leading-relaxed text-text-subtle ${!isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
-                    }`}
+                  className={`whitespace-pre-wrap text-sm leading-relaxed text-text-subtle ${
+                    !isExpanded && shouldShowExpandButton ? 'line-clamp-2' : ''
+                  }`}
                 >
                   {location.notes}
                 </p>
@@ -114,13 +115,7 @@ function TimelineLocationItem({
 /**
  * 時間軸年份區塊
  */
-function TimelineYearSection({
-  yearData,
-  index,
-}: {
-  yearData: TimelineYear
-  index: number
-}) {
+function TimelineYearSection({ yearData, index }: { yearData: TimelineYear; index: number }) {
   const t = useTranslations('BiographyPage')
   return (
     <motion.div
@@ -198,9 +193,7 @@ function StatsSummary({
  * 攀岩足跡區塊
  * 時間軸設計 - 按年份分組，展示攀岩旅程
  */
-export function ClimbingFootprintsSection({
-  person,
-}: ClimbingFootprintsSectionProps) {
+export function ClimbingFootprintsSection({ person }: ClimbingFootprintsSectionProps) {
   const t = useTranslations('BiographyPage')
   const [locations, setLocations] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -209,9 +202,7 @@ export function ClimbingFootprintsSection({
     const loadLocations = async () => {
       setLoading(true)
       try {
-        const response = await climbingLocationService.getBiographyLocations(
-          person.id
-        )
+        const response = await climbingLocationService.getBiographyLocations(person.id)
         if (response.success && response.data) {
           setLocations(response.data)
         }
@@ -271,12 +262,15 @@ export function ClimbingFootprintsSection({
   // 計算統計數據
   const countrySet = new Set(locations.map((loc) => loc.country))
   const countryCount = countrySet.size
-  const years = Object.keys(locationsByYear).map((y) => parseInt(y)).filter((y) => !isNaN(y))
-  const yearRange = years.length > 0
-    ? years.length === 1
-      ? `${Math.min(...years)}`
-      : `${Math.max(...years) - Math.min(...years) + 1} 年`
-    : '-'
+  const years = Object.keys(locationsByYear)
+    .map((y) => parseInt(y))
+    .filter((y) => !isNaN(y))
+  const yearRange =
+    years.length > 0
+      ? years.length === 1
+        ? `${Math.min(...years)}`
+        : `${Math.max(...years) - Math.min(...years) + 1} 年`
+      : '-'
 
   return (
     <section className="bg-gradient-to-b from-page-bg to-white py-16">
@@ -313,11 +307,7 @@ export function ClimbingFootprintsSection({
               {/* 年份區塊 */}
               <div className="space-y-8">
                 {timelineData.map((yearData, index) => (
-                  <TimelineYearSection
-                    key={yearData.year}
-                    yearData={yearData}
-                    index={index}
-                  />
+                  <TimelineYearSection key={yearData.year} yearData={yearData} index={index} />
                 ))}
               </div>
 
@@ -338,14 +328,15 @@ export function ClimbingFootprintsSection({
           </>
         ) : (
           /* 沒有資料時的預設內容 */
-          <div className="flex flex-col items-center justify-center py-12 text-center" data-placeholder="true">
+          <div
+            className="flex flex-col items-center justify-center py-12 text-center"
+            data-placeholder="true"
+          >
             <div className="flex items-center gap-2 text-lg text-gray-400">
               <Lock size={18} />
               <span>{t('footprintsPlaceholder', { name: person.name })}</span>
             </div>
-            <p className="mt-2 text-sm text-gray-400">
-              {t('footprintsSubPlaceholder')}
-            </p>
+            <p className="mt-2 text-sm text-gray-400">{t('footprintsSubPlaceholder')}</p>
           </div>
         )}
       </div>

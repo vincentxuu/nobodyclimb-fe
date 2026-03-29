@@ -5,18 +5,18 @@
  * 串接 GET /biographies/featured API 取得真實資料
  * 豐富卡片設計：封面圖 + 頭像 + 名稱 + 標語 + 一句話 + 標籤 + CTA
  */
-import React, { useState, useEffect, useRef } from 'react'
-import { StyleSheet, View, Pressable, Image } from 'react-native'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
-import { ChevronRight, ArrowRight, Sparkles, Mountain } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, Avatar, Card, CardContent, Button, Skeleton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS, WB_COLORS, BORDER_RADIUS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import type { Biography } from '@nobodyclimb/types'
+import { useRouter } from 'expo-router'
+import { ArrowRight, Mountain, Sparkles } from 'lucide-react-native'
+import { useEffect, useRef, useState } from 'react'
+import { Image, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { YStack } from 'tamagui'
+import { Avatar, Button, Skeleton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import type { Biography } from '@nobodyclimb/types'
 
 // ============================================
 // 一句話問題定義與解析
@@ -101,10 +101,7 @@ interface DisplayTag {
 /**
  * 從 tags_data JSON 取得最多 maxCount 個標籤
  */
-function getDisplayTags(
-  tagsJson: string | null | undefined,
-  maxCount = 3
-): DisplayTag[] {
+function getDisplayTags(tagsJson: string | null | undefined, maxCount = 3): DisplayTag[] {
   if (!tagsJson) return []
 
   try {
@@ -226,10 +223,7 @@ function BiographyCard({ item, index }: { item: Biography; index: number }) {
           <View style={styles.contentContainer}>
             {/* 頭像 - 與封面重疊 */}
             <View style={styles.avatarWrapper}>
-              <Avatar
-                size="lg"
-                source={item.avatar_url ? { uri: item.avatar_url } : undefined}
-              />
+              <Avatar size="lg" source={item.avatar_url ? { uri: item.avatar_url } : undefined} />
             </View>
 
             {/* 姓名 + 標語 */}
@@ -262,10 +256,7 @@ function BiographyCard({ item, index }: { item: Biography; index: number }) {
                 {tags.map((tag) => (
                   <View
                     key={tag.id}
-                    style={[
-                      styles.tag,
-                      tag.isCustom ? styles.tagCustom : styles.tagDefault,
-                    ]}
+                    style={[styles.tag, tag.isCustom ? styles.tagCustom : styles.tagDefault]}
                   >
                     {tag.isCustom && (
                       <Sparkles size={10} color={WB_COLORS[100]} style={{ marginRight: 2 }} />
@@ -285,9 +276,7 @@ function BiographyCard({ item, index }: { item: Biography; index: number }) {
 
             {/* CTA 按鈕 */}
             <View style={styles.cardCta}>
-              <Text style={styles.cardCtaText}>
-                看 {displayName} 的故事
-              </Text>
+              <Text style={styles.cardCtaText}>看 {displayName} 的故事</Text>
               <ArrowRight size={14} color={WB_COLORS[100]} />
             </View>
           </View>
@@ -420,20 +409,11 @@ export function BiographySection() {
       {/* 雙重 CTA */}
       <YStack gap={SPACING.sm} style={{ marginTop: SPACING.sm }}>
         {!isLoggedIn && (
-          <Button
-            variant="primary"
-            onPress={handleCreateStory}
-            fullWidth
-            style={styles.ctaAccent}
-          >
+          <Button variant="primary" onPress={handleCreateStory} fullWidth style={styles.ctaAccent}>
             <Text style={styles.ctaAccentText}>建立我的人物誌</Text>
           </Button>
         )}
-        <Button
-          variant="outline"
-          onPress={handleViewAll}
-          fullWidth
-        >
+        <Button variant="outline" onPress={handleViewAll} fullWidth>
           <Text style={styles.ctaOutlineText}>認識更多小人物</Text>
         </Button>
       </YStack>

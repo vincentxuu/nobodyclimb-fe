@@ -4,14 +4,12 @@
  * 下拉選擇器，與 apps/web/src/components/ui/select.tsx 對應
  * 使用 BottomSheet 顯示選項 (Native)
  */
-import React, { useCallback, useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, FlatList, View } from 'react-native'
-import { ChevronDown, Check } from 'lucide-react-native'
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetView,
-} from '@gorhom/bottom-sheet'
-import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Check, ChevronDown } from 'lucide-react-native'
+import { useCallback, useMemo, useRef } from 'react'
+import { FlatList, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from './Text'
 
 export interface SelectOption {
@@ -66,13 +64,7 @@ export function Select({
   )
 
   const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-      />
-    ),
+    (props: any) => <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />,
     []
   )
 
@@ -95,9 +87,7 @@ export function Select({
           >
             {item.label}
           </Text>
-          {isSelected && (
-            <Check size={20} color={SEMANTIC_COLORS.textMain} />
-          )}
+          {isSelected && <Check size={20} color={SEMANTIC_COLORS.textMain} />}
         </Pressable>
       )
     },
@@ -109,15 +99,9 @@ export function Select({
       <Pressable
         onPress={handleOpen}
         disabled={disabled}
-        style={[
-          styles.trigger,
-          disabled && styles.triggerDisabled,
-        ]}
+        style={[styles.trigger, disabled && styles.triggerDisabled]}
       >
-        <Text
-          color={selectedOption ? 'textMain' : 'textSubtle'}
-          style={styles.triggerText}
-        >
+        <Text color={selectedOption ? 'textMain' : 'textSubtle'} style={styles.triggerText}>
           {selectedOption?.label || placeholder}
         </Text>
         <ChevronDown

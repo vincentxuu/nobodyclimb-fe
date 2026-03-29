@@ -100,8 +100,6 @@ function main() {
   const args = process.argv.slice(2)
   const targetCrag = args[0]
 
-  console.log('=== 路線關鍵字匯出工具 ===\n')
-
   let cragsToProcess = []
   if (targetCrag) {
     cragsToProcess = [targetCrag]
@@ -109,20 +107,27 @@ function main() {
     cragsToProcess = getCragFiles()
   }
 
-  console.log(`處理 ${cragsToProcess.length} 個岩場\n`)
-
   // 收集所有資料
   const allData = []
 
   for (const cragId of cragsToProcess) {
-    console.log(`處理: ${cragId}`)
     const result = processCrag(cragId)
     if (result) {
       allData.push(result)
 
       // 輸出單一岩場 CSV
       const csvRows = [
-        ['岩場', '岩場英文', '區域', '區域英文', '路線ID', '路線名稱', '路線英文名', '難度', '搜尋關鍵字'].join(','),
+        [
+          '岩場',
+          '岩場英文',
+          '區域',
+          '區域英文',
+          '路線ID',
+          '路線名稱',
+          '路線英文名',
+          '難度',
+          '搜尋關鍵字',
+        ].join(','),
       ]
 
       // 按區域排序
@@ -138,12 +143,10 @@ function main() {
 
         for (const route of routes) {
           const mainName = extractMainName(route.name)
-          const mainNameEn = extractMainName(route.nameEn)
+          const _mainNameEn = extractMainName(route.nameEn)
 
           // 建立搜尋關鍵字
-          const keywords = [result.crag.name, area.name, mainName]
-            .filter((k) => k)
-            .join(' ')
+          const keywords = [result.crag.name, area.name, mainName].filter((k) => k).join(' ')
 
           csvRows.push(
             [
@@ -163,14 +166,23 @@ function main() {
 
       const outputPath = path.join(OUTPUT_DIR, `keywords-${cragId}.csv`)
       fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
-      console.log(`  ✅ ${outputPath} (${result.routes.length} 條路線)`)
     }
   }
 
   // 如果處理多個岩場，輸出合併的 CSV
   if (allData.length > 1) {
     const csvRows = [
-      ['岩場', '岩場英文', '區域', '區域英文', '路線ID', '路線名稱', '路線英文名', '難度', '搜尋關鍵字'].join(','),
+      [
+        '岩場',
+        '岩場英文',
+        '區域',
+        '區域英文',
+        '路線ID',
+        '路線名稱',
+        '路線英文名',
+        '難度',
+        '搜尋關鍵字',
+      ].join(','),
     ]
 
     for (const data of allData) {
@@ -186,9 +198,7 @@ function main() {
 
         for (const route of routes) {
           const mainName = extractMainName(route.name)
-          const keywords = [data.crag.name, area.name, mainName]
-            .filter((k) => k)
-            .join(' ')
+          const keywords = [data.crag.name, area.name, mainName].filter((k) => k).join(' ')
 
           csvRows.push(
             [
@@ -209,12 +219,10 @@ function main() {
 
     const outputPath = path.join(OUTPUT_DIR, 'keywords-all.csv')
     fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
-    console.log(`\n✅ 合併輸出: ${outputPath}`)
   }
 
   // 統計
-  const totalRoutes = allData.reduce((sum, d) => sum + d.routes.length, 0)
-  console.log(`\n總計: ${allData.length} 個岩場, ${totalRoutes} 條路線`)
+  const _totalRoutes = allData.reduce((sum, d) => sum + d.routes.length, 0)
 }
 
 main()

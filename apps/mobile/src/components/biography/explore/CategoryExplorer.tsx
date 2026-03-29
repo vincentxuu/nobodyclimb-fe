@@ -3,24 +3,24 @@
  *
  * 依分類探索，對應 apps/web/src/components/biography/explore/category-explorer.tsx
  */
-import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator, ScrollView } from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import Animated, { FadeIn } from 'react-native-reanimated'
 import {
-  Lightbulb,
-  Mountain,
-  Target,
-  Dumbbell,
-  Trophy,
-  Plane,
   BookOpen,
   ChevronRight,
+  Dumbbell,
+  Lightbulb,
+  Mountain,
+  Plane,
+  Target,
+  Trophy,
 } from 'lucide-react-native'
-
-import { Text, Card } from '@/components/ui'
+import React, { useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 // 類型定義
 type BucketListCategory =

@@ -5,18 +5,18 @@
 
 import type { LucideIcon } from 'lucide-react'
 import {
-  Sprout,
-  Edit3,
-  Sparkles,
-  Flame,
-  Target,
   Award,
-  Trophy,
-  Mountain,
-  MessageCircle,
+  Edit3,
   Eye,
+  Flame,
   Globe,
+  MessageCircle,
+  Mountain,
   Plane,
+  Sparkles,
+  Sprout,
+  Target,
+  Trophy,
 } from 'lucide-react'
 
 /**

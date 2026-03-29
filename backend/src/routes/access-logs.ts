@@ -1,24 +1,23 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute } from 'hono-openapi';
-import { Env } from '../types';
-import { authMiddleware, adminMiddleware } from '../middleware/auth';
+import { Hono } from 'hono'
+import { describeRoute } from 'hono-openapi'
+import { adminMiddleware, authMiddleware } from '../middleware/auth'
+import { Env } from '../types'
 
-export const accessLogsRoutes = new Hono<{ Bindings: Env }>();
+export const accessLogsRoutes = new Hono<{ Bindings: Env }>()
 
 // 常數定義
-const MAX_LIMIT = 1000;
-const DEFAULT_LIMIT = 100;
-const DEFAULT_HOURS = 24;
+const MAX_LIMIT = 1000
+const DEFAULT_LIMIT = 100
+const DEFAULT_HOURS = 24
 
 /**
  * 安全的 parseInt，返回有效數字或預設值
  */
 function safeParseInt(value: string | undefined, defaultValue: number, max?: number): number {
-  const parsed = parseInt(value || '', 10);
-  if (isNaN(parsed) || parsed < 1) return defaultValue;
-  if (max && parsed > max) return max;
-  return parsed;
+  const parsed = parseInt(value || '', 10)
+  if (isNaN(parsed) || parsed < 1) return defaultValue
+  if (max && parsed > max) return max
+  return parsed
 }
 
 /**
@@ -27,16 +26,16 @@ function safeParseInt(value: string | undefined, defaultValue: number, max?: num
 function sanitizePath(path: string): string | null {
   // 只允許常見的 URL 路徑字元
   if (!/^[a-zA-Z0-9\/_\-.:?&=%]{1,200}$/.test(path)) {
-    return null;
+    return null
   }
-  return path.replace(/'/g, "''");
+  return path.replace(/'/g, "''")
 }
 
 /**
  * 檢查 Analytics Engine 是否已設定
  */
 function isAnalyticsEngineConfigured(env: Env): boolean {
-  return !!(env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN);
+  return !!(env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN)
 }
 
 /**
@@ -44,18 +43,18 @@ function isAnalyticsEngineConfigured(env: Env): boolean {
  * 文檔: https://developers.cloudflare.com/analytics/analytics-engine/sql-api/
  */
 function getDataset(env: Env): string {
-  return env.ANALYTICS_DATASET ?? 'nobodyclimb_access_logs';
+  return env.ANALYTICS_DATASET ?? 'nobodyclimb_access_logs'
 }
 
 async function queryAnalyticsEngine(
   env: Env,
   sql: string
 ): Promise<{ data: unknown[]; meta: unknown }> {
-  const accountId = env.CLOUDFLARE_ACCOUNT_ID;
-  const apiToken = env.CLOUDFLARE_API_TOKEN;
+  const accountId = env.CLOUDFLARE_ACCOUNT_ID
+  const apiToken = env.CLOUDFLARE_API_TOKEN
 
   if (!accountId || !apiToken) {
-    throw new Error('ANALYTICS_NOT_CONFIGURED');
+    throw new Error('ANALYTICS_NOT_CONFIGURED')
   }
 
   const response = await fetch(
@@ -63,19 +62,19 @@ async function queryAnalyticsEngine(
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiToken}`,
+        Authorization: `Bearer ${apiToken}`,
         'Content-Type': 'text/plain',
       },
       body: sql,
     }
-  );
+  )
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Analytics Engine 查詢失敗: ${error}`);
+    const error = await response.text()
+    throw new Error(`Analytics Engine 查詢失敗: ${error}`)
   }
 
-  return response.json();
+  return response.json()
 }
 
 /**
@@ -107,51 +106,52 @@ accessLogsRoutes.get(
   authMiddleware,
   adminMiddleware,
   async (c) => {
-  try {
-    const env = c.env as Env;
+    try {
+      const env = c.env as Env
 
-    // 檢查 Analytics Engine 是否已設定
-    if (!isAnalyticsEngineConfigured(env)) {
-      return c.json({
-        success: true,
-        data: [],
-        meta: {},
-        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
-      });
-    }
-    const { limit, offset, path, method, status } = c.req.query();
-
-    // 安全解析數字參數
-    const limitNum = safeParseInt(limit, DEFAULT_LIMIT, MAX_LIMIT);
-    const offsetNum = safeParseInt(offset, 0);
-
-    // 建立查詢條件
-    const conditions: string[] = [];
-
-    // path 過濾 (blob2)
-    if (path) {
-      const sanitizedPath = sanitizePath(path);
-      if (sanitizedPath) {
-        conditions.push(`blob2 LIKE '%${sanitizedPath}%'`);
+      // 檢查 Analytics Engine 是否已設定
+      if (!isAnalyticsEngineConfigured(env)) {
+        return c.json({
+          success: true,
+          data: [],
+          meta: {},
+          message:
+            'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+        })
       }
-    }
+      const { limit, offset, path, method, status } = c.req.query()
 
-    // method 過濾 (blob1)
-    if (method && /^[A-Z]{3,7}$/.test(method.toUpperCase())) {
-      conditions.push(`blob1 = '${method.toUpperCase()}'`);
-    }
+      // 安全解析數字參數
+      const limitNum = safeParseInt(limit, DEFAULT_LIMIT, MAX_LIMIT)
+      const offsetNum = safeParseInt(offset, 0)
 
-    // status 過濾
-    if (status) {
-      const statusNum = safeParseInt(status, 0);
-      if (statusNum >= 100 && statusNum < 600) {
-        conditions.push(`blob7 = '${statusNum}'`);
+      // 建立查詢條件
+      const conditions: string[] = []
+
+      // path 過濾 (blob2)
+      if (path) {
+        const sanitizedPath = sanitizePath(path)
+        if (sanitizedPath) {
+          conditions.push(`blob2 LIKE '%${sanitizedPath}%'`)
+        }
       }
-    }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      // method 過濾 (blob1)
+      if (method && /^[A-Z]{3,7}$/.test(method.toUpperCase())) {
+        conditions.push(`blob1 = '${method.toUpperCase()}'`)
+      }
 
-    const sql = `
+      // status 過濾
+      if (status) {
+        const statusNum = safeParseInt(status, 0)
+        if (statusNum >= 100 && statusNum < 600) {
+          conditions.push(`blob7 = '${statusNum}'`)
+        }
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+      const sql = `
       SELECT
         timestamp,
         blob1 AS method,
@@ -167,27 +167,28 @@ accessLogsRoutes.get(
       ORDER BY timestamp DESC
       LIMIT ${limitNum}
       OFFSET ${offsetNum}
-    `;
+    `
 
-    const result = await queryAnalyticsEngine(env, sql);
+      const result = await queryAnalyticsEngine(env, sql)
 
-    return c.json({
-      success: true,
-      data: result.data,
-      meta: result.meta,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return c.json(
-      {
-        success: false,
-        error: 'Failed to fetch access logs',
-        message,
-      },
-      500
-    );
+      return c.json({
+        success: true,
+        data: result.data,
+        meta: result.meta,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      return c.json(
+        {
+          success: false,
+          error: 'Failed to fetch access logs',
+          message,
+        },
+        500
+      )
+    }
   }
-});
+)
 
 /**
  * GET /access-logs/summary
@@ -218,29 +219,36 @@ accessLogsRoutes.get(
   authMiddleware,
   adminMiddleware,
   async (c) => {
-  try {
-    const env = c.env as Env;
+    try {
+      const env = c.env as Env
 
-    // 檢查 Analytics Engine 是否已設定
-    if (!isAnalyticsEngineConfigured(env)) {
-      return c.json({
-        success: true,
-        data: {
-          summary: { totalRequests: 0, avgResponseTime: 0, successCount: 0, clientErrorCount: 0, serverErrorCount: 0 },
-          topPaths: [],
-          hourlyRequests: [],
-          countryDistribution: [],
-          methodDistribution: [],
-        },
-        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
-      });
-    }
+      // 檢查 Analytics Engine 是否已設定
+      if (!isAnalyticsEngineConfigured(env)) {
+        return c.json({
+          success: true,
+          data: {
+            summary: {
+              totalRequests: 0,
+              avgResponseTime: 0,
+              successCount: 0,
+              clientErrorCount: 0,
+              serverErrorCount: 0,
+            },
+            topPaths: [],
+            hourlyRequests: [],
+            countryDistribution: [],
+            methodDistribution: [],
+          },
+          message:
+            'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+        })
+      }
 
-    const { hours } = c.req.query();
-    const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168); // 最多 7 天
+      const { hours } = c.req.query()
+      const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168) // 最多 7 天
 
-    // 總請求數和平均響應時間
-    const summarySQL = `
+      // 總請求數和平均響應時間
+      const summarySQL = `
       SELECT
         COUNT() AS totalRequests,
         countIf(blob7 >= '200' AND blob7 < '300') AS successCount,
@@ -248,10 +256,10 @@ accessLogsRoutes.get(
         countIf(blob7 >= '500') AS serverErrorCount
       FROM ${getDataset(env)}
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
-    `;
+    `
 
-    // 熱門路徑
-    const topPathsSQL = `
+      // 熱門路徑
+      const topPathsSQL = `
       SELECT
         blob2 AS path,
         COUNT() AS count
@@ -260,10 +268,10 @@ accessLogsRoutes.get(
       GROUP BY blob2
       ORDER BY count DESC
       LIMIT 10
-    `;
+    `
 
-    // 每小時請求數
-    const hourlySQL = `
+      // 每小時請求數
+      const hourlySQL = `
       SELECT
         toStartOfHour(timestamp) AS hour,
         COUNT() AS count
@@ -271,10 +279,10 @@ accessLogsRoutes.get(
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY hour
       ORDER BY hour ASC
-    `;
+    `
 
-    // 國家分布
-    const countrySQL = `
+      // 國家分布
+      const countrySQL = `
       SELECT
         blob4 AS country,
         COUNT() AS count
@@ -283,10 +291,10 @@ accessLogsRoutes.get(
       GROUP BY blob4
       ORDER BY count DESC
       LIMIT 10
-    `;
+    `
 
-    // HTTP 方法分布
-    const methodSQL = `
+      // HTTP 方法分布
+      const methodSQL = `
       SELECT
         blob1 AS method,
         COUNT() AS count
@@ -294,39 +302,40 @@ accessLogsRoutes.get(
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       GROUP BY blob1
       ORDER BY count DESC
-    `;
+    `
 
-    // 並行查詢
-    const [summary, topPaths, hourly, countries, methods] = await Promise.all([
-      queryAnalyticsEngine(env, summarySQL),
-      queryAnalyticsEngine(env, topPathsSQL),
-      queryAnalyticsEngine(env, hourlySQL),
-      queryAnalyticsEngine(env, countrySQL),
-      queryAnalyticsEngine(env, methodSQL),
-    ]);
+      // 並行查詢
+      const [summary, topPaths, hourly, countries, methods] = await Promise.all([
+        queryAnalyticsEngine(env, summarySQL),
+        queryAnalyticsEngine(env, topPathsSQL),
+        queryAnalyticsEngine(env, hourlySQL),
+        queryAnalyticsEngine(env, countrySQL),
+        queryAnalyticsEngine(env, methodSQL),
+      ])
 
-    return c.json({
-      success: true,
-      data: {
-        summary: summary.data[0] || {},
-        topPaths: topPaths.data,
-        hourlyRequests: hourly.data,
-        countryDistribution: countries.data,
-        methodDistribution: methods.data,
-      },
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return c.json(
-      {
-        success: false,
-        error: 'Failed to fetch access logs summary',
-        message,
-      },
-      500
-    );
+      return c.json({
+        success: true,
+        data: {
+          summary: summary.data[0] || {},
+          topPaths: topPaths.data,
+          hourlyRequests: hourly.data,
+          countryDistribution: countries.data,
+          methodDistribution: methods.data,
+        },
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      return c.json(
+        {
+          success: false,
+          error: 'Failed to fetch access logs summary',
+          message,
+        },
+        500
+      )
+    }
   }
-});
+)
 
 /**
  * GET /access-logs/errors
@@ -357,23 +366,24 @@ accessLogsRoutes.get(
   authMiddleware,
   adminMiddleware,
   async (c) => {
-  try {
-    const env = c.env as Env;
+    try {
+      const env = c.env as Env
 
-    // 檢查 Analytics Engine 是否已設定
-    if (!isAnalyticsEngineConfigured(env)) {
-      return c.json({
-        success: true,
-        data: [],
-        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
-      });
-    }
+      // 檢查 Analytics Engine 是否已設定
+      if (!isAnalyticsEngineConfigured(env)) {
+        return c.json({
+          success: true,
+          data: [],
+          message:
+            'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+        })
+      }
 
-    const { hours, limit } = c.req.query();
-    const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168);
-    const limitNum = safeParseInt(limit, 50, MAX_LIMIT);
+      const { hours, limit } = c.req.query()
+      const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168)
+      const limitNum = safeParseInt(limit, 50, MAX_LIMIT)
 
-    const sql = `
+      const sql = `
       SELECT
         timestamp,
         blob1 AS method,
@@ -387,26 +397,27 @@ accessLogsRoutes.get(
         AND timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY timestamp DESC
       LIMIT ${limitNum}
-    `;
+    `
 
-    const result = await queryAnalyticsEngine(env, sql);
+      const result = await queryAnalyticsEngine(env, sql)
 
-    return c.json({
-      success: true,
-      data: result.data,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return c.json(
-      {
-        success: false,
-        error: 'Failed to fetch error logs',
-        message,
-      },
-      500
-    );
+      return c.json({
+        success: true,
+        data: result.data,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      return c.json(
+        {
+          success: false,
+          error: 'Failed to fetch error logs',
+          message,
+        },
+        500
+      )
+    }
   }
-});
+)
 
 /**
  * GET /access-logs/slow
@@ -437,24 +448,25 @@ accessLogsRoutes.get(
   authMiddleware,
   adminMiddleware,
   async (c) => {
-  try {
-    const env = c.env as Env;
+    try {
+      const env = c.env as Env
 
-    // 檢查 Analytics Engine 是否已設定
-    if (!isAnalyticsEngineConfigured(env)) {
-      return c.json({
-        success: true,
-        data: [],
-        message: 'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
-      });
-    }
+      // 檢查 Analytics Engine 是否已設定
+      if (!isAnalyticsEngineConfigured(env)) {
+        return c.json({
+          success: true,
+          data: [],
+          message:
+            'Analytics Engine 尚未設定。請設定 CLOUDFLARE_ACCOUNT_ID 和 CLOUDFLARE_API_TOKEN 環境變數。',
+        })
+      }
 
-    const { hours, threshold, limit } = c.req.query();
-    const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168);
-    const thresholdMs = safeParseInt(threshold, 1000, 60000); // 預設 1 秒，最多 60 秒
-    const limitNum = safeParseInt(limit, 50, MAX_LIMIT);
+      const { hours, threshold, limit } = c.req.query()
+      const hoursNum = safeParseInt(hours, DEFAULT_HOURS, 168)
+      const _thresholdMs = safeParseInt(threshold, 1000, 60000) // 預設 1 秒，最多 60 秒
+      const limitNum = safeParseInt(limit, 50, MAX_LIMIT)
 
-    const sql = `
+      const sql = `
       SELECT
         timestamp,
         blob1 AS method,
@@ -465,23 +477,24 @@ accessLogsRoutes.get(
       WHERE timestamp >= NOW() - INTERVAL '${hoursNum}' HOUR
       ORDER BY timestamp DESC
       LIMIT ${limitNum}
-    `;
+    `
 
-    const result = await queryAnalyticsEngine(env, sql);
+      const result = await queryAnalyticsEngine(env, sql)
 
-    return c.json({
-      success: true,
-      data: result.data,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return c.json(
-      {
-        success: false,
-        error: 'Failed to fetch slow request logs',
-        message,
-      },
-      500
-    );
+      return c.json({
+        success: true,
+        data: result.data,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      return c.json(
+        {
+          success: false,
+          error: 'Failed to fetch slow request logs',
+          message,
+        },
+        500
+      )
+    }
   }
-});
+)

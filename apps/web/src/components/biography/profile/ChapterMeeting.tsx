@@ -1,12 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Lock, Loader2 } from 'lucide-react'
-import { biographyContentService } from '@/lib/api/services'
-import { useClimbingOriginStory, useCoreStoryLikeMutation, useCoreStoryCommentMutation } from '@/lib/hooks/useCoreStories'
-import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { normalizeNewlines } from '@/lib/utils'
+import { Loader2, Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { biographyContentService } from '@/lib/api/services'
+import {
+  useClimbingOriginStory,
+  useCoreStoryCommentMutation,
+  useCoreStoryLikeMutation,
+} from '@/lib/hooks/useCoreStories'
+import { normalizeNewlines } from '@/lib/utils'
+import { ContentInteractionBar } from '../display/ContentInteractionBar'
 
 interface ChapterMeetingProps {
   biographyId: string
@@ -54,7 +58,9 @@ export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
   }
 
   const isPlaceholder = !story?.content
-  const paragraphs = normalizeNewlines(story?.content).split('\n').filter((p) => p.trim())
+  const paragraphs = normalizeNewlines(story?.content)
+    .split('\n')
+    .filter((p) => p.trim())
 
   return (
     <motion.section
@@ -69,9 +75,7 @@ export function ChapterMeeting({ biographyId }: ChapterMeetingProps) {
         <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
           {t('chapter1')}
         </span>
-        <h2 className="mt-2 text-2xl font-bold text-gray-900">
-          {t('chapter1Title')}
-        </h2>
+        <h2 className="mt-2 text-2xl font-bold text-gray-900">{t('chapter1Title')}</h2>
       </div>
 
       {/* 文字內容 */}

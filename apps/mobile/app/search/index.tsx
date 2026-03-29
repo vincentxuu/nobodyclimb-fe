@@ -3,21 +3,21 @@
  *
  * 對應 apps/web/src/app/search/page.tsx
  */
-import React, { useState, useCallback, useMemo } from 'react'
-import { StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
-import { IconButton, SearchInput } from '@/components/ui'
+import { useMemo, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   SearchFilters,
   SearchResults,
-  type SearchType,
   type SearchStatus,
+  type SearchType,
 } from '@/components/search'
-import { useSearch } from '@/lib/hooks'
-import { useDebounce } from '@/lib/hooks'
+import { IconButton, SearchInput } from '@/components/ui'
+import { useDebounce, useSearch } from '@/lib/hooks'
 
 export default function SearchScreen() {
   const router = useRouter()
@@ -25,9 +25,7 @@ export default function SearchScreen() {
 
   // 狀態
   const [searchQuery, setSearchQuery] = useState(params.q || '')
-  const [activeTab, setActiveTab] = useState<SearchType>(
-    (params.type as SearchType) || 'all'
-  )
+  const [activeTab, setActiveTab] = useState<SearchType>((params.type as SearchType) || 'all')
 
   // 使用 debounce 避免每次按鍵都發送 API 請求
   const debouncedQuery = useDebounce(searchQuery, 300)
@@ -81,11 +79,7 @@ export default function SearchScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header - 搜尋輸入 */}
       <View style={styles.header}>
-        <IconButton
-          icon={ChevronLeft}
-          onPress={handleBack}
-          variant="ghost"
-        />
+        <IconButton icon={ChevronLeft} onPress={handleBack} variant="ghost" />
         <View style={styles.headerSearch}>
           <SearchInput
             value={searchQuery}

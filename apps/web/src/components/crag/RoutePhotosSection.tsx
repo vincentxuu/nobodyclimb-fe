@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Camera, Plus, LogIn, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/lib/hooks'
-import { useRouteStories } from '@/lib/hooks/useRouteStories'
-import { useAscents } from '@/lib/hooks/useAscents'
-import { RouteMediaForm } from '@/components/crag/RouteMediaForm'
-import type { RouteStory, RouteStoryFormData } from '@/lib/types/route-story'
-import type { UserRouteAscent } from '@/lib/types/ascent'
-import { useToast } from '@/components/ui/use-toast'
+import { Camera, ChevronLeft, ChevronRight, LogIn, Plus, X } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { RouteMediaForm } from '@/components/crag/RouteMediaForm'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/lib/hooks'
+import { useAscents } from '@/lib/hooks/useAscents'
+import { useRouteStories } from '@/lib/hooks/useRouteStories'
+import type { UserRouteAscent } from '@/lib/types/ascent'
+import type { RouteStory, RouteStoryFormData } from '@/lib/types/route-story'
 
 interface RoutePhotosSectionProps {
   routeId: string
@@ -183,16 +183,9 @@ export function RoutePhotosSection({
           <div className="rounded-lg bg-gray-50 py-6 text-center text-gray-500">
             <Camera className="mx-auto mb-2 h-10 w-10 text-gray-300" />
             <p className="text-sm">{t('noPhotos')}</p>
-            <p className="mt-1 text-xs text-gray-400">
-              {t('noPhotosHint')}
-            </p>
+            <p className="mt-1 text-xs text-gray-400">{t('noPhotosHint')}</p>
             {isSignedIn && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setIsFormOpen(true)}
-                className="mt-2"
-              >
+              <Button variant="link" size="sm" onClick={() => setIsFormOpen(true)} className="mt-2">
                 {t('beFirstToShare')}
               </Button>
             )}

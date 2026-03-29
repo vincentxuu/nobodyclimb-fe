@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertCircle, CheckCircle, Loader2, MapPin, Upload, X } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -68,11 +68,7 @@ const compressImageFile = async (file: File): Promise<{ file: File; wasCompresse
   }
 }
 
-const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
-  isOpen,
-  onClose,
-  onSuccess,
-}) => {
+const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({ isOpen, onClose, onSuccess }) => {
   const [files, setFiles] = useState<FileWithPreview[]>([])
   const filesRef = useRef<FileWithPreview[]>([])
   const [caption, setCaption] = useState('')
@@ -81,7 +77,10 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   const [locationSpot, setLocationSpot] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isCompressing, setIsCompressing] = useState(false)
-  const [compressProgress, setCompressProgress] = useState<{ current: number; total: number } | null>(null)
+  const [compressProgress, setCompressProgress] = useState<{
+    current: number
+    total: number
+  } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
 
@@ -102,77 +101,80 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
   }, [])
 
   // Process, validate and compress files, then set state
-  const processFiles = useCallback(async (selectedFiles: FileList | File[]) => {
-    const fileArray = Array.from(selectedFiles)
+  const processFiles = useCallback(
+    async (selectedFiles: FileList | File[]) => {
+      const fileArray = Array.from(selectedFiles)
 
-    // Check total count limit
-    if (files.length + fileArray.length > MAX_FILE_COUNT) {
-      setError(`最多只能上傳 ${MAX_FILE_COUNT} 張照片`)
-      return
-    }
-
-    // First validate file types
-    const typeErrors: string[] = []
-    const filesToProcess: File[] = []
-
-    fileArray.forEach((file) => {
-      const typeError = validateFileType(file)
-      if (typeError) {
-        typeErrors.push(typeError)
-      } else {
-        filesToProcess.push(file)
+      // Check total count limit
+      if (files.length + fileArray.length > MAX_FILE_COUNT) {
+        setError(`最多只能上傳 ${MAX_FILE_COUNT} 張照片`)
+        return
       }
-    })
 
-    if (typeErrors.length > 0) {
-      setError(typeErrors.join('\n'))
-      if (filesToProcess.length === 0) return
-    } else {
-      setError(null)
-    }
+      // First validate file types
+      const typeErrors: string[] = []
+      const filesToProcess: File[] = []
 
-    // Process files with compression
-    setIsCompressing(true)
-    setCompressProgress({ current: 0, total: filesToProcess.length })
-
-    const validFiles: FileWithPreview[] = []
-    const compressionErrors: string[] = []
-
-    for (let i = 0; i < filesToProcess.length; i++) {
-      const file = filesToProcess[i]
-      setCompressProgress({ current: i + 1, total: filesToProcess.length })
-
-      try {
-        const originalSize = file.size
-        const { file: processedFile, wasCompressed } = await compressImageFile(file)
-        const id = crypto.randomUUID()
-
-        validFiles.push({
-          file: processedFile,
-          preview: URL.createObjectURL(processedFile),
-          id,
-          originalSize: wasCompressed ? originalSize : undefined,
-          wasCompressed,
-        })
-      } catch (err) {
-        compressionErrors.push(err instanceof Error ? err.message : `處理 ${file.name} 失敗`)
-      }
-    }
-
-    setIsCompressing(false)
-    setCompressProgress(null)
-
-    if (compressionErrors.length > 0) {
-      setError((prev) => {
-        const combined = [prev, ...compressionErrors].filter(Boolean).join('\n')
-        return combined
+      fileArray.forEach((file) => {
+        const typeError = validateFileType(file)
+        if (typeError) {
+          typeErrors.push(typeError)
+        } else {
+          filesToProcess.push(file)
+        }
       })
-    }
 
-    if (validFiles.length > 0) {
-      setFiles((prev) => [...prev, ...validFiles])
-    }
-  }, [files.length])
+      if (typeErrors.length > 0) {
+        setError(typeErrors.join('\n'))
+        if (filesToProcess.length === 0) return
+      } else {
+        setError(null)
+      }
+
+      // Process files with compression
+      setIsCompressing(true)
+      setCompressProgress({ current: 0, total: filesToProcess.length })
+
+      const validFiles: FileWithPreview[] = []
+      const compressionErrors: string[] = []
+
+      for (let i = 0; i < filesToProcess.length; i++) {
+        const file = filesToProcess[i]
+        setCompressProgress({ current: i + 1, total: filesToProcess.length })
+
+        try {
+          const originalSize = file.size
+          const { file: processedFile, wasCompressed } = await compressImageFile(file)
+          const id = crypto.randomUUID()
+
+          validFiles.push({
+            file: processedFile,
+            preview: URL.createObjectURL(processedFile),
+            id,
+            originalSize: wasCompressed ? originalSize : undefined,
+            wasCompressed,
+          })
+        } catch (err) {
+          compressionErrors.push(err instanceof Error ? err.message : `處理 ${file.name} 失敗`)
+        }
+      }
+
+      setIsCompressing(false)
+      setCompressProgress(null)
+
+      if (compressionErrors.length > 0) {
+        setError((prev) => {
+          const combined = [prev, ...compressionErrors].filter(Boolean).join('\n')
+          return combined
+        })
+      }
+
+      if (validFiles.length > 0) {
+        setFiles((prev) => [...prev, ...validFiles])
+      }
+    },
+    [files.length]
+  )
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -264,9 +266,7 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
 
         // Update status to success
         setUploadStatuses((prev) =>
-          prev.map((s) =>
-            s.id === fileItem.id ? { ...s, status: 'success' } : s
-          )
+          prev.map((s) => (s.id === fileItem.id ? { ...s, status: 'success' } : s))
         )
 
         // Call onSuccess for each uploaded photo
@@ -434,10 +434,10 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
                               status.status === 'uploading'
                                 ? 'bg-black bg-opacity-50'
                                 : status.status === 'success'
-                                ? 'bg-green-500 bg-opacity-50'
-                                : status.status === 'error'
-                                ? 'bg-red-500 bg-opacity-50'
-                                : ''
+                                  ? 'bg-green-500 bg-opacity-50'
+                                  : status.status === 'error'
+                                    ? 'bg-red-500 bg-opacity-50'
+                                    : ''
                             }`}
                           >
                             {status.status === 'uploading' && (
@@ -465,12 +465,17 @@ const UploadPhotoDialog: React.FC<UploadPhotoDialogProps> = ({
                           </button>
                         )}
                         {/* File size indicator with compression info */}
-                        <div className={`absolute bottom-0 left-0 right-0 px-1 py-0.5 text-xs text-white text-center ${
-                          fileItem.wasCompressed ? 'bg-amber-600 bg-opacity-80' : 'bg-black bg-opacity-50'
-                        }`}>
+                        <div
+                          className={`absolute bottom-0 left-0 right-0 px-1 py-0.5 text-xs text-white text-center ${
+                            fileItem.wasCompressed
+                              ? 'bg-amber-600 bg-opacity-80'
+                              : 'bg-black bg-opacity-50'
+                          }`}
+                        >
                           {fileItem.wasCompressed && fileItem.originalSize ? (
                             <span title={`原始: ${(fileItem.originalSize / 1024).toFixed(0)}KB`}>
-                              {(fileItem.originalSize / 1024).toFixed(0)}→{(fileItem.file.size / 1024).toFixed(0)}KB
+                              {(fileItem.originalSize / 1024).toFixed(0)}→
+                              {(fileItem.file.size / 1024).toFixed(0)}KB
                             </span>
                           ) : (
                             `${(fileItem.file.size / 1024).toFixed(0)}KB`

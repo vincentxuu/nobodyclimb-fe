@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { AlertCircle, Check, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { Loader2, Check, AlertCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import type { SaveStatus } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface AutoSaveIndicatorProps {
   /** 儲存狀態 */
@@ -37,9 +37,7 @@ export function AutoSaveIndicator({
 
     const updateTimeAgo = () => {
       const now = new Date()
-      const diffInSeconds = Math.floor(
-        (now.getTime() - lastSavedAt.getTime()) / 1000
-      )
+      const diffInSeconds = Math.floor((now.getTime() - lastSavedAt.getTime()) / 1000)
 
       if (diffInSeconds < 5) {
         setTimeAgo(t('justNow'))
@@ -86,11 +84,7 @@ export function AutoSaveIndicator({
       case 'idle':
       default:
         if (lastSavedAt) {
-          return (
-            <span className="text-sm text-[#6D6C6C]">
-              {t('lastSaved', { time: timeAgo })}
-            </span>
-          )
+          return <span className="text-sm text-[#6D6C6C]">{t('lastSaved', { time: timeAgo })}</span>
         }
         return null
     }

@@ -1,7 +1,7 @@
-import { View, Pressable, StyleSheet, Linking } from 'react-native'
-import { Mountain, MapPin, Play, ExternalLink } from 'lucide-react-native'
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ExternalLink, MapPin, Mountain, Play } from 'lucide-react-native'
+import { Linking, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { SPACING, WB_COLORS, BORDER_RADIUS } from '@nobodyclimb/constants'
 import type { AISource } from '@/lib/hooks/useRecommendations'
 
 const SOURCE_ICONS = {
@@ -18,16 +18,17 @@ export function SourceCard({ source }: SourceCardProps) {
   const Icon = SOURCE_ICONS[source.type]
 
   return (
-    <Pressable
-      style={styles.card}
-      onPress={() => Linking.openURL(source.url).catch(() => {})}
-    >
+    <Pressable style={styles.card} onPress={() => Linking.openURL(source.url).catch(() => {})}>
       <View style={styles.iconWrapper}>
         <Icon size={16} color={WB_COLORS[60]} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>{source.title}</Text>
-        <Text style={styles.excerpt} numberOfLines={2}>{source.excerpt}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {source.title}
+        </Text>
+        <Text style={styles.excerpt} numberOfLines={2}>
+          {source.excerpt}
+        </Text>
       </View>
       <ExternalLink size={14} color={WB_COLORS[40]} />
     </Pressable>

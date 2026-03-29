@@ -1,23 +1,23 @@
 'use client'
 
-import { PostCategory, getCategoryLabel } from '@/lib/types'
 import {
-  Sprout,
-  Newspaper,
   Backpack,
-  Lightbulb,
-  Dumbbell,
-  Map,
-  Globe,
   Building2,
-  Plane,
-  Trophy,
   Calendar,
-  Users,
-  HeartPulse,
+  Dumbbell,
   FileText,
+  Globe,
+  HeartPulse,
+  Lightbulb,
   LucideIcon,
+  Map,
+  Newspaper,
+  Plane,
+  Sprout,
+  Trophy,
+  Users,
 } from 'lucide-react'
+import { getCategoryLabel, PostCategory } from '@/lib/types'
 
 /**
  * 背景圖案類型
@@ -211,7 +211,6 @@ export function ArticleCoverGenerator({
           </span>
         )}
       </div>
-
     </div>
   )
 }
@@ -254,12 +253,7 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
     waves: (
       <svg className="absolute inset-0 h-full w-full opacity-[0.15]" preserveAspectRatio="none">
         <pattern id="waves" width="60" height="12" patternUnits="userSpaceOnUse">
-          <path
-            d="M0 6 Q 15 0, 30 6 T 60 6"
-            fill="none"
-            stroke="white"
-            strokeWidth="1.5"
-          />
+          <path d="M0 6 Q 15 0, 30 6 T 60 6" fill="none" stroke="white" strokeWidth="1.5" />
         </pattern>
         <rect width="100%" height="100%" fill="url(#waves)" />
       </svg>

@@ -3,32 +3,26 @@
  *
  * 對應 apps/web/src/app/games/rope-system/page.tsx
  */
-import React, { useState, useEffect } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter } from 'expo-router'
 import {
-  ChevronLeft,
-  ChevronRight,
-  Trophy,
   BookOpen,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Lock,
+  Trophy,
   Volume2,
   VolumeX,
 } from 'lucide-react-native'
+import { useEffect } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
-import { Text, IconButton, Button } from '@/components/ui'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { IconButton, Text } from '@/components/ui'
 import { useRopeGameStore } from '@/store/ropeGameStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface Category {
   id: string
@@ -166,9 +160,7 @@ function CategoryCard({ category, progress, onPress, index, totalScore }: Catego
         {isUnlocked && (
           <View style={styles.progressSection}>
             <View style={styles.progressBar}>
-              <View
-                style={[styles.progressFill, { width: `${progressPercent}%` }]}
-              />
+              <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
             </View>
             <Text variant="small" color="textMuted">
               {progress?.answeredQuestions || 0}/{category.questionsCount} 題
@@ -182,14 +174,8 @@ function CategoryCard({ category, progress, onPress, index, totalScore }: Catego
 
 export default function RopeSystemGameScreen() {
   const router = useRouter()
-  const {
-    progress,
-    totalScore,
-    soundEnabled,
-    isInitialized,
-    initProgress,
-    toggleSound,
-  } = useRopeGameStore()
+  const { progress, totalScore, soundEnabled, isInitialized, initProgress, toggleSound } =
+    useRopeGameStore()
 
   useEffect(() => {
     if (!isInitialized) {
@@ -242,10 +228,7 @@ export default function RopeSystemGameScreen() {
 
       <ScrollView style={styles.scrollView}>
         {/* 統計區 */}
-        <LinearGradient
-          colors={['#1B1A1A', '#333333']}
-          style={styles.statsSection}
-        >
+        <LinearGradient colors={['#1B1A1A', '#333333']} style={styles.statsSection}>
           <View style={styles.statsContent}>
             <View style={styles.statItem}>
               <Trophy size={24} color="#FFE70C" />

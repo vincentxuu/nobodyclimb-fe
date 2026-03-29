@@ -3,14 +3,14 @@
  *
  * 圖片選擇器，封裝 expo-image-picker
  */
-import React, { useCallback } from 'react'
-import { StyleSheet, View, Pressable, Alert } from 'react-native'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import * as ExpoImagePicker from 'expo-image-picker'
 import { Camera, Image as ImageIcon, X } from 'lucide-react-native'
+import { useCallback } from 'react'
+import { Alert, Pressable, StyleSheet, View } from 'react-native'
 import { YStack } from 'tamagui'
-
-import { Text, Button, BottomSheet } from '@/components/ui'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Text } from '@/components/ui'
 
 interface ImagePickerProps {
   /** 當前圖片 URI */
@@ -42,11 +42,7 @@ export function ImagePicker({
   const requestCameraPermission = useCallback(async () => {
     const { status } = await ExpoImagePicker.requestCameraPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert(
-        '需要相機權限',
-        '請在設定中允許存取相機',
-        [{ text: '確定' }]
-      )
+      Alert.alert('需要相機權限', '請在設定中允許存取相機', [{ text: '確定' }])
       return false
     }
     return true
@@ -56,11 +52,7 @@ export function ImagePicker({
   const requestMediaLibraryPermission = useCallback(async () => {
     const { status } = await ExpoImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
-      Alert.alert(
-        '需要相簿權限',
-        '請在設定中允許存取照片',
-        [{ text: '確定' }]
-      )
+      Alert.alert('需要相簿權限', '請在設定中允許存取照片', [{ text: '確定' }])
       return false
     }
     return true
@@ -112,7 +104,9 @@ export function ImagePicker({
       [
         { text: '拍照', onPress: handleTakePhoto },
         { text: '從相簿選擇', onPress: handlePickImage },
-        ...(value ? [{ text: '移除圖片', onPress: handleRemove, style: 'destructive' as const }] : []),
+        ...(value
+          ? [{ text: '移除圖片', onPress: handleRemove, style: 'destructive' as const }]
+          : []),
         { text: '取消', style: 'cancel' as const },
       ],
       { cancelable: true }

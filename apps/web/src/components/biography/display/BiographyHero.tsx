@@ -1,17 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  ArrowLeftRight,
+  ArrowUpDown,
+  BarChart3,
+  Clock,
+  Eye,
+  Globe,
+  MessageCircle,
+  TrendingUp,
+  Users,
+} from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { ShareButton } from '@/components/shared/share-button'
+import type { BiographyV2, GradeTarget, SocialLinks } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
 import { getDefaultCoverUrl } from '@/lib/utils/image'
-import { Clock, BarChart3, Globe, Eye, Users, MessageCircle, ArrowUpDown, ArrowLeftRight, TrendingUp } from 'lucide-react'
-import type { BiographyV2, SocialLinks, GradeTarget } from '@/lib/types/biography-v2'
-import { FollowButton } from '../follow-button'
-import { BiographyLikeButton } from '../biography-like-button'
-import { ShareButton } from '@/components/shared/share-button'
 import { BiographyCommentSection } from '../biography-comment-section'
+import { BiographyLikeButton } from '../biography-like-button'
+import { FollowButton } from '../follow-button'
 import { ProfileAvatar } from '../shared'
-import { useTranslations } from 'next-intl'
 
 // 社群平台圖示
 const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
@@ -42,21 +52,13 @@ const SocialIcon: Record<keyof SocialLinks, React.ReactNode> = {
 function getSocialUrl(platform: keyof SocialLinks, value: string): string {
   switch (platform) {
     case 'instagram':
-      return value.startsWith('http')
-        ? value
-        : `https://instagram.com/${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://instagram.com/${value.replace('@', '')}`
     case 'youtube':
-      return value.startsWith('http')
-        ? value
-        : `https://youtube.com/@${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`
     case 'facebook':
-      return value.startsWith('http')
-        ? value
-        : `https://facebook.com/${value}`
+      return value.startsWith('http') ? value : `https://facebook.com/${value}`
     case 'threads':
-      return value.startsWith('http')
-        ? value
-        : `https://threads.net/@${value.replace('@', '')}`
+      return value.startsWith('http') ? value : `https://threads.net/@${value.replace('@', '')}`
     case 'website':
       return value.startsWith('http') ? value : `https://${value}`
     default:
@@ -120,7 +122,9 @@ export function BiographyHero({
       {/* Cover Image */}
       <div className="relative w-full aspect-[3/1] md:aspect-[4/1] bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8] overflow-hidden">
         <Image
-          src={biography.cover_url || getDefaultCoverUrl(biography.id || biography.name || 'default')}
+          src={
+            biography.cover_url || getDefaultCoverUrl(biography.id || biography.name || 'default')
+          }
           alt={t('coverImageAlt')}
           fill
           className="object-cover"
@@ -160,9 +164,7 @@ export function BiographyHero({
 
             {/* Title/Tagline */}
             {biography.title && (
-              <p className="text-lg md:text-xl text-[#6D6C6C]">
-                「{biography.title}」
-              </p>
+              <p className="text-lg md:text-xl text-[#6D6C6C]">「{biography.title}」</p>
             )}
 
             {/* Meta Info */}
@@ -196,16 +198,15 @@ export function BiographyHero({
                 </>
               )}
 
-              {biography.frequent_locations &&
-                biography.frequent_locations.length > 0 && (
-                  <>
-                    <span className="text-[#B6B3B3]">·</span>
-                    <span className="flex items-center gap-1">
-                      <BarChart3 size={16} />
-                      {t('frequentLocations', { locations: biography.frequent_locations.join('、') })}
-                    </span>
-                  </>
-                )}
+              {biography.frequent_locations && biography.frequent_locations.length > 0 && (
+                <>
+                  <span className="text-[#B6B3B3]">·</span>
+                  <span className="flex items-center gap-1">
+                    <BarChart3 size={16} />
+                    {t('frequentLocations', { locations: biography.frequent_locations.join('、') })}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* 年度攀爬目標 */}
@@ -303,7 +304,12 @@ export function BiographyHero({
                 className="text-[#6D6C6C] hover:text-[#3F3D3D]"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>

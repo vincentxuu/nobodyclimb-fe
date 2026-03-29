@@ -1,18 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
 import {
+  BookOpen,
+  Brain,
+  Compass,
+  type LucideIcon,
+  Palette,
   Sparkles,
   TrendingUp,
-  Brain,
   Users,
   Wrench,
-  Compass,
-  Palette,
-  BookOpen,
-  type LucideIcon,
 } from 'lucide-react'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 // Icon mapping for dynamic rendering
 const iconMap: Record<string, LucideIcon> = {

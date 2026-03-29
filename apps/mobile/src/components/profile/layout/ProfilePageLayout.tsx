@@ -1,19 +1,16 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { ProfileProvider } from '../ProfileContext'
-import { MobileNavProvider } from '../MobileNavContext'
 import { COLORS } from '@nobodyclimb/constants'
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { MobileNavProvider } from '../MobileNavContext'
+import { ProfileProvider } from '../ProfileContext'
 
 interface ProfilePageLayoutProps {
   children: React.ReactNode
   showNav?: boolean
 }
 
-export default function ProfilePageLayout({
-  children,
-  showNav = false,
-}: ProfilePageLayoutProps) {
+export default function ProfilePageLayout({ children, showNav = false }: ProfilePageLayoutProps) {
   const insets = useSafeAreaInsets()
 
   return (

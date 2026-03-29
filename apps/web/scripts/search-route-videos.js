@@ -80,7 +80,7 @@ function searchYouTube(query, limit = 5) {
       duration: item.duration_string || '',
       url: `https://www.youtube.com/watch?v=${item.id}`,
     }))
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }
@@ -95,18 +95,36 @@ function extractMainName(name) {
 
 // 已知的台灣攀岩頻道（從 video-metadata.json 提取的高頻頻道）
 const TRUSTED_CHANNELS = new Set([
-  '@Jimiras', '@samfang6357', '@洪覓逾', '@張峻豪-f5u', '@y8765gd',
-  '@小魏教練的攀登紀錄', '@truman615167', '@戶外江', '@twyunghui',
-  '@sammychen2000', '@lipper0802', '@MauriceChenChenYu', '@攀岩好好',
-  '@kateberrychen', '@user-fruitlai', '@loik850617', '@ikon1218',
-  '@HsuRex', '@rock6879', '@matleetube', '@sharonchang2048',
-  '@yuchinglee5555', '@kenhuang0506', '@YiXiongLi',
+  '@Jimiras',
+  '@samfang6357',
+  '@洪覓逾',
+  '@張峻豪-f5u',
+  '@y8765gd',
+  '@小魏教練的攀登紀錄',
+  '@truman615167',
+  '@戶外江',
+  '@twyunghui',
+  '@sammychen2000',
+  '@lipper0802',
+  '@MauriceChenChenYu',
+  '@攀岩好好',
+  '@kateberrychen',
+  '@user-fruitlai',
+  '@loik850617',
+  '@ikon1218',
+  '@HsuRex',
+  '@rock6879',
+  '@matleetube',
+  '@sharonchang2048',
+  '@yuchinglee5555',
+  '@kenhuang0506',
+  '@YiXiongLi',
 ])
 
 // 計算影片相關性分數
 function calculateRelevanceScore(video, routeName, routeNameEn, cragName, grade) {
   const title = video.title.toLowerCase()
-  const channel = video.channel || ''
+  const _channel = video.channel || ''
   let score = 0
 
   // 提取主要名稱
@@ -163,7 +181,8 @@ function isRelevantVideo(video, routeName, routeNameEn, cragName, grade) {
 // 從 YouTube URL 提取影片 ID
 function extractVideoId(url) {
   if (!url) return null
-  const match = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  const match =
+    url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
   return match ? match[1] : null
 }
 
@@ -172,7 +191,7 @@ function filterExistingVideos(videos, existingUrls) {
   if (!existingUrls || existingUrls.length === 0) return videos
 
   const existingIds = new Set(existingUrls.map(extractVideoId).filter(Boolean))
-  return videos.filter(v => !existingIds.has(v.videoId))
+  return videos.filter((v) => !existingIds.has(v.videoId))
 }
 
 // 轉義 CSV 欄位
@@ -202,15 +221,8 @@ async function main() {
   }
 
   if (!cragId) {
-    console.log('使用方式: node scripts/search-route-videos.js <crag-id> [--limit=5]')
-    console.log('')
-    console.log('範例:')
-    console.log('  node scripts/search-route-videos.js longdong')
-    console.log('  node scripts/search-route-videos.js longdong --limit=3')
     process.exit(1)
   }
-
-  console.log('=== 路線影片搜尋工具 ===\n')
 
   // 檢查 yt-dlp
   if (!checkYtDlp()) {
@@ -224,8 +236,6 @@ async function main() {
   }
 
   const { crag, routes } = data
-  console.log(`岩場: ${crag.name} (${routes.length} 條路線)`)
-  console.log(`每條路線搜尋 ${limit} 個影片\n`)
 
   // 建立 area 對照表
   const areaMap = {}
@@ -252,7 +262,7 @@ async function main() {
 
   // 搜尋每條路線
   let processed = 0
-  let foundRelevant = 0
+  let _foundRelevant = 0
   const total = routes.length
 
   for (const route of routes) {
@@ -290,14 +300,14 @@ async function main() {
     }
 
     // 建立建議影片清單（按分數排序，顯示分數）
-    const videosWithScore = videos.map(v => ({
-      ...v,
-      score: calculateRelevanceScore(v, route.name, route.nameEn, crag.name, route.grade)
-    })).sort((a, b) => b.score - a.score)
+    const videosWithScore = videos
+      .map((v) => ({
+        ...v,
+        score: calculateRelevanceScore(v, route.name, route.nameEn, crag.name, route.grade),
+      }))
+      .sort((a, b) => b.score - a.score)
 
-    const videoList = videosWithScore
-      .map((v) => `[${v.score}分] ${v.title} | ${v.url}`)
-      .join('\n')
+    const videoList = videosWithScore.map((v) => `[${v.score}分] ${v.title} | ${v.url}`).join('\n')
 
     // 建立 CSV 行
     const row = [
@@ -317,17 +327,13 @@ async function main() {
     csvRows.push(row.join(','))
 
     if (videos.length > 0) {
-      foundRelevant++
+      _foundRelevant++
       if (existingCount > 0) {
-        console.log(` ✓ 找到 ${videos.length} 個新影片 (已有 ${existingCount} 個)`)
       } else {
-        console.log(` ✓ 找到 ${videos.length} 個相關影片`)
       }
     } else {
       if (existingCount > 0) {
-        console.log(` ─ 已有 ${existingCount} 個影片，無新發現`)
       } else {
-        console.log(` ✗ 無相關影片`)
       }
     }
 
@@ -337,19 +343,7 @@ async function main() {
 
   // 寫入 CSV
   const outputPath = path.join(OUTPUT_DIR, `route-videos-${cragId}.csv`)
-  fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8') // BOM for Excel/Google Sheets
-
-  console.log(`\n=== 搜尋統計 ===`)
-  console.log(`總路線數: ${total}`)
-  console.log(`找到相關影片: ${foundRelevant} 條 (${((foundRelevant / total) * 100).toFixed(1)}%)`)
-  console.log(`無相關影片: ${total - foundRelevant} 條`)
-  console.log(`\n✅ 輸出: ${outputPath}`)
-  console.log('')
-  console.log('下一步：')
-  console.log('1. 將 CSV 匯入 Google Sheets')
-  console.log('2. 檢視建議影片，正確的複製到「選擇的YouTube影片」欄位')
-  console.log('3. 補充 Instagram 貼文連結')
-  console.log('4. 下載為 CSV，執行: node scripts/import-route-videos.js <csv檔案>')
+  fs.writeFileSync(outputPath, '\uFEFF' + csvRows.join('\n'), 'utf-8')
 }
 
 main().catch(console.error)

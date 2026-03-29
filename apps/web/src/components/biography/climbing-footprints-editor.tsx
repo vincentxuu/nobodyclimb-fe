@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, Eye, EyeOff, FileText, Globe, MapPin, Plus, Trash2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Plus, Trash2, Globe, Calendar, Eye, EyeOff, FileText, X } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ClimbingLocation } from '@/lib/types'
-import { getCountryFlag, COMMON_COUNTRIES } from '@/lib/utils/country'
+import { COMMON_COUNTRIES, getCountryFlag } from '@/lib/utils/country'
 
 interface ClimbingFootprintsEditorProps {
   locations: ClimbingLocation[]
@@ -133,7 +133,11 @@ export function ClimbingFootprintsEditor({
                     size="sm"
                     onClick={() => handleTogglePublic(index)}
                     disabled={disabled}
-                    {...{title: loc.is_public ? t('footprintsSetPrivateTitle') : t('footprintsSetPublicTitle')}}
+                    {...{
+                      title: loc.is_public
+                        ? t('footprintsSetPrivateTitle')
+                        : t('footprintsSetPublicTitle'),
+                    }}
                   >
                     {loc.is_public ? (
                       <Eye className="h-4 w-4 text-gray-500" />
@@ -177,7 +181,9 @@ export function ClimbingFootprintsEditor({
           >
             <div className="mb-4 flex items-center justify-between">
               <h4 className="font-medium">
-                {editingIndex !== null ? t('footprintsEditorEditTitle') : t('footprintsEditorAddTitle')}
+                {editingIndex !== null
+                  ? t('footprintsEditorEditTitle')
+                  : t('footprintsEditorAddTitle')}
               </h4>
               <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
                 <X className="h-4 w-4" />
@@ -226,9 +232,7 @@ export function ClimbingFootprintsEditor({
                 </label>
                 <Input
                   value={formData.visit_year || ''}
-                  onChange={(e) =>
-                    setFormData({ ...formData, visit_year: e.target.value || null })
-                  }
+                  onChange={(e) => setFormData({ ...formData, visit_year: e.target.value || null })}
                   placeholder={t('footprintsVisitYearPlaceholder')}
                   disabled={disabled}
                 />
@@ -274,7 +278,9 @@ export function ClimbingFootprintsEditor({
                   onClick={editingIndex !== null ? handleUpdate : handleAdd}
                   disabled={disabled || !formData.location.trim()}
                 >
-                  {editingIndex !== null ? t('footprintsUpdateButton') : t('footprintsAddButtonForm')}
+                  {editingIndex !== null
+                    ? t('footprintsUpdateButton')
+                    : t('footprintsAddButtonForm')}
                 </Button>
               </div>
             </div>

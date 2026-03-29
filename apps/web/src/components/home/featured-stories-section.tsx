@@ -1,20 +1,35 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRightCircle, Loader2, Mountain, MessageCircle } from 'lucide-react'
+import { ArrowRightCircle, Loader2, MessageCircle, Mountain } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { biographyContentService, CoreStory, OneLiner, Story } from '@/lib/api/services'
-import { isSvgUrl, getDefaultAvatarUrl } from '@/lib/utils/image'
-import { useTranslations } from 'next-intl'
+import { getDefaultAvatarUrl, isSvgUrl } from '@/lib/utils/image'
 
 type FeaturedContent =
-  | (CoreStory & { type: 'core-story'; author_name: string; author_avatar?: string; biography_slug?: string })
-  | (OneLiner & { type: 'one-liner'; author_name: string; author_avatar?: string; biography_slug?: string })
-  | (Story & { type: 'story'; author_name: string; author_avatar?: string; biography_slug?: string })
+  | (CoreStory & {
+      type: 'core-story'
+      author_name: string
+      author_avatar?: string
+      biography_slug?: string
+    })
+  | (OneLiner & {
+      type: 'one-liner'
+      author_name: string
+      author_avatar?: string
+      biography_slug?: string
+    })
+  | (Story & {
+      type: 'story'
+      author_name: string
+      author_avatar?: string
+      biography_slug?: string
+    })
 
 /**
  * 選取故事，確保每個作者只出現一次
@@ -71,7 +86,7 @@ function StoryCard({ content }: StoryCardProps) {
     const typeMap: Record<string, string> = {
       'core-story': 'core-stories',
       'one-liner': 'one-liners',
-      'story': 'stories',
+      story: 'stories',
     }
     return `/story/${typeMap[content.type]}/${content.id}`
   }
@@ -85,61 +100,61 @@ function StoryCard({ content }: StoryCardProps) {
     >
       <Link href={getLinkHref()} className="block h-full">
         <Card className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
-        <CardContent className="flex h-full flex-col p-6">
-          <div className="mb-4 flex-1 space-y-2">
-            <p className="text-xs text-[#8E8C8C]">{label}</p>
-            <div className="relative">
-              <p className="line-clamp-4 text-base font-medium leading-relaxed text-[#1B1A1A]">
-                &ldquo;{text}&rdquo;
-              </p>
+          <CardContent className="flex h-full flex-col p-6">
+            <div className="mb-4 flex-1 space-y-2">
+              <p className="text-xs text-[#8E8C8C]">{label}</p>
+              <div className="relative">
+                <p className="line-clamp-4 text-base font-medium leading-relaxed text-[#1B1A1A]">
+                  &ldquo;{text}&rdquo;
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-            <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
-                {content.author_avatar ? (
-                  isSvgUrl(content.author_avatar) ? (
+            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+              <div className="flex items-center gap-3">
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+                  {content.author_avatar ? (
+                    isSvgUrl(content.author_avatar) ? (
+                      <img
+                        src={content.author_avatar}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={content.author_avatar}
+                        alt={displayName}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    )
+                  ) : (
                     <img
-                      src={content.author_avatar}
+                      src={getDefaultAvatarUrl(displayName || 'anonymous', 40)}
                       alt={displayName}
                       className="h-full w-full object-cover"
                     />
-                  ) : (
-                    <Image
-                      src={content.author_avatar}
-                      alt={displayName}
-                      fill
-                      className="object-cover"
-                      sizes="40px"
-                    />
-                  )
-                ) : (
-                  <img
-                    src={getDefaultAvatarUrl(displayName || 'anonymous', 40)}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
-                <div className="mt-0.5 flex items-center gap-3 text-xs text-[#8E8C8C]">
-                  <span className="flex items-center gap-1">
-                    <Mountain size={12} />
-                    {content.like_count}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageCircle size={12} />
-                    {content.comment_count}
-                  </span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-medium text-[#1B1A1A]">{displayName}</h3>
+                  <div className="mt-0.5 flex items-center gap-3 text-xs text-[#8E8C8C]">
+                    <span className="flex items-center gap-1">
+                      <Mountain size={12} />
+                      {content.like_count}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageCircle size={12} />
+                      {content.comment_count}
+                    </span>
+                  </div>
                 </div>
               </div>
+              <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />
             </div>
-            <ArrowRightCircle size={18} className="flex-shrink-0 text-gray-400" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
       </Link>
     </motion.div>
   )
@@ -207,7 +222,9 @@ export function FeaturedStoriesSection() {
     <section className="bg-[#F5F4F4] py-16 md:py-20">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('storiesSectionTitle')}</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">
+            {t('storiesSectionTitle')}
+          </h2>
           <p className="mt-4 text-base text-[#6D6C6C]">{t('storiesSectionSubtitle')}</p>
         </div>
 

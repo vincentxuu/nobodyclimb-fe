@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { BookmarkPlus, BookmarkMinus, Loader2, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { bucketListService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { useToast } from '@/components/ui/use-toast'
 import { AxiosError } from 'axios'
+import { BookmarkMinus, BookmarkPlus, Loader2, Sparkles } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { bucketListService } from '@/lib/api/services'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface ReferenceButtonProps {
   itemId: string
@@ -86,7 +86,7 @@ export function ReferenceButton({
           isReferenced && 'text-amber-500',
           className
         )}
-        {...{title: isReferenced ? t('referenceRemoveFromList') : t('referenceAddToList')}}
+        {...{ title: isReferenced ? t('referenceRemoveFromList') : t('referenceAddToList') }}
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -111,7 +111,7 @@ export function ReferenceButton({
         isReferenced && 'text-amber-500 border-amber-200 hover:bg-amber-50',
         className
       )}
-      {...{title: isReferenced ? t('referenceRemoveFromList') : t('referenceAddToList')}}
+      {...{ title: isReferenced ? t('referenceRemoveFromList') : t('referenceAddToList') }}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

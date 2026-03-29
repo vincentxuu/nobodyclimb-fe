@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { biographyContentService, type CoreStory } from '@/lib/api/services'
 
 // ═══════════════════════════════════════════
@@ -34,10 +34,7 @@ type CoreStoryQuestionId = 'climbing_origin' | 'climbing_meaning' | 'advice_to_s
 /**
  * 取得特定問題的核心故事
  */
-export function useCoreStory(
-  biographyId: string | undefined,
-  questionId: CoreStoryQuestionId
-) {
+export function useCoreStory(biographyId: string | undefined, questionId: CoreStoryQuestionId) {
   const { data: stories, isLoading, error } = useCoreStories(biographyId)
   const story = stories?.find((s) => s.question_id === questionId) || null
   return { story, isLoading, error }
@@ -84,17 +81,14 @@ export function useCoreStoryLikeMutation(biographyId: string | undefined) {
     },
     onSuccess: (data, storyId) => {
       // 更新快取中的故事
-      queryClient.setQueryData<CoreStory[]>(
-        ['coreStories', biographyId],
-        (oldStories) => {
-          if (!oldStories) return oldStories
-          return oldStories.map((story) =>
-            story.id === storyId
-              ? { ...story, is_liked: data.liked, like_count: data.like_count }
-              : story
-          )
-        }
-      )
+      queryClient.setQueryData<CoreStory[]>(['coreStories', biographyId], (oldStories) => {
+        if (!oldStories) return oldStories
+        return oldStories.map((story) =>
+          story.id === storyId
+            ? { ...story, is_liked: data.liked, like_count: data.like_count }
+            : story
+        )
+      })
     },
   })
 }
@@ -140,17 +134,12 @@ export function useCoreStoryCommentMutation(
       // 重新載入留言
       queryClient.invalidateQueries({ queryKey: ['coreStoryComments', storyId] })
       // 更新故事的 comment_count
-      queryClient.setQueryData<CoreStory[]>(
-        ['coreStories', biographyId],
-        (oldStories) => {
-          if (!oldStories) return oldStories
-          return oldStories.map((story) =>
-            story.id === storyId
-              ? { ...story, comment_count: story.comment_count + 1 }
-              : story
-          )
-        }
-      )
+      queryClient.setQueryData<CoreStory[]>(['coreStories', biographyId], (oldStories) => {
+        if (!oldStories) return oldStories
+        return oldStories.map((story) =>
+          story.id === storyId ? { ...story, comment_count: story.comment_count + 1 } : story
+        )
+      })
     },
   })
 }

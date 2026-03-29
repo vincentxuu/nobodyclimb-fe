@@ -1,16 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
+import { ArrowRight, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, LogIn } from 'lucide-react'
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { PageTransition } from '@/components/shared/page-transition'
+import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
+import { GOOGLE_CLIENT_ID } from '@/lib/constants'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useAuthStore } from '@/store/authStore'
-import { Button } from '@/components/ui/button'
-import { PageTransition } from '@/components/shared/page-transition'
-import { GOOGLE_CLIENT_ID } from '@/lib/constants'
 
 /**
  * 登入頁面組件

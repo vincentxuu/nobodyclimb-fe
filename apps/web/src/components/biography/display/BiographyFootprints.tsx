@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { Loader2, ChevronDown, ChevronUp, MapPin, Calendar } from 'lucide-react'
-import type { BiographyV2 } from '@/lib/types/biography-v2'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, ChevronDown, ChevronUp, Loader2, MapPin } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
 import { climbingLocationService } from '@/lib/api/services'
 import { ClimbingLocationRecord } from '@/lib/types'
+import type { BiographyV2 } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 import { getCountryFlag } from '@/lib/utils/country'
-import { useTranslations } from 'next-intl'
 
 interface BiographyFootprintsProps {
   /** 人物誌資料 */
@@ -121,13 +121,7 @@ function TimelineLocationItem({
 /**
  * 時間軸年份區塊
  */
-function TimelineYearSection({
-  yearData,
-  index,
-}: {
-  yearData: TimelineYear
-  index: number
-}) {
+function TimelineYearSection({ yearData, index }: { yearData: TimelineYear; index: number }) {
   const t = useTranslations('BiographyPage')
   return (
     <motion.div
@@ -207,10 +201,7 @@ function StatsSummary({
  * 時間軸設計 - 按年份分組，展示攀岩旅程
  * 使用 BiographyV2 類型，符合新的展示頁面規格
  */
-export function BiographyFootprints({
-  biography,
-  className,
-}: BiographyFootprintsProps) {
+export function BiographyFootprints({ biography, className }: BiographyFootprintsProps) {
   const t = useTranslations('BiographyPage')
   const [locations, setLocations] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -224,9 +215,7 @@ export function BiographyFootprints({
 
       setLoading(true)
       try {
-        const response = await climbingLocationService.getBiographyLocations(
-          biography.id
-        )
+        const response = await climbingLocationService.getBiographyLocations(biography.id)
         if (response.success && response.data) {
           setLocations(response.data)
         }
@@ -321,11 +310,7 @@ export function BiographyFootprints({
         {/* 年份區塊 */}
         <div className="space-y-8">
           {timelineData.map((yearData, index) => (
-            <TimelineYearSection
-              key={yearData.year}
-              yearData={yearData}
-              index={index}
-            />
+            <TimelineYearSection key={yearData.year} yearData={yearData} index={index} />
           ))}
         </div>
 

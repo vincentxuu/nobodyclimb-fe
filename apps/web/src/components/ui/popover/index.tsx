@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { motion, AnimatePresence, HTMLMotionProps } from 'framer-motion'
+import { AnimatePresence, HTMLMotionProps, motion } from 'framer-motion'
 import Link from 'next/link'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 interface PopoverProps {
   children: React.ReactNode
@@ -225,15 +225,26 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
             // eslint-disable-next-line no-unused-vars
             onClick: (_e: React.MouseEvent) => {
               if (closeOnClick) setOpen(false)
-              if (React.isValidElement(child) && child.props && typeof child.props === 'object' && 'onClick' in child.props && child.props.onClick) {
+              if (
+                React.isValidElement(child) &&
+                child.props &&
+                typeof child.props === 'object' &&
+                'onClick' in child.props &&
+                child.props.onClick
+              ) {
                 // eslint-disable-next-line no-unused-vars
-                (child.props.onClick as ((_e: React.MouseEvent) => void))(_e)
+                ;(child.props.onClick as (_e: React.MouseEvent) => void)(_e)
               }
             },
           })
         }
         // 遞迴處理子元素中的連結
-        else if (React.isValidElement(child) && child.props && typeof child.props === 'object' && 'children' in child.props) {
+        else if (
+          React.isValidElement(child) &&
+          child.props &&
+          typeof child.props === 'object' &&
+          'children' in child.props
+        ) {
           return React.cloneElement(child as CloneElementType, {
             children: wrapChildrenWithClickHandler((child.props as any).children),
           })
@@ -288,4 +299,4 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
 
 PopoverContent.displayName = 'PopoverContent'
 
-export { Popover, PopoverTrigger, PopoverContent }
+export { Popover, PopoverContent, PopoverTrigger }

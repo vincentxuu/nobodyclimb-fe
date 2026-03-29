@@ -4,22 +4,22 @@
  * 對應 apps/web/src/app/page.tsx
  * 內容導向型設計，展示攀岩社群的各種內容
  */
-import React, { useCallback, useState } from 'react'
-import { StyleSheet, View } from 'react-native'
 
 import { SPACING } from '@nobodyclimb/constants'
-import { ScrollLayout } from '@/components/layout'
+import { useCallback, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
 import {
-  FunFactSection,
-  HeroIntroSection,
+  AboutSection,
+  BiographySection,
   ExploreCragSection,
   FeaturedStoriesSection,
-  BiographySection,
-  AboutSection,
+  FunFactSection,
+  HeroIntroSection,
 } from '@/components/home'
+import { ScrollLayout } from '@/components/layout'
 
 export default function HomeScreen() {
-  const [refreshing, setRefreshing] = useState(false)
+  const [_refreshing, setRefreshing] = useState(false)
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)

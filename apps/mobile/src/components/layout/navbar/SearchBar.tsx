@@ -3,17 +3,13 @@
  *
  * 搜尋欄，對應 apps/web/src/components/layout/navbar/SearchBar.tsx
  */
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, View, TextInput, Pressable } from 'react-native'
-import { useRouter } from 'expo-router'
-import { Search, X } from 'lucide-react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
 
 import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Search, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Pressable, StyleSheet, TextInput } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 
 interface SearchBarProps {
   /** 初始搜尋值 */
@@ -74,10 +70,7 @@ export function SearchBar({
 
   return (
     <Animated.View style={[styles.container, containerStyle]}>
-      <Pressable
-        onPress={!isFocused ? handleExpand : undefined}
-        style={styles.iconContainer}
-      >
+      <Pressable onPress={!isFocused ? handleExpand : undefined} style={styles.iconContainer}>
         <Search size={20} color={SEMANTIC_COLORS.textMain} />
       </Pressable>
 

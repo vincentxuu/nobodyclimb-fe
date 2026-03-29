@@ -4,13 +4,13 @@
  * 對應 apps/web/src/lib/hooks/useMediaQuery.ts
  * 在 React Native 中使用 Dimensions API 實作響應式設計
  */
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Dimensions, ScaledSize } from 'react-native'
 
 // 常用的螢幕尺寸斷點（對應 Tailwind CSS）
 export const BREAKPOINTS = {
-  sm: 640,  // Tailwind sm
-  md: 768,  // Tailwind md
+  sm: 640, // Tailwind sm
+  md: 768, // Tailwind md
   lg: 1024, // Tailwind lg
   xl: 1280, // Tailwind xl
 } as const

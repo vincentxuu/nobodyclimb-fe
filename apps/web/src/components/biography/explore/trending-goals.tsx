@@ -1,15 +1,15 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import { Check, Flame, Home, Loader2, MapPin, Mountain, Plus, Target, Users } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Loader2, Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Card, CardContent } from '@/components/ui/card'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
-import { BucketListItem, BUCKET_LIST_CATEGORIES } from '@/lib/types'
+import { BUCKET_LIST_CATEGORIES, BucketListItem } from '@/lib/types'
 import { useAuthStore } from '@/store/authStore'
 
 interface TrendingGoalsProps {
@@ -96,9 +96,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
       setAddedItems((prev) => new Set(prev).add(itemId))
       setItems((prev) =>
         prev.map((item) =>
-          item.id === itemId
-            ? { ...item, inspired_count: (item.inspired_count || 0) + 1 }
-            : item
+          item.id === itemId ? { ...item, inspired_count: (item.inspired_count || 0) + 1 } : item
         )
       )
     } catch (err: unknown) {
@@ -225,9 +223,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                               </div>
                             )}
                           </div>
-                          <span>
-                            {t('goalCreatedBy', { name: item.author_name })}
-                          </span>
+                          <span>{t('goalCreatedBy', { name: item.author_name })}</span>
                         </Link>
                       )}
                     </div>

@@ -3,15 +3,15 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { gymService } from '@/lib/api/services'
 import {
-  adaptGymToListItem,
   adaptGymToDetail,
+  adaptGymToListItem,
   filterGyms,
-  getRelatedGymsFromList,
   getAdjacentGymsFromList,
+  getRelatedGymsFromList,
 } from '@/lib/adapters/gym-adapter'
-import type { GymListItem, GymDetailData } from '@/lib/gym-data'
+import { gymService } from '@/lib/api/services'
+import type { GymDetailData, GymListItem } from '@/lib/gym-data'
 
 // 快取時間常數
 const STALE_TIME = 5 * 60 * 1000 // 5 分鐘
@@ -153,9 +153,7 @@ export function useSearchGyms(options: {
 }) {
   const { data: allGymsData, isLoading, error } = useGyms({ limit: 100 })
 
-  const filteredGyms = allGymsData?.gyms
-    ? filterGyms(allGymsData.gyms, options)
-    : []
+  const filteredGyms = allGymsData?.gyms ? filterGyms(allGymsData.gyms, options) : []
 
   return {
     data: filteredGyms,

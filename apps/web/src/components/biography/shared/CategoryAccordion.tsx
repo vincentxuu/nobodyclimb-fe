@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, ReactNode } from 'react'
+import { Check, ChevronRight, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { ReactNode, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronRight, Check, Sparkles } from 'lucide-react'
 
 interface CategoryAccordionProps {
   /** 標題 */
@@ -48,12 +48,7 @@ export function CategoryAccordion({
     : 0
 
   return (
-    <div
-      className={cn(
-        'border border-[#DBD8D8] rounded-lg overflow-hidden',
-        className
-      )}
-    >
+    <div className={cn('border border-[#DBD8D8] rounded-lg overflow-hidden', className)}>
       {/* Header */}
       <button
         type="button"
@@ -63,10 +58,7 @@ export function CategoryAccordion({
         <div className="flex items-center gap-2">
           <ChevronRight
             size={20}
-            className={cn(
-              'text-[#6D6C6C] transition-transform',
-              isExpanded && 'rotate-90'
-            )}
+            className={cn('text-[#6D6C6C] transition-transform', isExpanded && 'rotate-90')}
           />
           {emoji && <span className="text-lg">{emoji}</span>}
           <span className="font-medium text-[#1B1A1A]">{title}</span>
@@ -149,9 +141,7 @@ export function StoryItem({
       <div
         className={cn(
           'mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0',
-          isFilled
-            ? 'bg-brand-accent text-brand-dark'
-            : 'border-2 border-[#B6B3B3]'
+          isFilled ? 'bg-brand-accent text-brand-dark' : 'border-2 border-[#B6B3B3]'
         )}
       >
         {isFilled && <Check size={12} />}
@@ -161,30 +151,19 @@ export function StoryItem({
       <div className="flex-1 text-left">
         <div className="flex items-center gap-1">
           {isCustom && <Sparkles size={14} className="text-brand-accent" />}
-          <span
-            className={cn(
-              'font-medium',
-              isFilled ? 'text-[#1B1A1A]' : 'text-[#3F3D3D]'
-            )}
-          >
+          <span className={cn('font-medium', isFilled ? 'text-[#1B1A1A]' : 'text-[#3F3D3D]')}>
             {title}
           </span>
         </div>
-        {subtitle && !isFilled && (
-          <p className="text-sm text-[#6D6C6C] mt-0.5">{subtitle}</p>
-        )}
-        {answer && (
-          <p className="text-sm text-[#6D6C6C] mt-1 line-clamp-2">「{answer}」</p>
-        )}
+        {subtitle && !isFilled && <p className="text-sm text-[#6D6C6C] mt-0.5">{subtitle}</p>}
+        {answer && <p className="text-sm text-[#6D6C6C] mt-1 line-clamp-2">「{answer}」</p>}
       </div>
 
       {/* Action */}
       <span
         className={cn(
           'text-sm font-medium px-3 py-1 rounded-full flex-shrink-0',
-          isFilled
-            ? 'text-[#1B1A1A] bg-brand-accent/20'
-            : 'text-[#3F3D3D] bg-[#F5F5F5]'
+          isFilled ? 'text-[#1B1A1A] bg-brand-accent/20' : 'text-[#3F3D3D] bg-[#F5F5F5]'
         )}
       >
         {isFilled ? t('edit') : t('startWriting')}

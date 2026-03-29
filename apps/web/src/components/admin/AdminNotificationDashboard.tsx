@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { notificationService } from '@/lib/api/services'
 import {
-  Bell,
-  Users,
-  TrendingUp,
-  Clock,
-  RefreshCw,
   AlertCircle,
   BarChart3,
+  Bell,
+  Clock,
+  RefreshCw,
+  TrendingUp,
   User,
+  Users,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { notificationService } from '@/lib/api/services'
 
 interface AdminStats {
   period: string
@@ -98,10 +98,10 @@ export default function AdminNotificationDashboard() {
   if (!stats) return null
 
   // 找出最高峰時段
-  const peakHour = stats.hourlyTrend.reduce(
-    (max, item) => (item.count > max.count ? item : max),
-    { hour: '', count: 0 }
-  )
+  const peakHour = stats.hourlyTrend.reduce((max, item) => (item.count > max.count ? item : max), {
+    hour: '',
+    count: 0,
+  })
 
   // 計算已讀率
   const readRate =

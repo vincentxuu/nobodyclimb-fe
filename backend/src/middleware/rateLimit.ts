@@ -1,21 +1,19 @@
-import { Env } from '../types';
-
 interface RateLimitConfig {
-  windowMs: number;    // 時間窗口（毫秒）
-  maxRequests: number; // 最大請求次數
-  keyPrefix: string;   // KV key 前綴
+  windowMs: number // 時間窗口（毫秒）
+  maxRequests: number // 最大請求次數
+  keyPrefix: string // KV key 前綴
 }
 
 interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  retryAfter?: number;
+  allowed: boolean
+  remaining: number
+  retryAfter?: number
 }
 
 export interface PasswordResetRateLimitResult {
-  allowed: boolean;
-  retryAfter?: number;
-  message?: string;
+  allowed: boolean
+  retryAfter?: number
+  message?: string
 }
 
 /**
@@ -26,38 +24,38 @@ export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
 ): Promise<RateLimitResult> {
-  const key = `${config.keyPrefix}:${identifier}`;
-  const now = Date.now();
-  const windowStart = now - config.windowMs;
+  const key = `${config.keyPrefix}:${identifier}`
+  const now = Date.now()
+  const windowStart = now - config.windowMs
 
   // 從 KV 獲取請求記錄
-  const recordJson = await cache.get(key);
-  const requests: number[] = recordJson ? JSON.parse(recordJson) : [];
+  const recordJson = await cache.get(key)
+  const requests: number[] = recordJson ? JSON.parse(recordJson) : []
 
   // 移除過期的請求記錄
-  const validRequests = requests.filter((timestamp) => timestamp > windowStart);
+  const validRequests = requests.filter((timestamp) => timestamp > windowStart)
 
   if (validRequests.length >= config.maxRequests) {
-    const oldestRequest = Math.min(...validRequests);
-    const retryAfter = Math.ceil((oldestRequest + config.windowMs - now) / 1000);
+    const oldestRequest = Math.min(...validRequests)
+    const retryAfter = Math.ceil((oldestRequest + config.windowMs - now) / 1000)
 
     return {
       allowed: false,
       remaining: 0,
       retryAfter,
-    };
+    }
   }
 
   // 記錄新請求
-  validRequests.push(now);
+  validRequests.push(now)
   await cache.put(key, JSON.stringify(validRequests), {
     expirationTtl: Math.ceil(config.windowMs / 1000) + 60, // 加 60 秒緩衝
-  });
+  })
 
   return {
     allowed: true,
     remaining: config.maxRequests - validRequests.length,
-  };
+  }
 }
 
 /**
@@ -66,19 +64,19 @@ export async function checkRateLimit(
 export async function checkAiRateLimit(
   cache: KVNamespace,
   ip: string,
-  maxPerMinute: number,
+  maxPerMinute: number
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
-  const minute = Math.floor(Date.now() / 60000);
-  const key = `rate:ai:${ip}:${minute}`;
+  const minute = Math.floor(Date.now() / 60000)
+  const key = `rate:ai:${ip}:${minute}`
 
-  const current = parseInt(await cache.get(key) ?? '0', 10);
+  const current = parseInt((await cache.get(key)) ?? '0', 10)
   if (current >= maxPerMinute) {
-    const retryAfter = 60 - (Math.floor(Date.now() / 1000) % 60);
-    return { allowed: false, retryAfter: Math.max(1, retryAfter) };
+    const retryAfter = 60 - (Math.floor(Date.now() / 1000) % 60)
+    return { allowed: false, retryAfter: Math.max(1, retryAfter) }
   }
 
-  await cache.put(key, String(current + 1), { expirationTtl: 120 });
-  return { allowed: true };
+  await cache.put(key, String(current + 1), { expirationTtl: 120 })
+  return { allowed: true }
 }
 
 /**
@@ -96,14 +94,14 @@ export async function checkPasswordResetRateLimit(
     windowMs: 60 * 60 * 1000, // 1 小時
     maxRequests: 10,
     keyPrefix: 'ratelimit:pwd-reset:ip',
-  });
+  })
 
   if (!ipLimit.allowed) {
     return {
       allowed: false,
       retryAfter: ipLimit.retryAfter,
       message: `請求過於頻繁，請在 ${ipLimit.retryAfter} 秒後再試`,
-    };
+    }
   }
 
   // Email 限制：每小時最多 3 次請求
@@ -111,15 +109,15 @@ export async function checkPasswordResetRateLimit(
     windowMs: 60 * 60 * 1000, // 1 小時
     maxRequests: 3,
     keyPrefix: 'ratelimit:pwd-reset:email',
-  });
+  })
 
   if (!emailLimit.allowed) {
     return {
       allowed: false,
       retryAfter: emailLimit.retryAfter,
       message: `此電子郵件請求過於頻繁，請在 ${emailLimit.retryAfter} 秒後再試`,
-    };
+    }
   }
 
-  return { allowed: true };
+  return { allowed: true }
 }

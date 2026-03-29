@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
 import { default as NextLink } from 'next/link'
+import React from 'react'
 
 type LinkProps = React.ComponentProps<typeof NextLink>
 

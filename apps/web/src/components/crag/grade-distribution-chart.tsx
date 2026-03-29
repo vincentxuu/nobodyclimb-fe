@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
 import { useTranslations } from 'next-intl'
+import React from 'react'
 
 interface GradeDistributionChartProps {
   gradeRanges: Record<string, number>
@@ -59,9 +59,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
           return (
             <div key={range} className="group">
               <div className="mb-1 flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-700">
-                  {gradeLabels[range] || range}
-                </span>
+                <span className="font-medium text-gray-700">{gradeLabels[range] || range}</span>
                 <span className="text-gray-500">
                   {t('gradeRouteCount', { count, percentage: percentage.toFixed(0) })}
                 </span>
@@ -77,9 +75,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
                 />
                 {count > 0 && (
                   <div className="absolute inset-0 flex items-center px-3">
-                    <span className="text-xs font-semibold text-white drop-shadow-sm">
-                      {count}
-                    </span>
+                    <span className="text-xs font-semibold text-white drop-shadow-sm">{count}</span>
                   </div>
                 )}
               </div>
@@ -92,10 +88,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
       <div className="mt-6 flex flex-wrap gap-4 border-t border-gray-100 pt-4">
         {Object.entries(gradeColors).map(([range, color]) => (
           <div key={range} className="flex items-center gap-2">
-            <div
-              className="h-3 w-3 rounded-sm"
-              style={{ backgroundColor: color }}
-            />
+            <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: color }} />
             <span className="text-xs text-gray-600">{gradeLabels[range]}</span>
           </div>
         ))}
@@ -104,9 +97,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
       {/* 統計摘要 */}
       <div className="mt-4 rounded-md bg-gray-50 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <span className="text-gray-600">
-            {t('gradeTotalRoutes', { count: totalRoutes })}
-          </span>
+          <span className="text-gray-600">{t('gradeTotalRoutes', { count: totalRoutes })}</span>
           <span className="text-gray-600">
             {t('gradeCoverRanges', { count: activeRanges.length })}
           </span>

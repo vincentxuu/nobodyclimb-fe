@@ -22,7 +22,10 @@ export function parsePagination(
   maxLimit = 100
 ): ParsedPagination {
   const p = Math.max(1, parseInt(page || '1', 10) || 1)
-  const l = Math.min(maxLimit, Math.max(1, parseInt(limit || String(defaultLimit), 10) || defaultLimit))
+  const l = Math.min(
+    maxLimit,
+    Math.max(1, parseInt(limit || String(defaultLimit), 10) || defaultLimit)
+  )
   return { page: p, limit: l, offset: (p - 1) * l }
 }
 

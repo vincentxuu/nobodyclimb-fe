@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, Save, Trash2, Mountain } from 'lucide-react'
-import { AdminCrag } from '@/lib/types'
+import { Loader2, Mountain, Save, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import apiClient from '@/lib/api/client'
+import { AdminCrag } from '@/lib/types'
 import { CragFormData, emptyCragForm, REGIONS } from './types'
 
 interface InlineCragFormProps {
@@ -41,17 +41,13 @@ export default function InlineCragForm({
         longitude: crag.longitude?.toString() || '',
         altitude: crag.altitude?.toString() || '',
         rock_type: crag.rock_type || '',
-        climbing_types: Array.isArray(crag.climbing_types)
-          ? crag.climbing_types.join(', ')
-          : '',
+        climbing_types: Array.isArray(crag.climbing_types) ? crag.climbing_types.join(', ') : '',
         difficulty_range: crag.difficulty_range || '',
         is_featured: crag.is_featured === 1,
         access_info: crag.access_info || '',
         parking_info: crag.parking_info || '',
         approach_time: crag.approach_time?.toString() || '',
-        best_seasons: Array.isArray(crag.best_seasons)
-          ? crag.best_seasons.join(', ')
-          : '',
+        best_seasons: Array.isArray(crag.best_seasons) ? crag.best_seasons.join(', ') : '',
         restrictions: crag.restrictions || '',
       })
     } else {
@@ -142,9 +138,7 @@ export default function InlineCragForm({
             <h2 className="font-semibold text-wb-100">
               {isNew ? '新增岩場' : `編輯岩場：${crag?.name}`}
             </h2>
-            <p className="text-xs text-wb-50">
-              {isNew ? '填寫岩場基本資料' : crag?.slug}
-            </p>
+            <p className="text-xs text-wb-50">{isNew ? '填寫岩場基本資料' : crag?.slug}</p>
           </div>
         </div>
       </div>
@@ -154,9 +148,7 @@ export default function InlineCragForm({
         <div className="space-y-6 max-w-2xl">
           {/* 基本資訊 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-wb-90 mb-2">
-              基本資訊
-            </legend>
+            <legend className="text-sm font-medium text-wb-90 mb-2">基本資訊</legend>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-wb-70 mb-1">
@@ -173,8 +165,7 @@ export default function InlineCragForm({
               {!crag && (
                 <div>
                   <label className="block text-sm font-medium text-wb-70 mb-1">
-                    Slug{' '}
-                    <span className="text-xs text-wb-50">(留空自動產生)</span>
+                    Slug <span className="text-xs text-wb-50">(留空自動產生)</span>
                   </label>
                   <input
                     type="text"
@@ -186,9 +177,7 @@ export default function InlineCragForm({
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  區域
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">區域</label>
                 <select
                   value={form.region}
                   onChange={(e) => setForm({ ...form, region: e.target.value })}
@@ -203,28 +192,20 @@ export default function InlineCragForm({
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  位置描述
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">位置描述</label>
                 <input
                   type="text"
                   value={form.location}
-                  onChange={(e) =>
-                    setForm({ ...form, location: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
                   placeholder="例：新北市瑞芳區龍洞"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  描述
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">描述</label>
                 <textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
                 />
@@ -234,50 +215,36 @@ export default function InlineCragForm({
 
           {/* 地理資訊 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-wb-90 mb-2">
-              地理資訊
-            </legend>
+            <legend className="text-sm font-medium text-wb-90 mb-2">地理資訊</legend>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  緯度
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">緯度</label>
                 <input
                   type="number"
                   step="any"
                   value={form.latitude}
-                  onChange={(e) =>
-                    setForm({ ...form, latitude: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, latitude: e.target.value })}
                   placeholder="例：25.1082"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  經度
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">經度</label>
                 <input
                   type="number"
                   step="any"
                   value={form.longitude}
-                  onChange={(e) =>
-                    setForm({ ...form, longitude: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, longitude: e.target.value })}
                   placeholder="例：121.9227"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  海拔 (m)
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">海拔 (m)</label>
                 <input
                   type="number"
                   value={form.altitude}
-                  onChange={(e) =>
-                    setForm({ ...form, altitude: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, altitude: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
@@ -286,48 +253,34 @@ export default function InlineCragForm({
 
           {/* 攀岩資訊 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-wb-90 mb-2">
-              攀岩資訊
-            </legend>
+            <legend className="text-sm font-medium text-wb-90 mb-2">攀岩資訊</legend>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  岩質
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">岩質</label>
                 <input
                   type="text"
                   value={form.rock_type}
-                  onChange={(e) =>
-                    setForm({ ...form, rock_type: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, rock_type: e.target.value })}
                   placeholder="例：砂岩、石灰岩、花崗岩"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  攀登類型
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">攀登類型</label>
                 <input
                   type="text"
                   value={form.climbing_types}
-                  onChange={(e) =>
-                    setForm({ ...form, climbing_types: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, climbing_types: e.target.value })}
                   placeholder="逗號分隔，例：sport, trad, boulder"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  難度範圍
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">難度範圍</label>
                 <input
                   type="text"
                   value={form.difficulty_range}
-                  onChange={(e) =>
-                    setForm({ ...form, difficulty_range: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, difficulty_range: e.target.value })}
                   placeholder="例：5.6-5.13a"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
@@ -337,74 +290,52 @@ export default function InlineCragForm({
 
           {/* 交通與環境 */}
           <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-wb-90 mb-2">
-              交通與環境
-            </legend>
+            <legend className="text-sm font-medium text-wb-90 mb-2">交通與環境</legend>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  進場時間
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">進場時間</label>
                 <input
                   type="text"
                   value={form.approach_time}
-                  onChange={(e) =>
-                    setForm({ ...form, approach_time: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, approach_time: e.target.value })}
                   placeholder="例：15（分鐘）"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  適合季節
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">適合季節</label>
                 <input
                   type="text"
                   value={form.best_seasons}
-                  onChange={(e) =>
-                    setForm({ ...form, best_seasons: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, best_seasons: e.target.value })}
                   placeholder="逗號分隔，例：秋, 冬, 春"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  交通資訊
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">交通資訊</label>
                 <textarea
                   value={form.access_info}
-                  onChange={(e) =>
-                    setForm({ ...form, access_info: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, access_info: e.target.value })}
                   rows={2}
                   placeholder="如何抵達、大眾運輸方式等"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  停車資訊
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">停車資訊</label>
                 <textarea
                   value={form.parking_info}
-                  onChange={(e) =>
-                    setForm({ ...form, parking_info: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, parking_info: e.target.value })}
                   rows={2}
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-wb-70 mb-1">
-                  限制事項
-                </label>
+                <label className="block text-sm font-medium text-wb-70 mb-1">限制事項</label>
                 <textarea
                   value={form.restrictions}
-                  onChange={(e) =>
-                    setForm({ ...form, restrictions: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, restrictions: e.target.value })}
                   rows={2}
                   placeholder="例：雨後禁止攀爬、需申請入山證等"
                   className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none"
@@ -419,9 +350,7 @@ export default function InlineCragForm({
               type="checkbox"
               id="crag_is_featured"
               checked={form.is_featured}
-              onChange={(e) =>
-                setForm({ ...form, is_featured: e.target.checked })
-              }
+              onChange={(e) => setForm({ ...form, is_featured: e.target.checked })}
               className="rounded border-wb-20 text-wb-100 focus:ring-wb-100/20"
             />
             <label htmlFor="crag_is_featured" className="text-sm text-wb-70">
@@ -445,11 +374,7 @@ export default function InlineCragForm({
                     disabled={deleting}
                     className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                   >
-                    {deleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      '確認刪除'
-                    )}
+                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : '確認刪除'}
                   </button>
                   <button
                     type="button"

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import ProfileClient from './ProfileClient'
-import { SITE_URL, SITE_NAME } from '@/lib/constants'
-import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
 import { getTranslations } from 'next-intl/server'
+import { SITE_NAME, SITE_URL } from '@/lib/constants'
+import { buildHreflangAlternates, buildOgLocale } from '@/lib/i18n-metadata'
+import ProfileClient from './ProfileClient'
 
 // 強制動態渲染，避免快取問題
 export const dynamic = 'force-dynamic'
@@ -94,7 +94,10 @@ export async function generateMetadata({
   }
 
   const title = `${person.name} - ${t('metaTitleSuffix')}`
-  const description = person.climbing_meaning?.substring(0, 160) || person.bio?.substring(0, 160) || t('metaDefaultDesc', { name: person.name })
+  const description =
+    person.climbing_meaning?.substring(0, 160) ||
+    person.bio?.substring(0, 160) ||
+    t('metaDefaultDesc', { name: person.name })
   // 使用靜態 OG 圖片（動態生成需要 @vercel/og wasm，會增加 1.4MB bundle）
   const image = `${SITE_URL}/og-image.png`
   const ogLocale = buildOgLocale(locale)
@@ -132,11 +135,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function ProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   // JSON-LD 結構化數據由 ProfileClient 在客戶端生成
   // 因為需要完整人物資料，而 KV 只存 metadata
   return <ProfileClient params={params} />

@@ -1,15 +1,14 @@
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import React from 'react'
-import { View, ScrollView, StyleSheet, Alert } from 'react-native'
-import { Text } from '../../ui/Text'
+import { Alert, ScrollView, StyleSheet, View } from 'react-native'
+import { biographyService } from '@/lib/biographyService'
 import { Button } from '../../ui/Button'
-import { useProfile } from '../ProfileContext'
+import { Text } from '../../ui/Text'
 import BasicInfoSection from '../BasicInfoSection'
 import BiographyAvatarSection from '../BiographyAvatarSection'
+import { mapProfileDataToApi, updateProfileField } from '../mappers'
+import { ProfileProvider, useProfile } from '../ProfileContext'
 import PublicSettingSection from '../PublicSettingSection'
-import { updateProfileField, mapProfileDataToApi } from '../mappers'
-import { biographyService } from '@/lib/biographyService'
-import { ProfileProvider } from '../ProfileContext'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { SocialLinks } from '../types'
 
 /**
@@ -78,12 +77,8 @@ function ProfileEditorVersionBContent() {
           isEditing={true}
           onAvatarUpload={handleAvatarUpload}
           onCoverImageUpload={handleCoverUpload}
-          onAvatarDelete={() =>
-            setProfileData((prev) => ({ ...prev, avatarUrl: null }))
-          }
-          onCoverImageDelete={() =>
-            setProfileData((prev) => ({ ...prev, coverImageUrl: null }))
-          }
+          onAvatarDelete={() => setProfileData((prev) => ({ ...prev, avatarUrl: null }))}
+          onCoverImageDelete={() => setProfileData((prev) => ({ ...prev, coverImageUrl: null }))}
         />
       </View>
 
@@ -97,18 +92,11 @@ function ProfileEditorVersionBContent() {
       </View>
 
       <View style={styles.section}>
-        <PublicSettingSection
-          isPublic={profileData.isPublic}
-          onChange={handleChange}
-        />
+        <PublicSettingSection isPublic={profileData.isPublic} onChange={handleChange} />
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button
-          variant="primary"
-          onPress={handleSave}
-          loading={isSaving}
-        >
+        <Button variant="primary" onPress={handleSave} loading={isSaving}>
           儲存變更
         </Button>
       </View>

@@ -3,11 +3,12 @@
  *
  * 麵包屑導航組件
  */
-import React from 'react'
-import { View, StyleSheet, Pressable } from 'react-native'
-import { ChevronRight } from 'lucide-react-native'
-import { Text } from './Text'
+
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { ChevronRight } from 'lucide-react-native'
+import React from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from './Text'
 
 export interface BreadcrumbItem {
   /** 標籤 */
@@ -41,11 +42,7 @@ export interface BreadcrumbProps {
  * />
  * ```
  */
-export function Breadcrumb({
-  items,
-  separator,
-  style,
-}: BreadcrumbProps) {
+export function Breadcrumb({ items, separator, style }: BreadcrumbProps) {
   return (
     <View style={[styles.container, style]}>
       {items.map((item, index) => {
@@ -61,21 +58,13 @@ export function Breadcrumb({
                 </Text>
               </Pressable>
             ) : (
-              <Text
-                color={isLast ? 'main' : 'subtle'}
-                variant="caption"
-              >
+              <Text color={isLast ? 'main' : 'subtle'} variant="caption">
                 {item.label}
               </Text>
             )}
             {!isLast && (
               <View style={styles.separator}>
-                {separator || (
-                  <ChevronRight
-                    size={14}
-                    color={SEMANTIC_COLORS.textMuted}
-                  />
-                )}
+                {separator || <ChevronRight size={14} color={SEMANTIC_COLORS.textMuted} />}
               </View>
             )}
           </View>

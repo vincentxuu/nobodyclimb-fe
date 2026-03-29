@@ -1,17 +1,16 @@
 'use client'
 
-import React from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
 import {
-  StoryCategory,
-  STORY_CATEGORIES,
   calculateStoryProgress,
+  STORY_CATEGORIES,
+  StoryCategory,
 } from '@/lib/constants/biography-stories'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { CATEGORY_ICONS } from '@/lib/utils/biography-ui'
-import { useTranslations } from 'next-intl'
 
 interface StoryProgressProps {
   biography: Record<string, unknown>
@@ -52,7 +51,9 @@ export function StoryProgress({
             transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </div>
-        <p className="mt-2 text-xs text-gray-500">{t('storyProgressCompleted', { percentage: progress.percentage })}</p>
+        <p className="mt-2 text-xs text-gray-500">
+          {t('storyProgressCompleted', { percentage: progress.percentage })}
+        </p>
       </div>
     )
   }
@@ -244,14 +245,7 @@ export function StoryProgressBadge({ biography, className }: StoryProgressBadgeP
     >
       <div className="flex h-4 w-4 items-center justify-center">
         <svg className="h-4 w-4 -rotate-90 transform" viewBox="0 0 16 16">
-          <circle
-            cx="8"
-            cy="8"
-            r="6"
-            fill="none"
-            stroke="#e5e7eb"
-            strokeWidth="2"
-          />
+          <circle cx="8" cy="8" r="6" fill="none" stroke="#e5e7eb" strokeWidth="2" />
           <circle
             cx="8"
             cy="8"
@@ -296,23 +290,14 @@ export function CategoryQuickStats({ biography, className }: CategoryQuickStatsP
             key={category.id}
             className={cn(
               'flex h-6 w-6 items-center justify-center rounded-full',
-              isComplete
-                ? 'bg-brand-accent/20'
-                : hasProgress
-                  ? 'bg-yellow-50'
-                  : 'bg-gray-50'
+              isComplete ? 'bg-brand-accent/20' : hasProgress ? 'bg-yellow-50' : 'bg-gray-50'
             )}
             title={`${category.name}: ${categoryProgress.completed}/${categoryProgress.total}`}
           >
             {isComplete ? (
               <CheckCircle className="h-3.5 w-3.5 text-brand-accent" />
             ) : (
-              <Icon
-                className={cn(
-                  'h-3.5 w-3.5',
-                  hasProgress ? category.color : 'text-gray-300'
-                )}
-              />
+              <Icon className={cn('h-3.5 w-3.5', hasProgress ? category.color : 'text-gray-300')} />
             )}
           </div>
         )

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { ChevronRight, Shuffle, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import type { OneLinerQuestion, StoryQuestion } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { Shuffle, X, ChevronRight } from 'lucide-react'
-import type { StoryQuestion, OneLinerQuestion } from '@/lib/types/biography-v2'
 
 interface RandomRecommendProps {
   /** 未填寫的問題列表 */
@@ -33,15 +33,8 @@ export function RandomRecommend({
 
   if (unfilledQuestions.length === 0) {
     return (
-      <div
-        className={cn(
-          'bg-brand-accent/20 rounded-lg p-4 text-center',
-          className
-        )}
-      >
-        <p className="text-[#1B1A1A] font-medium">
-          {t('randomRecommendAllDone')}
-        </p>
+      <div className={cn('bg-brand-accent/20 rounded-lg p-4 text-center', className)}>
+        <p className="text-[#1B1A1A] font-medium">{t('randomRecommendAllDone')}</p>
       </div>
     )
   }
@@ -56,19 +49,12 @@ export function RandomRecommend({
   const questionType = isStory ? 'story' : 'oneliner'
 
   return (
-    <div
-      className={cn(
-        'bg-white border border-[#DBD8D8] rounded-lg overflow-hidden',
-        className
-      )}
-    >
+    <div className={cn('bg-white border border-[#DBD8D8] rounded-lg overflow-hidden', className)}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-[#F5F5F5]">
         <div className="flex items-center gap-2">
           <Shuffle size={16} className="text-[#3F3D3D]" />
-          <span className="text-sm font-medium text-[#1B1A1A]">
-            {t('randomRecommendTitle')}
-          </span>
+          <span className="text-sm font-medium text-[#1B1A1A]">{t('randomRecommendTitle')}</span>
         </div>
         {onClose && (
           <button

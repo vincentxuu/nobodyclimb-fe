@@ -1,7 +1,7 @@
-import React from 'react'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
+import Image from 'next/image'
+import React from 'react'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 
 interface GalleryPhoto {
@@ -76,19 +76,20 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ photos, onPhotoClick }) => {
             )}
 
             {/* Location info at bottom */}
-            {photo.location && (photo.location.country || photo.location.city || photo.location.spot) && (
-              <div className="flex items-center gap-1 text-xs text-white md:text-sm">
-                <MapPin size={14} />
-                {photo.location.country && <span>{photo.location.country}</span>}
-                {photo.location.city && <span>{photo.location.city}</span>}
-                {photo.location.spot && (
-                  <>
-                    <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
-                    <span className="font-medium">{photo.location.spot}</span>
-                  </>
-                )}
-              </div>
-            )}
+            {photo.location &&
+              (photo.location.country || photo.location.city || photo.location.spot) && (
+                <div className="flex items-center gap-1 text-xs text-white md:text-sm">
+                  <MapPin size={14} />
+                  {photo.location.country && <span>{photo.location.country}</span>}
+                  {photo.location.city && <span>{photo.location.city}</span>}
+                  {photo.location.spot && (
+                    <>
+                      <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
+                      <span className="font-medium">{photo.location.spot}</span>
+                    </>
+                  )}
+                </div>
+              )}
           </div>
         </motion.div>
       ))}

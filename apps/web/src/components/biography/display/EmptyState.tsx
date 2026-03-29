@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
 import { Lightbulb, Plus } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 type EmptyStateType = 'no_content' | 'private' | 'anonymous' | 'not_found'
 
@@ -28,15 +28,14 @@ const EmptyStateEmojis: Record<EmptyStateType, string> = {
  *
  * 用於各種空狀態的展示
  */
-export function EmptyState({
-  type,
-  isOwner = false,
-  className,
-}: EmptyStateProps) {
+export function EmptyState({ type, isOwner = false, className }: EmptyStateProps) {
   const t = useTranslations('BiographyPage')
   const emoji = EmptyStateEmojis[type]
 
-  const contentMap: Record<EmptyStateType, { title: string; description: string; actionLabel?: string; actionHref?: string }> = {
+  const contentMap: Record<
+    EmptyStateType,
+    { title: string; description: string; actionLabel?: string; actionHref?: string }
+  > = {
     no_content: {
       title: t('emptyStateNoContent'),
       description: t('emptyStateNoContentDesc'),
@@ -68,18 +67,13 @@ export function EmptyState({
 
   return (
     <div
-      className={cn(
-        'flex flex-col items-center justify-center py-16 px-4 text-center',
-        className
-      )}
+      className={cn('flex flex-col items-center justify-center py-16 px-4 text-center', className)}
     >
       <div className="w-20 h-20 rounded-full bg-[#EBEAEA] flex items-center justify-center mb-6">
         <span className="text-4xl">{emoji}</span>
       </div>
 
-      <h2 className="text-xl font-semibold text-[#1B1A1A] mb-2">
-        {content.title}
-      </h2>
+      <h2 className="text-xl font-semibold text-[#1B1A1A] mb-2">{content.title}</h2>
 
       <p className="text-[#6D6C6C] max-w-sm mb-6">{content.description}</p>
 

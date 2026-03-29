@@ -6,7 +6,7 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
-import type { GymListItem, GymDetailData, GymPricing } from '@/lib/gym-data'
+import type { GymDetailData, GymListItem } from '@/lib/gym-data'
 
 const STALE_TIME = 5 * 60 * 1000 // 5 分鐘
 const GC_TIME = 30 * 60 * 1000 // 30 分鐘
@@ -181,7 +181,8 @@ export function useRelatedGyms(currentGymId: string, limit: number = 3) {
         .sort((a, b) => {
           const cityScore = Number(b.city === currentGym.city) - Number(a.city === currentGym.city)
           if (cityScore !== 0) return cityScore
-          const regionScore = Number(b.region === currentGym.region) - Number(a.region === currentGym.region)
+          const regionScore =
+            Number(b.region === currentGym.region) - Number(a.region === currentGym.region)
           if (regionScore !== 0) return regionScore
           return b.rating - a.rating
         })
@@ -220,16 +221,10 @@ export function useAdjacentGyms(currentGymId: string) {
 /**
  * 搜尋岩館（客戶端過濾）
  */
-export function useSearchGyms(options: {
-  query?: string
-  region?: string
-  type?: string
-}) {
+export function useSearchGyms(options: { query?: string; region?: string; type?: string }) {
   const { data: allGyms, isLoading, error } = useGyms({ limit: 100 })
 
-  const filteredGyms = allGyms
-    ? filterGyms(allGyms, options)
-    : []
+  const filteredGyms = allGyms ? filterGyms(allGyms, options) : []
 
   return {
     data: filteredGyms,
@@ -259,9 +254,7 @@ function filterGyms(
 
   if (options.region && options.region !== '所有地區') {
     result = result.filter(
-      (gym) =>
-        gym.city.includes(options.region!) ||
-        gym.region === options.region
+      (gym) => gym.city.includes(options.region!) || gym.region === options.region
     )
   }
 

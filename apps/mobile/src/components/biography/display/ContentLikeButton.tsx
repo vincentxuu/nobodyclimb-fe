@@ -3,18 +3,18 @@
  *
  * 內容按讚按鈕，對應 apps/web/src/components/biography/display/ContentLikeButton.tsx
  */
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, Pressable } from 'react-native'
+
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Mountain } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Pressable, StyleSheet } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withSequence,
+  withSpring,
 } from 'react-native-reanimated'
-
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -54,17 +54,14 @@ export function ContentLikeButton({
     setLikeCount((prev) => (newIsLiked ? prev + 1 : Math.max(0, prev - 1)))
 
     // 動畫效果
-    scale.value = withSequence(
-      withSpring(1.2, { damping: 10 }),
-      withSpring(1, { damping: 10 })
-    )
+    scale.value = withSequence(withSpring(1.2, { damping: 10 }), withSpring(1, { damping: 10 }))
 
     setIsLoading(true)
     try {
       const result = await onToggle()
       setIsLiked(result.liked)
       setLikeCount(result.like_count)
-    } catch (error) {
+    } catch (_error) {
       // 回滾
       setIsLiked(!newIsLiked)
       setLikeCount((prev) => (!newIsLiked ? prev + 1 : Math.max(0, prev - 1)))
@@ -83,10 +80,7 @@ export function ContentLikeButton({
       disabled={isLoading}
     >
       <Mountain size={iconSize} color={iconColor} />
-      <Text
-        variant="small"
-        style={isLiked ? styles.likedText : styles.unlikedText}
-      >
+      <Text variant="small" style={isLiked ? styles.likedText : styles.unlikedText}>
         {likeCount}
       </Text>
     </AnimatedPressable>

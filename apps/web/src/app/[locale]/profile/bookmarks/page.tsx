@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import Image from 'next/image'
-import Link from 'next/link'
 import { Bookmark, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { userService, postService } from '@/lib/api/services'
+import { Link } from '@/i18n/navigation'
+import { postService, userService } from '@/lib/api/services'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { BackendPost } from '@/lib/types'
-import { useTranslations } from 'next-intl'
 
 const ITEMS_PER_PAGE = 10
 
@@ -19,24 +19,24 @@ const ITEMS_PER_PAGE = 10
 const LoadingState = () => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="flex items-center justify-center py-12">
-    <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
-    <span className="ml-2 text-[#6D6C6C]">{t('loading')}</span>
-  </div>
-)
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-[#6D6C6C]" />
+      <span className="ml-2 text-[#6D6C6C]">{t('loading')}</span>
+    </div>
+  )
 }
 
 // 錯誤狀態元件
 const ErrorState = ({ message, onRetry }: { message: string; onRetry: () => void }) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="py-12 text-center">
-    <p className="mb-4 text-red-600">{message}</p>
-    <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
-      {t('retry')}
-    </Button>
-  </div>
-)
+    <div className="py-12 text-center">
+      <p className="mb-4 text-red-600">{message}</p>
+      <Button onClick={onRetry} className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">
+        {t('retry')}
+      </Button>
+    </div>
+  )
 }
 
 // 收藏文章卡片元件
@@ -89,7 +89,9 @@ const BookmarkCard = ({ article, onRemoveBookmark, isRemoving, isMobile }: Bookm
         <p className="mb-3 line-clamp-2 text-sm text-[#3F3D3D]">
           {article.excerpt || article.content?.slice(0, 100)}
         </p>
-        <div className="mb-3 text-xs text-[#8E8C8C]">{t('publishedAt', { date: formattedDate })}</div>
+        <div className="mb-3 text-xs text-[#8E8C8C]">
+          {t('publishedAt', { date: formattedDate })}
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -98,11 +100,7 @@ const BookmarkCard = ({ article, onRemoveBookmark, isRemoving, isMobile }: Bookm
             onClick={() => onRemoveBookmark(article.id)}
             disabled={isRemoving}
           >
-            {isRemoving ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Bookmark size={14} />
-            )}
+            {isRemoving ? <Loader2 size={14} className="animate-spin" /> : <Bookmark size={14} />}
             {t('removeBookmark')}
           </Button>
           <Link href={`/blog/${article.id}`} className="flex-1">
@@ -141,7 +139,9 @@ const BookmarkCard = ({ article, onRemoveBookmark, isRemoving, isMobile }: Bookm
             <span className="text-sm text-[#6D6C6C]">
               {category} | {t('author')}：{authorName}
             </span>
-            <span className="text-sm text-[#6D6C6C]">{t('publishedAt', { date: formattedDate })}</span>
+            <span className="text-sm text-[#6D6C6C]">
+              {t('publishedAt', { date: formattedDate })}
+            </span>
           </div>
           <h2 className="mb-2 text-xl font-medium">{article.title}</h2>
           <p className="mb-3 line-clamp-2 text-[#3F3D3D]">
@@ -154,11 +154,7 @@ const BookmarkCard = ({ article, onRemoveBookmark, isRemoving, isMobile }: Bookm
               onClick={() => onRemoveBookmark(article.id)}
               disabled={isRemoving}
             >
-              {isRemoving ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Bookmark size={16} />
-              )}
+              {isRemoving ? <Loader2 size={16} className="animate-spin" /> : <Bookmark size={16} />}
               {t('removeBookmark')}
             </Button>
             <Link href={`/blog/${article.id}`}>
@@ -180,14 +176,14 @@ const BookmarkCard = ({ article, onRemoveBookmark, isRemoving, isMobile }: Bookm
 const EmptyState = () => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="py-12 text-center">
-    <Bookmark size={48} className="mx-auto mb-4 text-[#B6B3B3]" />
-    <p className="mb-4 text-[#6D6C6C]">{t('noBookmarksYet')}</p>
-    <Link href="/blog">
-      <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">{t('browseBlog')}</Button>
-    </Link>
-  </div>
-)
+    <div className="py-12 text-center">
+      <Bookmark size={48} className="mx-auto mb-4 text-[#B6B3B3]" />
+      <p className="mb-4 text-[#6D6C6C]">{t('noBookmarksYet')}</p>
+      <Link href="/blog">
+        <Button className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]">{t('browseBlog')}</Button>
+      </Link>
+    </div>
+  )
 }
 
 // 載入更多按鈕元件
@@ -201,27 +197,25 @@ interface LoadMoreButtonProps {
 const LoadMoreButton = ({ onClick, isLoading, currentCount, totalCount }: LoadMoreButtonProps) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="mt-8 flex flex-col items-center gap-2">
-    <p className="text-sm text-[#6D6C6C]">
-      {t('showingArticles', { currentCount, totalCount })}
-    </p>
-    <Button
-      variant="outline"
-      onClick={onClick}
-      disabled={isLoading}
-      className="min-w-[160px] border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 size={16} className="mr-2 animate-spin" />
-          {t('loading')}
-        </>
-      ) : (
-        t('loadMore')
-      )}
-    </Button>
-  </div>
-)
+    <div className="mt-8 flex flex-col items-center gap-2">
+      <p className="text-sm text-[#6D6C6C]">{t('showingArticles', { currentCount, totalCount })}</p>
+      <Button
+        variant="outline"
+        onClick={onClick}
+        disabled={isLoading}
+        className="min-w-[160px] border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 size={16} className="mr-2 animate-spin" />
+            {t('loading')}
+          </>
+        ) : (
+          t('loadMore')
+        )}
+      </Button>
+    </div>
+  )
 }
 
 export default function BookmarksPage() {
@@ -334,7 +328,11 @@ export default function BookmarksPage() {
     <ProfilePageLayout>
       <div className={`bg-white ${isMobile ? 'p-4 md:p-6' : 'p-8 md:p-12'} rounded-sm`}>
         <ProfilePageTitle
-          title={totalCount > 0 ? t('bookmarksTitleWithCount', { count: totalCount }) : t('bookmarksTitle')}
+          title={
+            totalCount > 0
+              ? t('bookmarksTitleWithCount', { count: totalCount })
+              : t('bookmarksTitle')
+          }
         />
 
         {isLoading ? (

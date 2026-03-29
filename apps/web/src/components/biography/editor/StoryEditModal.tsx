@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Lightbulb, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import type { Story, StoryQuestion } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { X, Lightbulb, Loader2 } from 'lucide-react'
-import type { StoryQuestion, Story } from '@/lib/types/biography-v2'
 
 interface StoryEditModalProps {
   /** 是否開啟 */
@@ -72,10 +72,7 @@ export function StoryEditModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div
@@ -119,9 +116,7 @@ export function StoryEditModal({
               maxLength={5000}
             />
             <div className="flex justify-between items-center">
-              <span className="text-xs text-[#8E8C8C]">
-                {content.length}/5000
-              </span>
+              <span className="text-xs text-[#8E8C8C]">{content.length}/5000</span>
               {hasContent && (
                 <button
                   type="button"

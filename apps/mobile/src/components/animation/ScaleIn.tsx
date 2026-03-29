@@ -6,13 +6,13 @@
 import React, { useEffect } from 'react'
 import { type ViewStyle } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  useSharedValue,
   withDelay,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated'
-import { scaleInConfig, SCALE_INITIAL, springConfigStandard } from '@/theme/animations'
+import { SCALE_INITIAL, scaleInConfig, springConfigStandard } from '@/theme/animations'
 
 export interface ScaleInProps {
   /** 子元素 */
@@ -73,11 +73,7 @@ export function ScaleIn({
     transform: [{ scale: scale.value }],
   }))
 
-  return (
-    <Animated.View style={[animatedStyle, style]}>
-      {children}
-    </Animated.View>
-  )
+  return <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>
 }
 
 export default ScaleIn

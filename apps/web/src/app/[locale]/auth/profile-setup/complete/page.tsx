@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '@/lib/hooks/useAuth'
+import { ArrowRight, Check, Edit3, Home, Sparkles, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import React, { useCallback, useEffect, useState } from 'react'
+import { ChoiceQuestion, GuidedQuestions } from '@/components/onboarding'
 import { PageTransition } from '@/components/shared/page-transition'
-import { Check, Edit3, Home, User, Sparkles, ArrowRight } from 'lucide-react'
-import { GuidedQuestions, ChoiceQuestion } from '@/components/onboarding'
-import { biographyService } from '@/lib/api/services'
-import { useQuestions, useChoiceQuestions, useSubmitChoiceAnswer } from '@/lib/hooks/useQuestions'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
+import { biographyService } from '@/lib/api/services'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { useChoiceQuestions, useQuestions, useSubmitChoiceAnswer } from '@/lib/hooks/useQuestions'
 import { buildOneLinersData } from '@/lib/utils/biography'
 
 // 引導式問答的問題（從一句話問題中選取幾個容易回答的）
@@ -299,9 +299,7 @@ export default function CompletePage() {
 
           <h1 className="text-3xl font-bold">{t('registrationComplete')}</h1>
 
-          <p className="max-w-md text-gray-600">
-            {t('registrationCompleteDesc')}
-          </p>
+          <p className="max-w-md text-gray-600">{t('registrationCompleteDesc')}</p>
 
           {/* 引導式問答提示卡片 */}
           {guidedQuestions.length > 0 && (
@@ -312,9 +310,7 @@ export default function CompletePage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{t('answerMoreQuestions')}</h3>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {t('answerMoreQuestionsDesc')}
-                  </p>
+                  <p className="mt-1 text-sm text-gray-600">{t('answerMoreQuestionsDesc')}</p>
                   <Button
                     onClick={handleStartGuided}
                     className="mt-3 gap-1.5 bg-primary text-white hover:bg-primary/90"
@@ -337,9 +333,7 @@ export default function CompletePage() {
               </div>
               <div>
                 <h3 className="font-medium text-gray-900">{t('enrichBiography')}</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  {t('enrichBiographyDesc')}
-                </p>
+                <p className="mt-1 text-sm text-gray-600">{t('enrichBiographyDesc')}</p>
               </div>
             </div>
           </div>

@@ -1,10 +1,10 @@
-export { BadgeIcon, BadgeList } from './badge-icon'
 export { BadgeCard, BadgeGrid } from './badge-card'
-export { CircularProgress, ProgressBar, StatCard, BarChart } from './progress-chart'
-export { StatsOverview } from './stats-overview'
+export { BadgeIcon, BadgeList } from './badge-icon'
 export { BadgeShowcase, CompactBadgeDisplay } from './badge-showcase'
 export {
+  CommunityDashboard,
   CommunityStatsOverview,
   Leaderboard,
-  CommunityDashboard,
 } from './community-stats'
+export { BarChart, CircularProgress, ProgressBar, StatCard } from './progress-chart'
+export { StatsOverview } from './stats-overview'

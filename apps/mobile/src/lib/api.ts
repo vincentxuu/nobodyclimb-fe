@@ -7,8 +7,7 @@ import { createApiClient } from '@nobodyclimb/api-client'
 import { tokenStorage } from './tokenStorage'
 
 // API 基礎 URL
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.nobodyclimb.cc/api/v1'
 
 // 建立 API Client 實例
 export const apiClient = createApiClient({

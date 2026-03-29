@@ -22,7 +22,7 @@
 export { createApiClient } from './core/client'
 export type {
   ApiClientConfig,
-  TokenStorage,
-  RetryConfig,
   ExtendedRequestConfig,
+  RetryConfig,
+  TokenStorage,
 } from './core/types'

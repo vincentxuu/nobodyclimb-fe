@@ -1,5 +1,5 @@
-import Image from 'next/image'
 import { User } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { isSvgUrl } from '@/lib/utils/image'
 

@@ -3,8 +3,9 @@
  *
  * 對應 apps/web/src/store/ropeGameStore.ts
  */
-import { create } from 'zustand'
+
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { create } from 'zustand'
 
 const ROPE_GAME_PROGRESS_KEY = 'rope_game_progress'
 
@@ -84,9 +85,7 @@ export const useRopeGameStore = create<RopeGameState>((set, get) => ({
 
       if (stored) {
         const data = JSON.parse(stored)
-        const progressMap = new Map<string, CategoryProgress>(
-          Object.entries(data.progress || {})
-        )
+        const progressMap = new Map<string, CategoryProgress>(Object.entries(data.progress || {}))
 
         set({
           progress: progressMap,
@@ -244,8 +243,7 @@ export const useRopeGameStore = create<RopeGameState>((set, get) => ({
 
     const totalQuestions = currentSession.questions.length
     const correctAnswers = currentSession.answers.filter(
-      (answer, index) =>
-        answer === currentSession.questions[index].correctAnswer
+      (answer, index) => answer === currentSession.questions[index].correctAnswer
     ).length
 
     // 更新進度

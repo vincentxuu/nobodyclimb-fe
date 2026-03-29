@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { MountainSnow, Users, Star, Plus, LogIn } from 'lucide-react'
+import { LogIn, MountainSnow, Plus, Star, Users } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { AscentCard, AscentForm } from '@/components/ascent'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/lib/hooks'
 import { useAscents } from '@/lib/hooks/useAscents'
-import { AscentCard, AscentForm } from '@/components/ascent'
-import type { UserRouteAscent, RouteAscentSummary } from '@/lib/types/ascent'
-import { useToast } from '@/components/ui/use-toast'
-import Link from 'next/link'
+import type { RouteAscentSummary, UserRouteAscent } from '@/lib/types/ascent'
 
 interface RouteAscentsSectionProps {
   routeId: string
@@ -17,11 +17,7 @@ interface RouteAscentsSectionProps {
   routeGrade?: string
 }
 
-export function RouteAscentsSection({
-  routeId,
-  routeName,
-  routeGrade,
-}: RouteAscentsSectionProps) {
+export function RouteAscentsSection({ routeId, routeName, routeGrade }: RouteAscentsSectionProps) {
   const t = useTranslations('CragPage')
   const { isSignedIn } = useAuth()
   const { getRouteAscents, getRouteAscentSummary, createAscent } = useAscents()

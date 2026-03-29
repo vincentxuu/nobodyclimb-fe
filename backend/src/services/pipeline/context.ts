@@ -1,29 +1,34 @@
-import { Env, AIAskRequest, AIChatMessage } from '../../types';
-import { PipelineContext, PipelineConfig, PipelineTokenBreakdown, QueryServiceStepMethods } from './types';
-import { CircuitBreaker } from '../../utils/circuit-breaker';
+import { AIAskRequest, AIChatMessage, Env } from '../../types'
+import { CircuitBreaker } from '../../utils/circuit-breaker'
+import {
+  PipelineConfig,
+  PipelineContext,
+  PipelineTokenBreakdown,
+  QueryServiceStepMethods,
+} from './types'
 
 export function createPipelineContext(opts: {
-  env: Env;
-  queryService: QueryServiceStepMethods;
-  request: AIAskRequest;
-  userId?: string;
-  pipelineConfig: PipelineConfig;
-  prompts: Record<string, string>;
-  gatewayOptions?: { gateway: { id: string } };
-  cacheKey: string;
-  recentHistory: AIChatMessage[];
-  isAnonymousNoHistory: boolean;
-  earlyQueryVector: number[] | null;
-  memorySummary: string | null;
-  ascentContext: string | null;
-  abilityLevel: number | null;
-  streamingMode: boolean;
-  onToken?: (token: string) => Promise<void>;
-  waitUntilCtx?: { waitUntil(promise: Promise<unknown>): void };
-  extraTrace?: Record<string, unknown>;
-  abortSignal?: AbortSignal;
-  circuitBreaker?: CircuitBreaker;
-  langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null;
+  env: Env
+  queryService: QueryServiceStepMethods
+  request: AIAskRequest
+  userId?: string
+  pipelineConfig: PipelineConfig
+  prompts: Record<string, string>
+  gatewayOptions?: { gateway: { id: string } }
+  cacheKey: string
+  recentHistory: AIChatMessage[]
+  isAnonymousNoHistory: boolean
+  earlyQueryVector: number[] | null
+  memorySummary: string | null
+  ascentContext: string | null
+  abilityLevel: number | null
+  streamingMode: boolean
+  onToken?: (token: string) => Promise<void>
+  waitUntilCtx?: { waitUntil(promise: Promise<unknown>): void }
+  extraTrace?: Record<string, unknown>
+  abortSignal?: AbortSignal
+  circuitBreaker?: CircuitBreaker
+  langfuseTrace?: import('../../utils/langfuse').LangfuseTraceClient | null
 }): PipelineContext {
   return {
     env: opts.env,
@@ -85,5 +90,5 @@ export function createPipelineContext(opts: {
     // Langfuse 觀察性
     langfuseTrace: opts.langfuseTrace ?? null,
     currentLfSpan: null,
-  };
+  }
 }

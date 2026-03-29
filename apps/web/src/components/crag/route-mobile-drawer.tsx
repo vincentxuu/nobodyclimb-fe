@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeft, List, X } from 'lucide-react'
 import Link from 'next/link'
-import { List, X, ArrowLeft } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { RouteListFilter } from './route-list-filter'
-import { VirtualizedRouteList } from './virtualized-route-list'
+import { useCallback, useState } from 'react'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 import type { RouteFilterState } from '@/lib/hooks/useRouteFilter'
+import { RouteListFilter } from './route-list-filter'
+import { VirtualizedRouteList } from './virtualized-route-list'
 
 interface RouteMobileDrawerProps {
   cragId: string
@@ -100,7 +100,10 @@ export function RouteMobileDrawer({
                   <p className="text-xs text-gray-500 mt-0.5">
                     {filteredRoutes.length === routes.length
                       ? t('routeCount', { count: routes.length })
-                      : t('routeCountFiltered', { filtered: filteredRoutes.length, total: routes.length })}
+                      : t('routeCountFiltered', {
+                          filtered: filteredRoutes.length,
+                          total: routes.length,
+                        })}
                   </p>
                 </div>
                 <button

@@ -1,28 +1,31 @@
-import React from 'react'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
-import { routing } from '@/i18n/routing'
-import { Providers } from '@/components/layout/providers'
-import { Navbar } from '@/components/layout/navbar'
+import React from 'react'
+import { ChatWidget } from '@/components/ai'
 import { Footer } from '@/components/layout/footer'
-import { ProgressBar } from '@/components/shared/progress-bar'
+import { Navbar } from '@/components/layout/navbar'
+import { Providers } from '@/components/layout/providers'
+import { Analytics } from '@/components/shared/analytics'
 import { AuthInitializer } from '@/components/shared/auth-initializer'
-import { StoryPromptWrapper } from '@/components/shared/story-prompt-wrapper'
-import { ShareInvitation } from '@/components/shared/share-invitation'
 import { ClaimContentProvider } from '@/components/shared/claim-content-modal'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
-import { ChatWidget } from '@/components/ai'
-import { Analytics } from '@/components/shared/analytics'
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO } from '@/lib/constants'
+import { ProgressBar } from '@/components/shared/progress-bar'
+import { ShareInvitation } from '@/components/shared/share-invitation'
+import { StoryPromptWrapper } from '@/components/shared/story-prompt-wrapper'
+import { routing } from '@/i18n/routing'
+import { SITE_DESCRIPTION, SITE_LOGO, SITE_NAME, SITE_URL } from '@/lib/constants'
 
 // JSON-LD 結構化數據 - 幫助搜尋引擎理解網站內容
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: SITE_NAME,
+  alternateName: ['NobodyClimb 台灣攀岩', '台灣攀岩社群'],
   description: SITE_DESCRIPTION,
   url: SITE_URL,
+  inLanguage: ['zh-TW', 'en', 'ja'],
+  keywords: '攀岩,龍洞,墾丁,關子嶺,德芙蘭,台灣攀岩,戶外攀岩,攀岩路線,岩場',
   potentialAction: {
     '@type': 'SearchAction',
     target: {

@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
-import { MapPin, ExternalLink } from 'lucide-react'
+import { ExternalLink, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import React from 'react'
 
 interface MapCardProps {
   googleMapsUrl: string

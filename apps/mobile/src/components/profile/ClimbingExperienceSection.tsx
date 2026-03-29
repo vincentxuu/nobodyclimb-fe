@@ -1,5 +1,4 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { TextArea } from '../ui/TextArea'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
@@ -31,10 +30,7 @@ export default function ClimbingExperienceSection({
             minRows={4}
           />
         ) : (
-          <ProfileTextDisplay
-            text={climbingReason || '未設定'}
-            minHeight={80}
-          />
+          <ProfileTextDisplay text={climbingReason || '未設定'} minHeight={80} />
         )}
       </ProfileFormField>
       <ProfileFormField label="攀岩對你來說是什麼">
@@ -46,10 +42,7 @@ export default function ClimbingExperienceSection({
             minRows={4}
           />
         ) : (
-          <ProfileTextDisplay
-            text={climbingMeaning || '未設定'}
-            minHeight={80}
-          />
+          <ProfileTextDisplay text={climbingMeaning || '未設定'} minHeight={80} />
         )}
       </ProfileFormField>
       <ProfileFormField label="給剛開始攀岩的自己">
@@ -61,10 +54,7 @@ export default function ClimbingExperienceSection({
             minRows={4}
           />
         ) : (
-          <ProfileTextDisplay
-            text={adviceForBeginners || '未設定'}
-            minHeight={80}
-          />
+          <ProfileTextDisplay text={adviceForBeginners || '未設定'} minHeight={80} />
         )}
       </ProfileFormField>
     </View>

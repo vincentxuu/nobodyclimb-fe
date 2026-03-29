@@ -6,7 +6,7 @@
  * 1. icon 屬性：傳入 Lucide 圖標組件
  * 2. name 屬性：傳入圖標名稱字串
  */
-import React from 'react'
+
 import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { LucideIcon, LucideProps } from 'lucide-react-native'
 import * as LucideIcons from 'lucide-react-native'

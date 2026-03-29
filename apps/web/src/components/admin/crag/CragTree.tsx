@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
 import {
-  Mountain,
+  ChevronDown,
+  ChevronRight,
   FolderOpen,
   Layers,
-  Route as RouteIcon,
-  Plus,
-  Star,
-  ChevronRight,
-  ChevronDown,
   Loader2,
+  Mountain,
+  Plus,
+  Route as RouteIcon,
   Search,
+  Star,
 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { adminCragService } from '@/lib/api/services'
-import { AdminCrag, AdminArea, AdminSector } from '@/lib/types'
+import { AdminArea, AdminCrag, AdminSector } from '@/lib/types'
 import { AdminRoute, REGIONS, useDebounce } from './types'
 
 // 選中項目的統一型別
@@ -50,7 +50,7 @@ interface TreeNodeState {
   areas?: AdminArea[]
   sectors?: Record<string, AdminSector[]>
   routes?: Record<string, AdminRoute[]>
-  areaRoutes?: Record<string, AdminRoute[]>  // 直接屬於 area 的路線（沒有 sector_id）
+  areaRoutes?: Record<string, AdminRoute[]> // 直接屬於 area 的路線（沒有 sector_id）
 }
 
 export default function CragTree({
@@ -131,9 +131,7 @@ export default function CragTree({
 
       // 過濾出沒有 sector_id 的路線（直接屬於 area）
       const allRoutes = (routesResponse.data || []) as unknown as AdminRoute[]
-      const areaRoutes = allRoutes.filter(
-        (route) => !route.sector_id
-      )
+      const areaRoutes = allRoutes.filter((route) => !route.sector_id)
 
       setNodeStates((prev) => {
         const cragState = prev[cragId] || {}
@@ -385,17 +383,11 @@ function CragNode({
             isCragSelected ? 'text-white' : 'text-wb-50 hover:text-wb-70'
           }`}
         >
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
         <div
           className="flex-1 flex items-center gap-2 min-w-0"
-          onClick={() =>
-            onItemClick('crag', crag.id, { cragId: crag.id }, crag)
-          }
+          onClick={() => onItemClick('crag', crag.id, { cragId: crag.id }, crag)}
         >
           {crag.is_featured ? (
             <Star
@@ -414,9 +406,7 @@ function CragNode({
           )}
           <span className="text-sm font-medium truncate">{crag.name}</span>
           <span
-            className={`text-xs flex-shrink-0 ${
-              isCragSelected ? 'text-white/60' : 'text-wb-40'
-            }`}
+            className={`text-xs flex-shrink-0 ${isCragSelected ? 'text-white/60' : 'text-wb-40'}`}
           >
             ({crag.route_count || 0})
           </span>
@@ -504,7 +494,7 @@ function AreaNode({
   const isExpanded = nodeStates[nodeKey]?.expanded || false
   const isAreaSelected = isSelected('area', area.id)
   const sectors = nodeStates[cragId]?.sectors?.[area.id]
-  const areaRoutes = nodeStates[cragId]?.areaRoutes?.[area.id]  // 直接屬於 area 的路線
+  const areaRoutes = nodeStates[cragId]?.areaRoutes?.[area.id] // 直接屬於 area 的路線
   const isLoading = nodeStates[nodeKey]?.loading
   const hasSectors = sectors && sectors.length > 0
   const hasAreaRoutes = areaRoutes && areaRoutes.length > 0
@@ -526,17 +516,11 @@ function AreaNode({
             isAreaSelected ? 'text-white' : 'text-wb-50 hover:text-wb-70'
           }`}
         >
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
         <div
           className="flex-1 flex items-center gap-2 min-w-0"
-          onClick={() =>
-            onItemClick('area', area.id, { cragId, areaId: area.id }, area, { crag })
-          }
+          onClick={() => onItemClick('area', area.id, { cragId, areaId: area.id }, area, { crag })}
         >
           <FolderOpen
             className={`h-3.5 w-3.5 flex-shrink-0 ${
@@ -545,9 +529,7 @@ function AreaNode({
           />
           <span className="text-sm truncate">{area.name}</span>
           <span
-            className={`text-xs flex-shrink-0 ${
-              isAreaSelected ? 'text-white/60' : 'text-wb-40'
-            }`}
+            className={`text-xs flex-shrink-0 ${isAreaSelected ? 'text-white/60' : 'text-wb-40'}`}
           >
             ({area.route_count || 0})
           </span>
@@ -577,21 +559,22 @@ function AreaNode({
           ) : (
             <>
               {/* Sectors */}
-              {hasSectors && sectors.map((sector) => (
-                <SectorNode
-                  key={sector.id}
-                  sector={sector}
-                  crag={crag}
-                  area={area}
-                  cragId={cragId}
-                  areaId={area.id}
-                  nodeStates={nodeStates}
-                  isSelected={isSelected}
-                  onToggleSector={onToggleSector}
-                  onItemClick={onItemClick}
-                  onAddClick={onAddClick}
-                />
-              ))}
+              {hasSectors &&
+                sectors.map((sector) => (
+                  <SectorNode
+                    key={sector.id}
+                    sector={sector}
+                    crag={crag}
+                    area={area}
+                    cragId={cragId}
+                    areaId={area.id}
+                    nodeStates={nodeStates}
+                    isSelected={isSelected}
+                    onToggleSector={onToggleSector}
+                    onItemClick={onItemClick}
+                    onAddClick={onAddClick}
+                  />
+                ))}
 
               {/* 直接屬於 area 的路線（沒有 sector_id） */}
               {hasAreaRoutes && (
@@ -620,9 +603,7 @@ function AreaNode({
 
               {/* 沒有任何內容時顯示 */}
               {!hasSectors && !hasAreaRoutes && (
-                <div className="px-2 py-2 text-xs text-wb-40 italic">
-                  尚無岩壁或路線
-                </div>
+                <div className="px-2 py-2 text-xs text-wb-40 italic">尚無岩壁或路線</div>
               )}
             </>
           )}
@@ -691,22 +672,15 @@ function SectorNode({
             isSectorSelected ? 'text-white' : 'text-wb-50 hover:text-wb-70'
           }`}
         >
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
+          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
         <div
           className="flex-1 flex items-center gap-2 min-w-0"
           onClick={() =>
-            onItemClick(
-              'sector',
-              sector.id,
-              { cragId, areaId, sectorId: sector.id },
-              sector,
-              { crag, area }
-            )
+            onItemClick('sector', sector.id, { cragId, areaId, sectorId: sector.id }, sector, {
+              crag,
+              area,
+            })
           }
         >
           <Layers
@@ -717,9 +691,7 @@ function SectorNode({
           <span className="text-sm truncate">{sector.name}</span>
         </div>
         <button
-          onClick={(e) =>
-            onAddClick(e, 'route', { cragId, areaId, sectorId: sector.id })
-          }
+          onClick={(e) => onAddClick(e, 'route', { cragId, areaId, sectorId: sector.id })}
           className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${
             isSectorSelected
               ? 'hover:bg-white/20 text-white'
@@ -768,7 +740,7 @@ interface RouteNodeProps {
   route: AdminRoute
   crag: AdminCrag
   area: AdminArea
-  sector: AdminSector | null  // 可能為 null（直接屬於 area 的路線）
+  sector: AdminSector | null // 可能為 null（直接屬於 area 的路線）
   cragId: string
   areaId: string
   sectorId: string
@@ -801,33 +773,23 @@ function RouteNode({
         isRouteSelected ? 'bg-wb-100 text-white' : 'hover:bg-wb-10'
       }`}
       onClick={() =>
-        onItemClick(
-          'route',
-          route.id,
-          { cragId, areaId, sectorId: sectorId || undefined },
-          route,
-          { crag, area, sector: sector || undefined }
-        )
+        onItemClick('route', route.id, { cragId, areaId, sectorId: sectorId || undefined }, route, {
+          crag,
+          area,
+          sector: sector || undefined,
+        })
       }
     >
-      <span
-        className={`w-4 text-center ${
-          isRouteSelected ? 'text-white/50' : 'text-wb-30'
-        }`}
-      >
+      <span className={`w-4 text-center ${isRouteSelected ? 'text-white/50' : 'text-wb-30'}`}>
         •
       </span>
       <RouteIcon
-        className={`h-3 w-3 flex-shrink-0 ${
-          isRouteSelected ? 'text-white/70' : 'text-wb-50'
-        }`}
+        className={`h-3 w-3 flex-shrink-0 ${isRouteSelected ? 'text-white/70' : 'text-wb-50'}`}
       />
       <span className="text-sm truncate flex-1">{route.name}</span>
       {route.grade && (
         <span
-          className={`text-xs flex-shrink-0 ${
-            isRouteSelected ? 'text-white/60' : 'text-wb-40'
-          }`}
+          className={`text-xs flex-shrink-0 ${isRouteSelected ? 'text-white/60' : 'text-wb-40'}`}
         >
           {route.grade}
         </span>

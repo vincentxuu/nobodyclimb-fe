@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react-native'
+import { fireEvent, render } from '@testing-library/react-native'
 import { RecommendationCard } from '../RecommendationCard'
 
 jest.mock('@/components/ui', () => {
@@ -17,7 +17,14 @@ const MOCK_REC = {
   recommendation: {
     answer: '推薦你嘗試龍洞南壁的 5.10a 路線，適合你目前的程度。',
     sources: [
-      { id: 's1', type: 'route' as const, title: '藍色海灣', excerpt: '經典路線', url: 'https://example.com', score: 0.9 },
+      {
+        id: 's1',
+        type: 'route' as const,
+        title: '藍色海灣',
+        excerpt: '經典路線',
+        url: 'https://example.com',
+        score: 0.9,
+      },
     ],
     context_ascents: [{ id: 'a1' }],
   },
@@ -50,11 +57,15 @@ describe('RecommendationCard', () => {
   })
 
   it('renders manual trigger label', () => {
-    const { getByText } = render(<RecommendationCard recommendation={{ ...MOCK_REC, triggered_by: 'manual' }} />)
+    const { getByText } = render(
+      <RecommendationCard recommendation={{ ...MOCK_REC, triggered_by: 'manual' }} />
+    )
     expect(getByText('手動觸發')).toBeTruthy()
   })
 
   it('renders failed status gracefully', () => {
-    expect(() => render(<RecommendationCard recommendation={{ ...MOCK_REC, status: 'failed' }} />)).not.toThrow()
+    expect(() =>
+      render(<RecommendationCard recommendation={{ ...MOCK_REC, status: 'failed' }} />)
+    ).not.toThrow()
   })
 })

@@ -1,8 +1,8 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { Ghost, EyeOff } from 'lucide-react'
+import { EyeOff, Ghost } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl'
 
@@ -73,17 +73,10 @@ interface AnonymousNameProps {
   className?: string
 }
 
-export function AnonymousName({
-  name,
-  className,
-}: AnonymousNameProps) {
+export function AnonymousName({ name, className }: AnonymousNameProps) {
   const t = useTranslations('BiographyPage')
   const resolvedName = name ?? t('anonymousName')
-  return (
-    <span className={cn('text-[#6D6C6C] italic', className)}>
-      {resolvedName}
-    </span>
-  )
+  return <span className={cn('text-[#6D6C6C] italic', className)}>{resolvedName}</span>
 }
 
 /**

@@ -1,9 +1,8 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Bell, Inbox } from 'lucide-react-native'
-import { Text } from '../ui/Text'
-import { Icon } from '../ui/Icon'
 import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { Bell, Inbox } from 'lucide-react-native'
+import { StyleSheet, View } from 'react-native'
+import { Icon } from '../ui/Icon'
+import { Text } from '../ui/Text'
 
 interface NotificationStatsProps {
   unreadCount?: number

@@ -1,8 +1,9 @@
-import { D1Database } from '@cloudflare/workers-types';
-import { AI } from '../types';
-import { upsertMemory } from '../repositories/memory';
+import { D1Database } from '@cloudflare/workers-types'
+import { upsertMemory } from '../repositories/memory'
+import { AI } from '../types'
+import { extractResponseText } from './query/types'
 
-const LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct'
 
 // Task 4.2: 記憶提取 prompt
 // 只從用戶問題本身識別用戶資訊，不推斷 AI 回答的內容
@@ -27,18 +28,22 @@ const MEMORY_EXTRACTION_PROMPT = `你是一個記憶提取助手。請從以下�
 
 用戶問題：{query}
 
-輸出（只輸出 JSON，不要其他文字）：`;
+輸出（只輸出 JSON，不要其他文字）：`
 
 interface MemoryItem {
-  memory_key: string;
-  memory_type: string;
-  content: string;
+  memory_key: string
+  memory_type: string
+  content: string
 }
 
 const VALID_MEMORY_KEYS = new Set([
-  'climbing_level', 'preferred_region', 'preferred_style', 'preferred_crag', 'goals',
-]);
-const VALID_MEMORY_TYPES = new Set(['preference', 'behavior', 'fact']);
+  'climbing_level',
+  'preferred_region',
+  'preferred_style',
+  'preferred_crag',
+  'goals',
+])
+const VALID_MEMORY_TYPES = new Set(['preference', 'behavior', 'fact'])
 
 // Task 4.1: 從用戶問題提取記憶並寫入 DB
 export async function extractMemoriesFromQuery(
@@ -50,34 +55,34 @@ export async function extractMemoriesFromQuery(
 ): Promise<void> {
   try {
     // Task 4.1: 只傳入用戶問題，呼叫 llama-3.1-8b 提取結構化記憶
-    const prompt = MEMORY_EXTRACTION_PROMPT.replace('{query}', query);
-    const result = await ai.run(
+    const prompt = MEMORY_EXTRACTION_PROMPT.replace('{query}', query)
+    const result = (await ai.run(
       LIGHTWEIGHT_MODEL,
       { messages: [{ role: 'user', content: prompt }], max_tokens: 300 },
       gatewayOptions
-    ) as { response?: string };
+    )) as { response?: string }
 
-    const raw = result.response?.trim() ?? '';
-    if (!raw) return;
+    const raw = extractResponseText(result)
+    if (!raw) return
 
     // Task 4.3: 解析 LLM 回傳 JSON，跳過解析失敗或 content 為空的項目
-    let items: MemoryItem[] = [];
+    let items: MemoryItem[] = []
     try {
       // 嘗試從回應中抽取 JSON 陣列（模型可能在前後加文字）
-      const jsonMatch = raw.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) return;
-      items = JSON.parse(jsonMatch[0]) as MemoryItem[];
+      const jsonMatch = raw.match(/\[[\s\S]*\]/)
+      if (!jsonMatch) return
+      items = JSON.parse(jsonMatch[0]) as MemoryItem[]
     } catch {
-      return;
+      return
     }
 
-    if (!Array.isArray(items)) return;
+    if (!Array.isArray(items)) return
 
     for (const item of items.slice(0, 3)) {
-      if (!item.memory_key || !item.memory_type || !item.content) continue;
-      if (!VALID_MEMORY_KEYS.has(item.memory_key)) continue;
-      if (!VALID_MEMORY_TYPES.has(item.memory_type)) continue;
-      if (item.content.trim() === '') continue;
+      if (!item.memory_key || !item.memory_type || !item.content) continue
+      if (!VALID_MEMORY_KEYS.has(item.memory_key)) continue
+      if (!VALID_MEMORY_TYPES.has(item.memory_type)) continue
+      if (item.content.trim() === '') continue
 
       await upsertMemory(
         userId,
@@ -85,7 +90,7 @@ export async function extractMemoriesFromQuery(
         item.memory_type as 'preference' | 'behavior' | 'fact',
         item.content.trim(),
         db
-      );
+      )
     }
   } catch {
     // Task 4.4: 提取失敗不影響主查詢（靜默忽略錯誤）

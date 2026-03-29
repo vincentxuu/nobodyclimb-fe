@@ -1,18 +1,14 @@
 'use client'
 
-import React from 'react'
 import Image from 'next/image'
-import { ProfileImage, ImageLayout } from '../types'
+import { ImageLayout, ProfileImage } from '../types'
 
 interface ImageGalleryDisplayProps {
   images: ProfileImage[]
   layout: ImageLayout
 }
 
-export default function ImageGalleryDisplay({
-  images,
-  layout,
-}: ImageGalleryDisplayProps) {
+export default function ImageGalleryDisplay({ images, layout }: ImageGalleryDisplayProps) {
   if (images.length === 0) {
     return null
   }
@@ -64,9 +60,7 @@ export default function ImageGalleryDisplay({
               }
             />
           </div>
-          {image.caption && (
-            <p className="p-2 text-sm text-gray-600">{image.caption}</p>
-          )}
+          {image.caption && <p className="p-2 text-sm text-gray-600">{image.caption}</p>}
         </div>
       ))}
     </div>

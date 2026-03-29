@@ -4,12 +4,20 @@
  * 空狀態卡片組件，用於新手引導和內容缺失提示
  * 對應 apps/web/src/components/onboarding/EmptyStateCard.tsx
  */
-import React, { ReactNode } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+
+import {
+  BORDER_RADIUS,
+  FONT_SIZE,
+  FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { ReactNode } from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { BORDER_RADIUS, BRAND_YELLOW, FONT_SIZE, FONT_WEIGHT, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
+import { Text } from '@/components/ui/Text'
 
 // ═══════════════════════════════════════════
 // 針對不同場景的鼓勵文案
@@ -139,11 +147,7 @@ export function EmptyStateCard({
       entering={FadeInDown.duration(300)}
       style={[styles.container, currentVariant.container, style]}
     >
-      {icon && (
-        <View style={[styles.iconContainer, currentVariant.iconBg]}>
-          {icon}
-        </View>
-      )}
+      {icon && <View style={[styles.iconContainer, currentVariant.iconBg]}>{icon}</View>}
 
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
@@ -159,11 +163,7 @@ export function EmptyStateCard({
           </Button>
         )}
         {secondaryActionLabel && onSecondaryAction && (
-          <Button
-            variant="outline"
-            onPress={onSecondaryAction}
-            style={styles.actionButton}
-          >
+          <Button variant="outline" onPress={onSecondaryAction} style={styles.actionButton}>
             {secondaryActionLabel}
           </Button>
         )}

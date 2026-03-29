@@ -1,37 +1,34 @@
-import { google, sheets_v4 } from 'googleapis';
-import { config, CRAG_COLUMNS, AREA_COLUMNS, ROUTE_COLUMNS } from '../config.js';
-import type { CragSheetRow, AreaSheetRow, RouteSheetRow } from '../types.js';
+import { google, sheets_v4 } from 'googleapis'
+import { AREA_COLUMNS, CRAG_COLUMNS, config, ROUTE_COLUMNS } from '../config.js'
+import type { AreaSheetRow, CragSheetRow, RouteSheetRow } from '../types.js'
 
-let sheetsClient: sheets_v4.Sheets | null = null;
+let sheetsClient: sheets_v4.Sheets | null = null
 
 export async function getSheetsClient(): Promise<sheets_v4.Sheets> {
-  if (sheetsClient) return sheetsClient;
+  if (sheetsClient) return sheetsClient
 
   const auth = new google.auth.GoogleAuth({
     credentials: config.sheets.credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  });
+  })
 
-  sheetsClient = google.sheets({ version: 'v4', auth });
-  return sheetsClient;
+  sheetsClient = google.sheets({ version: 'v4', auth })
+  return sheetsClient
 }
 
 export async function fetchSheetData(range: string): Promise<string[][]> {
-  const sheets = await getSheetsClient();
+  const sheets = await getSheetsClient()
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: config.sheets.spreadsheetId,
     range,
-  });
+  })
 
-  return (response.data.values as string[][]) || [];
+  return (response.data.values as string[][]) || []
 }
 
-export async function updateSheetCell(
-  range: string,
-  value: string
-): Promise<void> {
-  const sheets = await getSheetsClient();
+export async function updateSheetCell(range: string, value: string): Promise<void> {
+  const sheets = await getSheetsClient()
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: config.sheets.spreadsheetId,
@@ -40,19 +37,19 @@ export async function updateSheetCell(
     requestBody: {
       values: [[value]],
     },
-  });
+  })
 }
 
 export async function appendToAuditLog(entry: {
-  action: string;
-  entityType: string;
-  entityId: string;
-  entityName: string;
-  operator: string;
-  changes?: Record<string, unknown>;
-  notes?: string;
+  action: string
+  entityType: string
+  entityId: string
+  entityName: string
+  operator: string
+  changes?: Record<string, unknown>
+  notes?: string
 }): Promise<void> {
-  const sheets = await getSheetsClient();
+  const sheets = await getSheetsClient()
 
   const row = [
     new Date().toISOString(),
@@ -63,7 +60,7 @@ export async function appendToAuditLog(entry: {
     entry.operator,
     entry.changes ? JSON.stringify(entry.changes) : '',
     entry.notes || '',
-  ];
+  ]
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: config.sheets.spreadsheetId,
@@ -72,7 +69,7 @@ export async function appendToAuditLog(entry: {
     requestBody: {
       values: [row],
     },
-  });
+  })
 }
 
 // Parse row data into typed objects
@@ -94,7 +91,9 @@ export function parseCragRow(row: string[]): CragSheetRow {
     description: row[CRAG_COLUMNS.description] || undefined,
     accessInfo: row[CRAG_COLUMNS.accessInfo] || undefined,
     parkingInfo: row[CRAG_COLUMNS.parkingInfo] || undefined,
-    approachTime: row[CRAG_COLUMNS.approachTime] ? parseInt(row[CRAG_COLUMNS.approachTime]) : undefined,
+    approachTime: row[CRAG_COLUMNS.approachTime]
+      ? parseInt(row[CRAG_COLUMNS.approachTime])
+      : undefined,
     bestSeasons: row[CRAG_COLUMNS.bestSeasons] || undefined,
     restrictions: row[CRAG_COLUMNS.restrictions] || undefined,
     coverImage: row[CRAG_COLUMNS.coverImage] || undefined,
@@ -104,7 +103,7 @@ export function parseCragRow(row: string[]): CragSheetRow {
     reviewedBy: row[CRAG_COLUMNS.reviewedBy] || undefined,
     reviewedAt: row[CRAG_COLUMNS.reviewedAt] || undefined,
     reviewNotes: row[CRAG_COLUMNS.reviewNotes] || undefined,
-  };
+  }
 }
 
 export function parseAreaRow(row: string[]): AreaSheetRow {
@@ -121,7 +120,7 @@ export function parseAreaRow(row: string[]): AreaSheetRow {
     image: row[AREA_COLUMNS.image] || undefined,
     submittedBy: row[AREA_COLUMNS.submittedBy] || '',
     submittedAt: row[AREA_COLUMNS.submittedAt] || '',
-  };
+  }
 }
 
 export function parseRouteRow(row: string[]): RouteSheetRow {
@@ -146,7 +145,7 @@ export function parseRouteRow(row: string[]): RouteSheetRow {
     tips: row[ROUTE_COLUMNS.tips] || undefined,
     submittedBy: row[ROUTE_COLUMNS.submittedBy] || '',
     submittedAt: row[ROUTE_COLUMNS.submittedAt] || '',
-  };
+  }
 }
 
 // Fetch all data from sheets
@@ -155,11 +154,11 @@ export async function fetchAllSheetData() {
     fetchSheetData(config.sheets.ranges.crags),
     fetchSheetData(config.sheets.ranges.areas),
     fetchSheetData(config.sheets.ranges.routes),
-  ]);
+  ])
 
   return {
     crags: cragsRaw.map((row, index) => ({ row: index + 2, data: parseCragRow(row) })),
     areas: areasRaw.map((row, index) => ({ row: index + 2, data: parseAreaRow(row) })),
     routes: routesRaw.map((row, index) => ({ row: index + 2, data: parseRouteRow(row) })),
-  };
+  }
 }

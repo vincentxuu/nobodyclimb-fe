@@ -1,17 +1,14 @@
 'use client'
 
-import { useState, useCallback, useRef, Fragment } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { HandMetal, ThumbsUp, MessageSquareHeart, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/store/authStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import { HandMetal, Loader2, MessageSquareHeart, ThumbsUp } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Fragment, useCallback, useRef, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import apiClient from '@/lib/api/client'
-import {
-  ContentInteractorsPanel,
-  type InteractorUser,
-} from './ContentInteractorsPanel'
-import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
+import { ContentInteractorsPanel, type InteractorUser } from './ContentInteractorsPanel'
 
 type ReactionType = 'me_too' | 'plus_one' | 'well_said'
 type ContentType = 'core-stories' | 'one-liners' | 'stories'
@@ -126,7 +123,7 @@ export function QuickReactionBar({
         const apiPath = `/content/${contentType}/${contentId}/reaction`
         await apiClient.post(apiPath, { reaction_type: reactionType })
         setReactors((prev) => ({ ...prev, [reactionType]: [] })) // 反應狀態改變後清除快取
-      } catch (error) {
+      } catch (_error) {
         // 回滾
         setUserReactions(userReactions)
         setCounts(counts)
@@ -172,8 +169,7 @@ export function QuickReactionBar({
   )
 
   const sizeClasses = size === 'sm' ? 'gap-2' : 'gap-3'
-  const buttonSizeClasses =
-    size === 'sm' ? 'h-7 px-2 text-xs gap-1' : 'h-8 px-3 text-sm gap-1.5'
+  const buttonSizeClasses = size === 'sm' ? 'h-7 px-2 text-xs gap-1' : 'h-8 px-3 text-sm gap-1.5'
   const iconSize = size === 'sm' ? 14 : 16
 
   return (
@@ -229,9 +225,7 @@ export function QuickReactionBar({
                 onClick={(e) => handleShowReactors(e, reaction.type)}
                 className={cn(
                   'text-xs font-medium leading-none transition-colors hover:underline',
-                  isPanelOpen
-                    ? reaction.activeColor
-                    : 'text-gray-500 hover:text-gray-700'
+                  isPanelOpen ? reaction.activeColor : 'text-gray-500 hover:text-gray-700'
                 )}
               >
                 <motion.span

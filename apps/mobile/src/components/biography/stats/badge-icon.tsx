@@ -3,15 +3,11 @@
  *
  * 對應 apps/web/src/components/biography/stats/badge-icon.tsx
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import { Text } from '../../ui/Text'
+
 import { WB_COLORS } from '@nobodyclimb/constants'
-import {
-  type BadgeDefinition,
-  getBadgeById,
-  BADGE_COLORS,
-} from '../../../lib/constants/badges'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
+import { BADGE_COLORS, type BadgeDefinition, getBadgeById } from '../../../lib/constants/badges'
+import { Text } from '../../ui/Text'
 
 // ============================================
 // BadgeIcon 組件

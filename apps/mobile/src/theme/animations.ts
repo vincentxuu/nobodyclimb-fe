@@ -4,8 +4,9 @@
  * 使用 React Native Reanimated 定義常用動畫
  * 從 @nobodyclimb/constants 導入共用時長
  */
-import { Easing } from 'react-native-reanimated'
+
 import { DURATION } from '@nobodyclimb/constants'
+import { Easing } from 'react-native-reanimated'
 
 // Re-export DURATION for use by UI components
 export { DURATION }

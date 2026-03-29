@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { BookOpen, Plus, LogIn } from 'lucide-react'
+import { BookOpen, LogIn, Plus } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { RouteStoryCard, RouteStoryForm } from '@/components/route-story'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/lib/hooks'
 import { useRouteStories } from '@/lib/hooks/useRouteStories'
-import { RouteStoryCard, RouteStoryForm } from '@/components/route-story'
 import type { RouteStory } from '@/lib/types/route-story'
-import { useToast } from '@/components/ui/use-toast'
-import Link from 'next/link'
 
 interface RouteStoriesSectionProps {
   routeId: string
@@ -17,11 +17,7 @@ interface RouteStoriesSectionProps {
   routeGrade?: string
 }
 
-export function RouteStoriesSection({
-  routeId,
-  routeName,
-  routeGrade,
-}: RouteStoriesSectionProps) {
+export function RouteStoriesSection({ routeId, routeName, routeGrade }: RouteStoriesSectionProps) {
   const t = useTranslations('CragPage')
   const { isSignedIn } = useAuth()
   const { getRouteStories, createStory, toggleLike, toggleHelpful } = useRouteStories()

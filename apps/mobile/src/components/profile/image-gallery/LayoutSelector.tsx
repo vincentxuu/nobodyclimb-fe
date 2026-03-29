@@ -1,9 +1,8 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
-import { Text } from '../../ui/Text'
-import { Icon } from '../../ui/Icon'
-import { ImageLayout } from '../types'
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Icon } from '../../ui/Icon'
+import { Text } from '../../ui/Text'
+import { ImageLayout } from '../types'
 
 interface LayoutSelectorProps {
   value: ImageLayout
@@ -16,10 +15,7 @@ const LAYOUTS: { id: ImageLayout; label: string; icon: string }[] = [
   { id: 'grid', label: '網格', icon: 'Grid3x3' },
 ]
 
-export default function LayoutSelector({
-  value,
-  onChange,
-}: LayoutSelectorProps) {
+export default function LayoutSelector({ value, onChange }: LayoutSelectorProps) {
   return (
     <View style={styles.container}>
       <Text variant="caption" style={{ color: SEMANTIC_COLORS.textMuted, marginBottom: 8 }}>

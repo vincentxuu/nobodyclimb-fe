@@ -3,28 +3,28 @@
  *
  * 對應 apps/web/src/app/profile/page.tsx
  */
-import React, { useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import {
-  User,
-  ListChecks,
-  Image as ImageIcon,
-  FileText,
+  BarChart2,
   Bookmark,
-  Settings,
+  Brain,
   ChevronRight,
+  FileText,
+  Image as ImageIcon,
+  ListChecks,
   LogOut,
   Mountain,
-  BarChart2,
-  Brain,
+  Settings,
   Sparkles,
+  User,
 } from 'lucide-react-native'
-
-import { Text, Avatar, Button, Divider } from '@/components/ui'
+import React, { useCallback } from 'react'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Avatar, Button, Divider, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS, WB_COLORS } from '@nobodyclimb/constants'
 
 interface MenuItemProps {
   icon: React.ReactNode
@@ -34,35 +34,20 @@ interface MenuItemProps {
   destructive?: boolean
 }
 
-function MenuItem({
-  icon,
-  label,
-  onPress,
-  showArrow = true,
-  destructive = false,
-}: MenuItemProps) {
+function MenuItem({ icon, label, onPress, showArrow = true, destructive = false }: MenuItemProps) {
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.menuItem,
-        pressed && styles.menuItemPressed,
-      ]}
+      style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
       onPress={onPress}
     >
       <View style={styles.menuItemLeft}>
         {icon}
-        <Text
-          style={destructive ? styles.destructiveText : undefined}
-          fontWeight="500"
-        >
+        <Text style={destructive ? styles.destructiveText : undefined} fontWeight="500">
           {label}
         </Text>
       </View>
       {showArrow && (
-        <ChevronRight
-          size={20}
-          color={destructive ? '#D94A4A' : SEMANTIC_COLORS.textMuted}
-        />
+        <ChevronRight size={20} color={destructive ? '#D94A4A' : SEMANTIC_COLORS.textMuted} />
       )}
     </Pressable>
   )
@@ -116,10 +101,7 @@ export default function ProfileScreen() {
       <ScrollView style={styles.scrollView}>
         {/* 用戶資訊區 */}
         <View style={styles.userSection}>
-          <Avatar
-            size="xl"
-            source={user?.avatar ? { uri: user.avatar } : undefined}
-          />
+          <Avatar size="xl" source={user?.avatar ? { uri: user.avatar } : undefined} />
           <View style={styles.userInfo}>
             <Text variant="h3" fontWeight="600">
               {user?.username || '用戶'}
@@ -128,10 +110,7 @@ export default function ProfileScreen() {
               {user?.email}
             </Text>
           </View>
-          <Pressable
-            style={styles.editButton}
-            onPress={() => handleNavigate('/profile/edit')}
-          >
+          <Pressable style={styles.editButton} onPress={() => handleNavigate('/profile/edit')}>
             <Text variant="small" fontWeight="500" color="textSubtle">
               編輯
             </Text>

@@ -3,23 +3,27 @@
  *
  * 圖庫網格展示組件，對應 apps/web/src/components/gallery/gallery-grid.tsx
  */
+
+import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { MapPin } from 'lucide-react-native'
 import React, { useCallback } from 'react'
 import {
-  StyleSheet,
-  View,
-  Pressable,
   Dimensions,
   FlatList,
   type ListRenderItem,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native'
-import { Image } from 'expo-image'
-import { MapPin } from 'lucide-react-native'
-import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated'
-
-import { Text } from '@/components/ui/Text'
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import { Avatar } from '@/components/ui/Avatar'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import type { GalleryPhoto } from '@nobodyclimb/types'
+import { Text } from '@/components/ui/Text'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const NUM_COLUMNS = 2
@@ -90,11 +94,8 @@ function PhotoCard({ photo, index, onPress }: PhotoCardProps) {
     opacity: overlayOpacity.value,
   }))
 
-  const hasLocation = photo.location && (
-    photo.location.country ||
-    photo.location.city ||
-    photo.location.spot
-  )
+  const hasLocation =
+    photo.location && (photo.location.country || photo.location.city || photo.location.spot)
 
   return (
     <Animated.View
@@ -125,11 +126,7 @@ function PhotoCard({ photo, index, onPress }: PhotoCardProps) {
                 source={photo.author.avatar ? { uri: photo.author.avatar } : undefined}
                 alt={photo.author.displayName || photo.author.username}
               />
-              <Text
-                variant="caption"
-                style={styles.authorName}
-                numberOfLines={1}
-              >
+              <Text variant="caption" style={styles.authorName} numberOfLines={1}>
                 {photo.author.displayName || photo.author.username}
               </Text>
             </View>
@@ -139,15 +136,8 @@ function PhotoCard({ photo, index, onPress }: PhotoCardProps) {
           {hasLocation && (
             <View style={styles.locationInfo}>
               <MapPin size={12} color={WB_COLORS[0]} />
-              <Text
-                variant="small"
-                style={styles.locationText}
-                numberOfLines={1}
-              >
-                {[
-                  photo.location?.country,
-                  photo.location?.city,
-                ].filter(Boolean).join(' ')}
+              <Text variant="small" style={styles.locationText} numberOfLines={1}>
+                {[photo.location?.country, photo.location?.city].filter(Boolean).join(' ')}
                 {photo.location?.spot && (
                   <>
                     <View style={styles.locationDot} />
@@ -188,11 +178,7 @@ export function GalleryGrid({
 }: GalleryGridProps) {
   const renderItem: ListRenderItem<GalleryGridPhoto> = useCallback(
     ({ item, index }) => (
-      <PhotoCard
-        photo={item}
-        index={index}
-        onPress={() => onPhotoClick(item, index)}
-      />
+      <PhotoCard photo={item} index={index} onPress={() => onPhotoClick(item, index)} />
     ),
     [onPhotoClick]
   )

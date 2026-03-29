@@ -1,27 +1,27 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
 import {
   Building2,
-  Search,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Star,
-  Loader2,
   ExternalLink,
-  Plus,
+  Globe,
+  Loader2,
+  Mail,
+  MapPin,
   Pencil,
+  Phone,
+  Plus,
+  RefreshCw,
+  Save,
+  Search,
+  Star,
   Trash2,
   X,
-  Save,
-  MapPin,
-  Phone,
-  Globe,
-  Mail,
 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
 import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
+import { useToast } from '@/components/ui/use-toast'
 import apiClient from '@/lib/api/client'
 
 // Backend gym type (snake_case, matching API response)
@@ -173,9 +173,7 @@ export default function AdminGymManagement() {
         }
 
         // Collect unique cities for filter
-        const allCities = response.data.data
-          .map((g) => g.city)
-          .filter((c): c is string => !!c)
+        const allCities = response.data.data.map((g) => g.city).filter((c): c is string => !!c)
         setCities((prev) => {
           const merged = new Set([...prev, ...allCities])
           return [...merged].sort()
@@ -219,12 +217,12 @@ export default function AdminGymManagement() {
       website: gym.website || '',
       is_featured: gym.is_featured === 1,
       facilities: gym.facilities?.join(', ') || '',
-      opening_hours: (gym.opening_hours && typeof gym.opening_hours === 'object')
-        ? gym.opening_hours
-        : {},
-      price_info: (gym.price_info && typeof gym.price_info === 'object')
-        ? JSON.stringify(gym.price_info, null, 2)
-        : '',
+      opening_hours:
+        gym.opening_hours && typeof gym.opening_hours === 'object' ? gym.opening_hours : {},
+      price_info:
+        gym.price_info && typeof gym.price_info === 'object'
+          ? JSON.stringify(gym.price_info, null, 2)
+          : '',
       latitude: gym.latitude?.toString() || '',
       longitude: gym.longitude?.toString() || '',
     })
@@ -268,11 +266,12 @@ export default function AdminGymManagement() {
         website: gymForm.website || null,
         is_featured: gymForm.is_featured ? 1 : 0,
         facilities: gymForm.facilities
-          ? gymForm.facilities.split(',').map((f) => f.trim()).filter(Boolean)
+          ? gymForm.facilities
+              .split(',')
+              .map((f) => f.trim())
+              .filter(Boolean)
           : [],
-        opening_hours: Object.keys(gymForm.opening_hours).length > 0
-          ? gymForm.opening_hours
-          : null,
+        opening_hours: Object.keys(gymForm.opening_hours).length > 0 ? gymForm.opening_hours : null,
         price_info: parsedPriceInfo,
       }
 
@@ -331,24 +330,14 @@ export default function AdminGymManagement() {
 
       {/* 統計卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          icon={Building2}
-          label="總岩館數"
-          value={pagination.total}
-          loading={loading}
-        />
+        <StatCard icon={Building2} label="總岩館數" value={pagination.total} loading={loading} />
         <StatCard
           icon={Star}
           label="精選岩館"
           value={gyms.filter((g) => g.is_featured).length}
           loading={loading}
         />
-        <StatCard
-          icon={MapPin}
-          label="城市數"
-          value={cities.length}
-          loading={loading}
-        />
+        <StatCard icon={MapPin} label="城市數" value={cities.length} loading={loading} />
         <StatCard
           icon={Building2}
           label="有評論"
@@ -530,7 +519,9 @@ export default function AdminGymManagement() {
                 value={gymForm.price_info}
                 onChange={(e) => setGymForm({ ...gymForm, price_info: e.target.value })}
                 rows={4}
-                placeholder={'例：\n{\n  "單次入場": "350元",\n  "月票": "2000元",\n  "學生優惠": "300元"\n}'}
+                placeholder={
+                  '例：\n{\n  "單次入場": "350元",\n  "月票": "2000元",\n  "學生優惠": "300元"\n}'
+                }
                 className="w-full px-3 py-2 text-sm border border-wb-20 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-wb-100/20 resize-none font-mono"
               />
             </div>

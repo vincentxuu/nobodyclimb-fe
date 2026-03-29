@@ -1,8 +1,7 @@
-import React from 'react'
+import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
 import { StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import { CreateAscentFlow } from '@/components/ascent/CreateAscentFlow'
 
 export default function CreateAscentPage() {

@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
-import { View, StyleSheet, Modal, Pressable } from 'react-native'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import { Text } from '../../ui/Text'
+import { Modal, Pressable, StyleSheet, View } from 'react-native'
 import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Text } from '../../ui/Text'
 
 interface ImageCropDialogProps {
   visible: boolean
@@ -32,12 +31,7 @@ export default function ImageCropDialog({
   }
 
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent
-      onRequestClose={onCancel}
-    >
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>

@@ -1,8 +1,8 @@
-import React from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronLeft, ChevronRight, MapPin, User, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronLeft, ChevronRight, MapPin, User } from 'lucide-react'
+import React from 'react'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 
 interface GalleryPhoto {
@@ -109,16 +109,17 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
               )}
 
               {/* Location */}
-              {photo.location && (photo.location.country || photo.location.city || photo.location.spot) && (
-                <div className="mb-3 flex items-center gap-2 text-sm">
-                  <MapPin size={16} className="text-neutral-400" />
-                  {photo.location.country && <span>{photo.location.country}</span>}
-                  {photo.location.city && <span>{photo.location.city}</span>}
-                  {photo.location.spot && (
-                    <span className="font-semibold">{photo.location.spot}</span>
-                  )}
-                </div>
-              )}
+              {photo.location &&
+                (photo.location.country || photo.location.city || photo.location.spot) && (
+                  <div className="mb-3 flex items-center gap-2 text-sm">
+                    <MapPin size={16} className="text-neutral-400" />
+                    {photo.location.country && <span>{photo.location.country}</span>}
+                    {photo.location.city && <span>{photo.location.city}</span>}
+                    {photo.location.spot && (
+                      <span className="font-semibold">{photo.location.spot}</span>
+                    )}
+                  </div>
+                )}
 
               {/* Upload Date */}
               {photo.uploadDate && (

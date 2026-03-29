@@ -4,29 +4,18 @@
  * 對應 apps/web/src/app/profile/bookmarks/page.tsx
  * 使用 GET /posts/liked 取得用戶按讚/收藏的文章
  */
-import React, { useState, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import {
-  ChevronLeft,
-  Bookmark,
-  FileText,
-  ChevronRight,
-} from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, IconButton } from '@/components/ui'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { Bookmark, ChevronLeft, ChevronRight, FileText } from 'lucide-react-native'
+import { useCallback } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useBookmarks, type BookmarkedPost } from '@/lib/hooks'
+import { IconButton, Text } from '@/components/ui'
+import { type BookmarkedPost, useBookmarks } from '@/lib/hooks'
 
 interface BookmarkCardProps {
   item: BookmarkedPost
@@ -38,10 +27,7 @@ function BookmarkCard({ item, onPress, index }: BookmarkCardProps) {
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
       <Pressable
-        style={({ pressed }) => [
-          styles.bookmarkItem,
-          pressed && styles.bookmarkItemPressed,
-        ]}
+        style={({ pressed }) => [styles.bookmarkItem, pressed && styles.bookmarkItemPressed]}
         onPress={onPress}
       >
         {item.cover_image ? (
@@ -96,11 +82,7 @@ export default function BookmarksScreen() {
   )
 
   const renderItem = ({ item, index }: { item: BookmarkedPost; index: number }) => (
-    <BookmarkCard
-      item={item}
-      onPress={() => handleBookmarkPress(item)}
-      index={index}
-    />
+    <BookmarkCard item={item} onPress={() => handleBookmarkPress(item)} index={index} />
   )
 
   return (

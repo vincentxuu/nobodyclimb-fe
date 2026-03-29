@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { Check, ChevronDown, Glasses, Globe, Lock, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { ChevronDown, Check, Globe, Users, Lock, Glasses } from 'lucide-react'
+import { useState } from 'react'
 import type { VisibilityLevel } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface PrivacyBannerProps {
   /** 當前可見性設定 */
@@ -16,7 +16,6 @@ interface PrivacyBannerProps {
   /** 自訂樣式 */
   className?: string
 }
-
 
 /**
  * 隱私設定橫幅
@@ -69,12 +68,7 @@ export function PrivacyBanner({
 
   if (!editable) {
     return (
-      <div
-        className={cn(
-          'flex items-center gap-2 px-4 py-3 bg-[#F5F5F5] rounded-lg',
-          className
-        )}
-      >
+      <div className={cn('flex items-center gap-2 px-4 py-3 bg-[#F5F5F5] rounded-lg', className)}>
         <CurrentIcon size={18} className="text-[#3F3D3D]" />
         <span className="text-sm text-[#6D6C6C]">
           {t('visibilityCurrentSetting', { label: currentOption?.label ?? '' })}
@@ -94,20 +88,13 @@ export function PrivacyBanner({
         <div className="flex items-center gap-2">
           <CurrentIcon size={18} className="text-[#3F3D3D]" />
           <div className="text-left">
-            <span className="text-sm font-medium text-[#1B1A1A]">
-              {currentOption?.label}
-            </span>
-            <span className="text-sm text-[#6D6C6C] ml-2">
-              {currentOption?.description}
-            </span>
+            <span className="text-sm font-medium text-[#1B1A1A]">{currentOption?.label}</span>
+            <span className="text-sm text-[#6D6C6C] ml-2">{currentOption?.description}</span>
           </div>
         </div>
         <ChevronDown
           size={20}
-          className={cn(
-            'text-[#6D6C6C] transition-transform',
-            isExpanded && 'rotate-180'
-          )}
+          className={cn('text-[#6D6C6C] transition-transform', isExpanded && 'rotate-180')}
         />
       </button>
 
@@ -136,18 +123,14 @@ export function PrivacyBanner({
                   <span
                     className={cn(
                       'font-medium',
-                      visibility === option.value
-                        ? 'text-[#1B1A1A]'
-                        : 'text-[#3F3D3D]'
+                      visibility === option.value ? 'text-[#1B1A1A]' : 'text-[#3F3D3D]'
                     )}
                   >
                     {option.label}
                   </span>
                   <p className="text-sm text-[#6D6C6C]">{option.description}</p>
                 </div>
-                {visibility === option.value && (
-                  <Check size={20} className="text-[#1B1A1A]" />
-                )}
+                {visibility === option.value && <Check size={20} className="text-[#1B1A1A]" />}
               </button>
             )
           })}

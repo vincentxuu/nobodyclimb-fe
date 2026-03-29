@@ -1,21 +1,21 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { biographyService } from '@/lib/api/services'
 import { Biography } from '@/lib/types'
-import { getDisplayTags, getDisplayNameForVisibility } from '@/lib/utils/biography'
-import { isSvgUrl, getDefaultAvatarUrl, getDefaultCoverUrl } from '@/lib/utils/image'
-import { useTranslations } from 'next-intl'
+import { getDisplayNameForVisibility, getDisplayTags } from '@/lib/utils/biography'
 import {
-  getCachedBiographyList,
   cacheBiographyList,
+  getCachedBiographyList,
   isBiographyListCacheExpired,
   ONE_LINER_QUESTIONS,
 } from '@/lib/utils/biography-cache'
+import { getDefaultAvatarUrl, getDefaultCoverUrl, isSvgUrl } from '@/lib/utils/image'
 
 // 解析 basic_info_data JSON，優先使用其中的值
 interface BasicInfoData {
@@ -113,7 +113,8 @@ export function BiographyCard({ person }: BiographyCardProps) {
   const displayOneLiners = getDisplayOneLiners(person.one_liners_data, 3)
 
   // 封面圖 URL
-  const coverUrl = person.cover_image || getDefaultCoverUrl(person.id || person.name || 'default', 600, 200)
+  const coverUrl =
+    person.cover_image || getDefaultCoverUrl(person.id || person.name || 'default', 600, 200)
 
   return (
     <motion.div
@@ -123,93 +124,98 @@ export function BiographyCard({ person }: BiographyCardProps) {
       className="h-full"
     >
       <Link href={`/biography/profile/${person.slug}`} className="block h-full group">
-      <div className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md cursor-pointer">
-        {/* 封面圖 */}
-        <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
-          <Image
-            src={coverUrl}
-            alt={`${displayName} 封面`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
-          {/* 漸層遮罩 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-        </div>
+        <div className="h-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md cursor-pointer">
+          {/* 封面圖 */}
+          <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
+            <Image
+              src={coverUrl}
+              alt={`${displayName} 封面`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            {/* 漸層遮罩 */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          </div>
 
-        {/* 內容區 */}
-        <div className="relative px-4 pb-4">
-          {/* 頭像 - 與封面重疊 */}
-          <div className="absolute -top-6 left-4">
-            <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-gray-100 shadow-md">
-              {person.avatar_url ? (
-                isSvgUrl(person.avatar_url) ? (
-                  <img src={person.avatar_url} alt={displayName} className="h-full w-full object-cover" />
+          {/* 內容區 */}
+          <div className="relative px-4 pb-4">
+            {/* 頭像 - 與封面重疊 */}
+            <div className="absolute -top-6 left-4">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-gray-100 shadow-md">
+                {person.avatar_url ? (
+                  isSvgUrl(person.avatar_url) ? (
+                    <img
+                      src={person.avatar_url}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={person.avatar_url}
+                      alt={displayName}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  )
                 ) : (
-                  <Image
-                    src={person.avatar_url}
+                  <img
+                    src={getDefaultAvatarUrl(displayName || 'anonymous', 48)}
                     alt={displayName}
-                    fill
-                    className="object-cover"
-                    sizes="48px"
+                    className="h-full w-full object-cover"
                   />
-                )
-              ) : (
-                <img
-                  src={getDefaultAvatarUrl(displayName || 'anonymous', 48)}
-                  alt={displayName}
-                  className="h-full w-full object-cover"
-                />
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* 姓名 + 標語 */}
-          <div className="pt-8 space-y-1">
-            <h3 className="text-base font-semibold text-[#1B1A1A]">{displayName}</h3>
-            {title && (
-              <p className="text-sm text-[#6D6C6C] line-clamp-1">「{title}」</p>
+            {/* 姓名 + 標語 */}
+            <div className="pt-8 space-y-1">
+              <h3 className="text-base font-semibold text-[#1B1A1A]">{displayName}</h3>
+              {title && <p className="text-sm text-[#6D6C6C] line-clamp-1">「{title}」</p>}
+            </div>
+
+            {/* 三個一句話 */}
+            {displayOneLiners.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {displayOneLiners.map((item, index) => (
+                  <div key={index} className="text-xs">
+                    <span className="text-[#8E8C8C]">{item.question}：</span>
+                    <span className="text-[#3F3D3D]">{item.answer}</span>
+                  </div>
+                ))}
+              </div>
             )}
-          </div>
 
-          {/* 三個一句話 */}
-          {displayOneLiners.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              {displayOneLiners.map((item, index) => (
-                <div key={index} className="text-xs">
-                  <span className="text-[#8E8C8C]">{item.question}：</span>
-                  <span className="text-[#3F3D3D]">{item.answer}</span>
-                </div>
-              ))}
+            {/* 三個標籤 */}
+            {displayTags.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {displayTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${
+                      tag.isCustom
+                        ? 'bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/30'
+                        : 'bg-gray-100 text-[#6D6C6C]'
+                    }`}
+                  >
+                    {tag.isCustom && <Sparkles size={10} className="text-brand-accent" />}
+                    {tag.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* CTA 按鈕 */}
+            <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
+              {t('seeStory', { name: displayName })}
+              <ArrowRight
+                size={14}
+                className="ml-1 transition-transform group-hover:translate-x-0.5"
+              />
             </div>
-          )}
-
-          {/* 三個標籤 */}
-          {displayTags.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              {displayTags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className={`inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full ${
-                    tag.isCustom
-                      ? 'bg-brand-accent/10 text-[#1B1A1A] border border-brand-accent/30'
-                      : 'bg-gray-100 text-[#6D6C6C]'
-                  }`}
-                >
-                  {tag.isCustom && <Sparkles size={10} className="text-brand-accent" />}
-                  {tag.label}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* CTA 按鈕 */}
-          <div className="flex items-center justify-center w-full h-9 mt-4 text-sm border border-[#1B1A1A] text-[#1B1A1A] group-hover:bg-[#F5F4F4] rounded-lg transition-colors">
-            {t('seeStory', { name: displayName })}
-            <ArrowRight size={14} className="ml-1 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
-      </div>
       </Link>
     </motion.div>
   )
@@ -236,49 +242,68 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
   const prevSearchTerm = useRef(searchTerm)
 
   // 從 API 加載數據
-  const loadBiographies = useCallback(async (page: number, append: boolean = false, useCache: boolean = false) => {
-    // 僅在首次載入且沒有搜索詞時使用緩存
-    if (useCache && page === 1 && !searchTerm && !initialLoadDone.current) {
-      const cached = getCachedBiographyList()
-      if (cached && cached.data.length > 0) {
-        setBiographies(cached.data)
-        const hasMoreData = cached.pagination.page < cached.pagination.total_pages
-        setHasMore(hasMoreData)
-        setCurrentPage(1)
-        onTotalChange?.(cached.pagination.total, hasMoreData)
-        setLoading(false)
+  const loadBiographies = useCallback(
+    async (page: number, append: boolean = false, useCache: boolean = false) => {
+      // 僅在首次載入且沒有搜索詞時使用緩存
+      if (useCache && page === 1 && !searchTerm && !initialLoadDone.current) {
+        const cached = getCachedBiographyList()
+        if (cached && cached.data.length > 0) {
+          setBiographies(cached.data)
+          const hasMoreData = cached.pagination.page < cached.pagination.total_pages
+          setHasMore(hasMoreData)
+          setCurrentPage(1)
+          onTotalChange?.(cached.pagination.total, hasMoreData)
+          setLoading(false)
 
-        // 如果緩存未過期，標記完成並返回
-        if (!isBiographyListCacheExpired()) {
-          initialLoadDone.current = true
-          return
+          // 如果緩存未過期，標記完成並返回
+          if (!isBiographyListCacheExpired()) {
+            initialLoadDone.current = true
+            return
+          }
+          // 緩存過期，在背景靜默更新
         }
-        // 緩存過期，在背景靜默更新
       }
-    }
 
-    if (append) {
-      setLoadingMore(true)
-    } else if (!useCache) {
-      setLoading(true)
-    }
-    setError(null)
+      if (append) {
+        setLoadingMore(true)
+      } else if (!useCache) {
+        setLoading(true)
+      }
+      setError(null)
 
-    try {
-      const response = await biographyService.getBiographies(page, 20, searchTerm || undefined)
+      try {
+        const response = await biographyService.getBiographies(page, 20, searchTerm || undefined)
 
-      if (response.success) {
-        setBiographies(prev => append ? [...prev, ...response.data] : response.data)
-        const hasMoreData = response.pagination.page < response.pagination.total_pages
-        setHasMore(hasMoreData)
-        setCurrentPage(page)
-        onTotalChange?.(response.pagination.total, hasMoreData)
+        if (response.success) {
+          setBiographies((prev) => (append ? [...prev, ...response.data] : response.data))
+          const hasMoreData = response.pagination.page < response.pagination.total_pages
+          setHasMore(hasMoreData)
+          setCurrentPage(page)
+          onTotalChange?.(response.pagination.total, hasMoreData)
 
-        // 緩存首頁無搜索的數據
-        if (page === 1 && !searchTerm) {
-          cacheBiographyList(response.data, response.pagination)
+          // 緩存首頁無搜索的數據
+          if (page === 1 && !searchTerm) {
+            cacheBiographyList(response.data, response.pagination)
+          }
+        } else {
+          // 如果有緩存數據且 API 失敗，使用緩存
+          const cached = getCachedBiographyList()
+          if (cached && cached.data.length > 0 && !append && !searchTerm) {
+            setBiographies(cached.data)
+            const hasMoreData = cached.pagination.page < cached.pagination.total_pages
+            setHasMore(hasMoreData)
+            onTotalChange?.(cached.pagination.total, hasMoreData)
+          } else {
+            setError(t('loadError'))
+            if (!append) {
+              setBiographies([])
+            }
+            setHasMore(false)
+            onTotalChange?.(0, false)
+          }
         }
-      } else {
+      } catch (err) {
+        console.error('Failed to load biographies:', err)
         // 如果有緩存數據且 API 失敗，使用緩存
         const cached = getCachedBiographyList()
         if (cached && cached.data.length > 0 && !append && !searchTerm) {
@@ -287,37 +312,21 @@ export function BiographyList({ searchTerm, onTotalChange, onLoadMoreChange }: B
           setHasMore(hasMoreData)
           onTotalChange?.(cached.pagination.total, hasMoreData)
         } else {
-          setError(t('loadError'))
+          setError(t('loadErrorAlt'))
           if (!append) {
             setBiographies([])
           }
           setHasMore(false)
           onTotalChange?.(0, false)
         }
+      } finally {
+        setLoading(false)
+        setLoadingMore(false)
+        initialLoadDone.current = true
       }
-    } catch (err) {
-      console.error('Failed to load biographies:', err)
-      // 如果有緩存數據且 API 失敗，使用緩存
-      const cached = getCachedBiographyList()
-      if (cached && cached.data.length > 0 && !append && !searchTerm) {
-        setBiographies(cached.data)
-        const hasMoreData = cached.pagination.page < cached.pagination.total_pages
-        setHasMore(hasMoreData)
-        onTotalChange?.(cached.pagination.total, hasMoreData)
-      } else {
-        setError(t('loadErrorAlt'))
-        if (!append) {
-          setBiographies([])
-        }
-        setHasMore(false)
-        onTotalChange?.(0, false)
-      }
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-      initialLoadDone.current = true
-    }
-  }, [searchTerm, onTotalChange])
+    },
+    [searchTerm, onTotalChange]
+  )
 
   // 加載更多
   const loadMore = useCallback(() => {

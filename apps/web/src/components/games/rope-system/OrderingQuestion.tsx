@@ -1,12 +1,11 @@
 'use client'
 
-import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
 import { motion, Reorder, useDragControls } from 'framer-motion'
-import { GripVertical, Check, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { Question, QuestionOption } from '@/lib/games/rope-system/types'
+import { Check, GripVertical, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import type { Question, QuestionOption } from '@/lib/games/rope-system/types'
+import { cn } from '@/lib/utils'
 
 interface OrderingQuestionProps {
   question: Question
@@ -55,10 +54,7 @@ function DraggableItem({
     >
       {/* 拖曳手柄 */}
       {!disabled && !showResult && (
-        <div
-          className="touch-none"
-          onPointerDown={(e) => dragControls.start(e)}
-        >
+        <div className="touch-none" onPointerDown={(e) => dragControls.start(e)}>
           <GripVertical className="h-5 w-5 text-[#535353]" />
         </div>
       )}
@@ -92,11 +88,7 @@ function DraggableItem({
       <div className="flex flex-1 items-center gap-3">
         {option.image && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={option.image}
-            alt=""
-            className="h-10 w-10 rounded object-cover"
-          />
+          <img src={option.image} alt="" className="h-10 w-10 rounded object-cover" />
         )}
         <span className="text-[#1B1A1A]">{option.text}</span>
       </div>
@@ -170,9 +162,7 @@ export function OrderingQuestion({
       {/* 題目 */}
       <div className="space-y-2">
         <div className="text-sm font-medium text-[#535353]">問題</div>
-        <h2 className="text-lg font-medium text-[#1B1A1A]">
-          {question.question}
-        </h2>
+        <h2 className="text-lg font-medium text-[#1B1A1A]">{question.question}</h2>
       </div>
 
       {/* 操作提示 */}
@@ -183,12 +173,7 @@ export function OrderingQuestion({
       )}
 
       {/* 排序列表 */}
-      <Reorder.Group
-        axis="y"
-        values={items}
-        onReorder={handleReorder}
-        className="space-y-2"
-      >
+      <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-2">
         {items.map((option, index) => (
           <DraggableItem
             key={option.id}

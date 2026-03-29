@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { useEffect } from 'react'
 import { useRouteDetail } from '@/hooks/api/useCrags'
-import RouteDetailClient from './RouteDetailClient'
 import type { RouteDetailData } from '@/lib/crag-data'
+import RouteDetailClient from './RouteDetailClient'
 
 interface RouteDetailFallbackProps {
   cragId: string

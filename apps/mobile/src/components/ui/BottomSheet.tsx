@@ -3,20 +3,16 @@
  *
  * 底部彈出面板組件
  */
-import React, { useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+
 import GorhomBottomSheet, {
   BottomSheetBackdrop,
-  BottomSheetView,
-  BottomSheetScrollView,
   type BottomSheetBackdropProps,
+  BottomSheetScrollView,
+  BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  SPACING,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 import { Text } from './Text'
 
 export interface BottomSheetRef {
@@ -69,101 +65,94 @@ export interface BottomSheetProps {
  * bottomSheetRef.current?.close()
  * ```
  */
-export const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  function BottomSheet(
-    {
-      children,
-      snapPoints = ['25%', '50%'],
-      initialIndex = -1,
-      title,
-      showHandle = true,
-      scrollable = false,
-      onClose,
-      onChange,
-      contentStyle,
+export const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(function BottomSheet(
+  {
+    children,
+    snapPoints = ['25%', '50%'],
+    initialIndex = -1,
+    title,
+    showHandle = true,
+    scrollable = false,
+    onClose,
+    onChange,
+    contentStyle,
+  },
+  ref
+) {
+  const bottomSheetRef = useRef<GorhomBottomSheet>(null)
+
+  // Memoize snap points
+  const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints])
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    snapTo: (index: number) => {
+      bottomSheetRef.current?.snapToIndex(index)
     },
-    ref
-  ) {
-    const bottomSheetRef = useRef<GorhomBottomSheet>(null)
+    expand: () => {
+      bottomSheetRef.current?.expand()
+    },
+    close: () => {
+      bottomSheetRef.current?.close()
+    },
+  }))
 
-    // Memoize snap points
-    const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints])
+  // Handle sheet changes
+  const handleSheetChanges = useCallback(
+    (index: number) => {
+      onChange?.(index)
+      if (index === -1) {
+        onClose?.()
+      }
+    },
+    [onChange, onClose]
+  )
 
-    // Expose methods via ref
-    useImperativeHandle(ref, () => ({
-      snapTo: (index: number) => {
-        bottomSheetRef.current?.snapToIndex(index)
-      },
-      expand: () => {
-        bottomSheetRef.current?.expand()
-      },
-      close: () => {
-        bottomSheetRef.current?.close()
-      },
-    }))
+  // Render backdrop
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
+    ),
+    []
+  )
 
-    // Handle sheet changes
-    const handleSheetChanges = useCallback(
-      (index: number) => {
-        onChange?.(index)
-        if (index === -1) {
-          onClose?.()
-        }
-      },
-      [onChange, onClose]
-    )
+  // Render handle
+  const renderHandle = useCallback(
+    () =>
+      showHandle ? (
+        <View style={styles.handleContainer}>
+          <View style={styles.handle} />
+        </View>
+      ) : null,
+    [showHandle]
+  )
 
-    // Render backdrop
-    const renderBackdrop = useCallback(
-      (props: BottomSheetBackdropProps) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.5}
-        />
-      ),
-      []
-    )
+  const ContentContainer = scrollable ? BottomSheetScrollView : BottomSheetView
 
-    // Render handle
-    const renderHandle = useCallback(
-      () =>
-        showHandle ? (
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} />
+  return (
+    <GorhomBottomSheet
+      ref={bottomSheetRef}
+      index={initialIndex}
+      snapPoints={memoizedSnapPoints}
+      onChange={handleSheetChanges}
+      backdropComponent={renderBackdrop}
+      handleComponent={renderHandle}
+      enablePanDownToClose
+      backgroundStyle={styles.background}
+    >
+      <ContentContainer style={[styles.content, contentStyle]}>
+        {title && (
+          <View style={styles.header}>
+            <Text variant="h4" color="main" align="center">
+              {title}
+            </Text>
           </View>
-        ) : null,
-      [showHandle]
-    )
-
-    const ContentContainer = scrollable ? BottomSheetScrollView : BottomSheetView
-
-    return (
-      <GorhomBottomSheet
-        ref={bottomSheetRef}
-        index={initialIndex}
-        snapPoints={memoizedSnapPoints}
-        onChange={handleSheetChanges}
-        backdropComponent={renderBackdrop}
-        handleComponent={renderHandle}
-        enablePanDownToClose
-        backgroundStyle={styles.background}
-      >
-        <ContentContainer style={[styles.content, contentStyle]}>
-          {title && (
-            <View style={styles.header}>
-              <Text variant="h4" color="main" align="center">
-                {title}
-              </Text>
-            </View>
-          )}
-          {children}
-        </ContentContainer>
-      </GorhomBottomSheet>
-    )
-  }
-)
+        )}
+        {children}
+      </ContentContainer>
+    </GorhomBottomSheet>
+  )
+})
 
 const styles = StyleSheet.create({
   background: {

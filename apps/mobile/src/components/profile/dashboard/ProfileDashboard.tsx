@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Text } from '../../ui/Text'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { useState } from 'react'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import { Icon } from '../../ui/Icon'
+import { Text } from '../../ui/Text'
 import { useProfile } from '../ProfileContext'
+import { EditPanelType } from '../types'
 import ProfileDashboardCard from './ProfileDashboardCard'
 import ProfileEditSheet from './ProfileEditSheet'
-import { EditPanelType, AdvancedStories } from '../types'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 
 export default function ProfileDashboard() {
   const { profileData, setProfileData, isLoading } = useProfile()
@@ -91,9 +91,7 @@ export default function ProfileDashboard() {
             title="攀岩資訊"
             description="開始年份、常去的地方、喜歡的路線"
             onPress={() => setActivePanel('climbing')}
-            isComplete={Boolean(
-              profileData.startYear && profileData.frequentGyms
-            )}
+            isComplete={Boolean(profileData.startYear && profileData.frequentGyms)}
           />
 
           {/* Social Links */}
@@ -103,8 +101,7 @@ export default function ProfileDashboard() {
             description="Instagram、YouTube"
             onPress={() => setActivePanel('social')}
             isComplete={Boolean(
-              profileData.socialLinks.instagram ||
-                profileData.socialLinks.youtube_channel
+              profileData.socialLinks.instagram || profileData.socialLinks.youtube_channel
             )}
           />
 

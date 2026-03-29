@@ -1,7 +1,6 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
-import { Text } from '../ui/Text'
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '../ui/Text'
 
 const ROUTE_TYPES = [
   { id: 'boulder', label: '抱石' },
@@ -15,14 +14,9 @@ interface RouteTypeSelectorProps {
   onChange: (value: string) => void
 }
 
-export default function RouteTypeSelector({
-  value,
-  onChange,
-}: RouteTypeSelectorProps) {
+export default function RouteTypeSelector({ value, onChange }: RouteTypeSelectorProps) {
   // 解析當前選中的類型
-  const selectedTypes = value
-    ? value.split(',').map((t) => t.trim())
-    : []
+  const selectedTypes = value ? value.split(',').map((t) => t.trim()) : []
 
   const toggleType = (typeId: string) => {
     const isSelected = selectedTypes.includes(typeId)
@@ -45,18 +39,9 @@ export default function RouteTypeSelector({
           <Pressable
             key={type.id}
             onPress={() => toggleType(type.id)}
-            style={[
-              styles.chip,
-              isSelected && styles.chipSelected,
-            ]}
+            style={[styles.chip, isSelected && styles.chipSelected]}
           >
-            <Text
-              variant="body"
-              style={[
-                styles.chipText,
-                isSelected && styles.chipTextSelected,
-              ]}
-            >
+            <Text variant="body" style={[styles.chipText, isSelected && styles.chipTextSelected]}>
               {type.label}
             </Text>
           </Pressable>

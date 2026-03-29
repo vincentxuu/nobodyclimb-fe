@@ -4,16 +4,16 @@
  * 對應 apps/web/src/components/search/
  */
 export {
+  SEARCH_TYPES,
   SearchFilters,
   type SearchFiltersProps,
   type SearchType,
   TYPE_LABELS,
-  SEARCH_TYPES,
 } from './SearchFilters'
 
 export {
+  type SearchResultItem,
   SearchResults,
   type SearchResultsProps,
-  type SearchResultItem,
   type SearchStatus,
 } from './SearchResults'

@@ -3,15 +3,15 @@
  *
  * 依地點探索，對應 apps/web/src/components/biography/explore/location-explorer.tsx
  */
-import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator, ScrollView } from 'react-native'
-import { useRouter } from 'expo-router'
-import Animated, { FadeIn } from 'react-native-reanimated'
-import { MapPin, Globe, Users, ChevronRight } from 'lucide-react-native'
 
-import { Text, Card, Avatar } from '@/components/ui'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ChevronRight, Globe, MapPin, Users } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn } from 'react-native-reanimated'
+import { Avatar, Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface LocationData {
@@ -69,7 +69,9 @@ export function LocationExplorer() {
   const renderLocationCard = (loc: LocationData, index: number) => (
     <Animated.View key={`${loc.location}-${index}`} entering={FadeIn.delay(index * 50)}>
       <Pressable
-        onPress={() => router.push(`/biography/explore/location/${encodeURIComponent(loc.location)}` as any)}
+        onPress={() =>
+          router.push(`/biography/explore/location/${encodeURIComponent(loc.location)}` as any)
+        }
       >
         <Card style={styles.locationCard}>
           <Text variant="body" fontWeight="600" style={styles.locationName}>
@@ -110,7 +112,9 @@ export function LocationExplorer() {
   const renderBucketListLocationCard = (loc: BucketListLocation, index: number) => (
     <Animated.View key={loc.location} entering={FadeIn.delay(index * 50)}>
       <Pressable
-        onPress={() => router.push(`/biography/explore/location/${encodeURIComponent(loc.location)}` as any)}
+        onPress={() =>
+          router.push(`/biography/explore/location/${encodeURIComponent(loc.location)}` as any)
+        }
       >
         <Card style={styles.locationCard}>
           <Text variant="body" fontWeight="600" style={styles.locationName}>
@@ -198,7 +202,10 @@ export function LocationExplorer() {
             style={[styles.tab, activeTab === 'taiwan' && styles.tabActive]}
             onPress={() => setActiveTab('taiwan')}
           >
-            <MapPin size={14} color={activeTab === 'taiwan' ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle} />
+            <MapPin
+              size={14}
+              color={activeTab === 'taiwan' ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle}
+            />
             <Text
               variant="small"
               style={[styles.tabText, activeTab === 'taiwan' && styles.tabTextActive]}
@@ -210,7 +217,10 @@ export function LocationExplorer() {
             style={[styles.tab, activeTab === 'overseas' && styles.tabActive]}
             onPress={() => setActiveTab('overseas')}
           >
-            <Globe size={14} color={activeTab === 'overseas' ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle} />
+            <Globe
+              size={14}
+              color={activeTab === 'overseas' ? WB_COLORS[0] : SEMANTIC_COLORS.textSubtle}
+            />
             <Text
               variant="small"
               style={[styles.tabText, activeTab === 'overseas' && styles.tabTextActive]}
@@ -235,13 +245,13 @@ export function LocationExplorer() {
       {/* 地點網格 */}
       <View style={styles.grid}>
         {currentLocations.length > 0 ? (
-          activeTab === 'bucket'
-            ? (currentLocations as BucketListLocation[]).map((loc, index) =>
-                renderBucketListLocationCard(loc, index)
-              )
-            : (currentLocations as LocationData[]).map((loc, index) =>
-                renderLocationCard(loc, index)
-              )
+          activeTab === 'bucket' ? (
+            (currentLocations as BucketListLocation[]).map((loc, index) =>
+              renderBucketListLocationCard(loc, index)
+            )
+          ) : (
+            (currentLocations as LocationData[]).map((loc, index) => renderLocationCard(loc, index))
+          )
         ) : (
           <View style={styles.emptyContainer}>
             <Text color="textSubtle">

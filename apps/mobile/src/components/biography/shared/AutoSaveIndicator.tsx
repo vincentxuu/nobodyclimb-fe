@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { View, ActivityIndicator } from 'react-native'
-import { XStack, Text } from 'tamagui'
-import { Check, AlertCircle } from 'lucide-react-native'
 import { COLORS } from '@nobodyclimb/constants'
 import type { SaveStatus } from '@nobodyclimb/types'
+import { AlertCircle, Check } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, View } from 'react-native'
+import { Text, XStack } from 'tamagui'
 
 interface AutoSaveIndicatorProps {
   /** 儲存狀態 */
@@ -19,11 +19,7 @@ interface AutoSaveIndicatorProps {
  *
  * 顯示自動儲存的狀態
  */
-export function AutoSaveIndicator({
-  status,
-  lastSavedAt,
-  error,
-}: AutoSaveIndicatorProps) {
+export function AutoSaveIndicator({ status, lastSavedAt, error }: AutoSaveIndicatorProps) {
   const [timeAgo, setTimeAgo] = useState<string>('')
 
   // 計算相對時間
@@ -32,9 +28,7 @@ export function AutoSaveIndicator({
 
     const updateTimeAgo = () => {
       const now = new Date()
-      const diffInSeconds = Math.floor(
-        (now.getTime() - lastSavedAt.getTime()) / 1000
-      )
+      const diffInSeconds = Math.floor((now.getTime() - lastSavedAt.getTime()) / 1000)
 
       if (diffInSeconds < 5) {
         setTimeAgo('剛剛')

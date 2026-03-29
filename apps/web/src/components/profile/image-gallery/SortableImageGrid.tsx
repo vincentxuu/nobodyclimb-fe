@@ -1,23 +1,22 @@
 'use client'
 
-import React from 'react'
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core'
 import {
   arrayMove,
+  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable'
+import { ImageLayout, ProfileImage } from '../types'
 import SortableImageCard from './SortableImageCard'
-import { ProfileImage, ImageLayout } from '../types'
 
 interface SortableImageGridProps {
   images: ProfileImage[]
@@ -78,11 +77,7 @@ export default function SortableImageGrid({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={images.map((img) => img.id)} strategy={rectSortingStrategy}>
         <div className={`grid gap-3 ${getGridClass()}`}>
           {images.map((image) => (

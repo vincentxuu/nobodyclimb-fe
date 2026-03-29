@@ -3,24 +3,24 @@
  *
  * 對應 apps/web/src/app/auth/profile-setup/complete/page.tsx
  */
-import React, { useEffect } from 'react'
-import { StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import { YStack } from 'tamagui'
-import { CheckCircle, PartyPopper, Mountain } from 'lucide-react-native'
+import { CheckCircle, Mountain, PartyPopper } from 'lucide-react-native'
+import { useEffect } from 'react'
+import { StyleSheet, View } from 'react-native'
 import Animated, {
   FadeInDown,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withTiming,
   withSequence,
+  withTiming,
 } from 'react-native-reanimated'
-
-import { Text, Button, ProgressBar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { YStack } from 'tamagui'
+import { Button, ProgressBar, Text } from '@/components/ui'
 
 export default function CompleteScreen() {
   const router = useRouter()
@@ -31,10 +31,7 @@ export default function CompleteScreen() {
 
   useEffect(() => {
     scale.value = withRepeat(
-      withSequence(
-        withTiming(1.1, { duration: 500 }),
-        withTiming(1, { duration: 500 })
-      ),
+      withSequence(withTiming(1.1, { duration: 500 }), withTiming(1, { duration: 500 })),
       3
     )
 
@@ -47,10 +44,7 @@ export default function CompleteScreen() {
   }, [scale, rotation])
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotation.value}deg` },
-    ],
+    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
   }))
 
   // 處理完成
@@ -91,15 +85,8 @@ export default function CompleteScreen() {
             {/* 裝飾圖標 */}
             <Animated.View entering={FadeInUp.delay(300).duration(400)}>
               <View style={styles.decorationContainer}>
-                <PartyPopper
-                  size={24}
-                  color={SEMANTIC_COLORS.brand}
-                  style={styles.decorIcon}
-                />
-                <Mountain
-                  size={32}
-                  color={SEMANTIC_COLORS.textMain}
-                />
+                <PartyPopper size={24} color={SEMANTIC_COLORS.brand} style={styles.decorIcon} />
+                <Mountain size={32} color={SEMANTIC_COLORS.textMain} />
                 <PartyPopper
                   size={24}
                   color={SEMANTIC_COLORS.brand}
@@ -111,15 +98,8 @@ export default function CompleteScreen() {
         </Animated.View>
 
         {/* 按鈕 */}
-        <Animated.View
-          entering={FadeInUp.delay(600).duration(400)}
-          style={styles.buttonContainer}
-        >
-          <Button
-            variant="primary"
-            onPress={handleComplete}
-            style={styles.completeButton}
-          >
+        <Animated.View entering={FadeInUp.delay(600).duration(400)} style={styles.buttonContainer}>
+          <Button variant="primary" onPress={handleComplete} style={styles.completeButton}>
             <Text style={styles.buttonText}>開始探索</Text>
           </Button>
         </Animated.View>

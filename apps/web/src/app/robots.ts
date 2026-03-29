@@ -7,14 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/api/',
-          '/auth/',
-          '/profile/',
-          '/search?',
-          '/_next/',
-          '/private/',
-        ],
+        disallow: ['/api/', '/auth/', '/profile/', '/search?', '/_next/', '/private/'],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

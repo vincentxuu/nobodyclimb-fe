@@ -1,30 +1,30 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { todayTaipei } from '@/lib/utils'
 import {
-  adminAnalyticsService,
-  FollowAnalytics,
-  ActivityAnalytics,
-  ContentAnalytics,
-} from '@/lib/api/services'
-import {
-  RefreshCw,
-  AlertCircle,
-  Users,
-  UserPlus,
-  Heart,
-  Mountain,
-  TrendingUp,
-  Eye,
-  FileText,
   Activity,
-  Target,
-  MessageSquare,
+  AlertCircle,
   ArrowUpRight,
   Download,
+  Eye,
+  FileText,
+  Heart,
+  MessageSquare,
+  Mountain,
+  RefreshCw,
+  Target,
+  TrendingUp,
+  UserPlus,
+  Users,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  ActivityAnalytics,
+  adminAnalyticsService,
+  ContentAnalytics,
+  FollowAnalytics,
+} from '@/lib/api/services'
+import { todayTaipei } from '@/lib/utils'
 
 type TabType = 'follows' | 'activity' | 'content'
 
@@ -36,42 +36,45 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadData = useCallback(async (tab: TabType, forceRefresh = false) => {
-    setLoading(true)
-    setError(null)
-    try {
-      switch (tab) {
-        case 'follows':
-          if (forceRefresh || !followData) {
-            const response = await adminAnalyticsService.getFollowAnalytics()
-            if (response.success && response.data) {
-              setFollowData(response.data)
+  const loadData = useCallback(
+    async (tab: TabType, forceRefresh = false) => {
+      setLoading(true)
+      setError(null)
+      try {
+        switch (tab) {
+          case 'follows':
+            if (forceRefresh || !followData) {
+              const response = await adminAnalyticsService.getFollowAnalytics()
+              if (response.success && response.data) {
+                setFollowData(response.data)
+              }
             }
-          }
-          break
-        case 'activity':
-          if (forceRefresh || !activityData) {
-            const response = await adminAnalyticsService.getActivityAnalytics()
-            if (response.success && response.data) {
-              setActivityData(response.data)
+            break
+          case 'activity':
+            if (forceRefresh || !activityData) {
+              const response = await adminAnalyticsService.getActivityAnalytics()
+              if (response.success && response.data) {
+                setActivityData(response.data)
+              }
             }
-          }
-          break
-        case 'content':
-          if (forceRefresh || !contentData) {
-            const response = await adminAnalyticsService.getContentAnalytics()
-            if (response.success && response.data) {
-              setContentData(response.data)
+            break
+          case 'content':
+            if (forceRefresh || !contentData) {
+              const response = await adminAnalyticsService.getContentAnalytics()
+              if (response.success && response.data) {
+                setContentData(response.data)
+              }
             }
-          }
-          break
+            break
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '載入失敗')
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '載入失敗')
-    } finally {
-      setLoading(false)
-    }
-  }, [followData, activityData, contentData])
+    },
+    [followData, activityData, contentData]
+  )
 
   const refreshData = async () => {
     setFollowData(null)
@@ -98,13 +101,15 @@ export default function AdminAnalytics() {
     const csvContent = [
       headers.join(','),
       ...data.map((row) =>
-        headers.map((header) => {
-          const value = row[header]
-          const strValue = value === null || value === undefined ? '' : String(value)
-          return strValue.includes(',') || strValue.includes('"')
-            ? `"${strValue.replace(/"/g, '""')}"`
-            : strValue
-        }).join(',')
+        headers
+          .map((header) => {
+            const value = row[header]
+            const strValue = value === null || value === undefined ? '' : String(value)
+            return strValue.includes(',') || strValue.includes('"')
+              ? `"${strValue.replace(/"/g, '""')}"`
+              : strValue
+          })
+          .join(',')
       ),
     ].join('\n')
 
@@ -219,15 +224,11 @@ export default function AdminAnalytics() {
         </div>
       ) : (
         <>
-          {activeTab === 'follows' && followData && (
-            <FollowAnalyticsPanel data={followData} />
-          )}
+          {activeTab === 'follows' && followData && <FollowAnalyticsPanel data={followData} />}
           {activeTab === 'activity' && activityData && (
             <ActivityAnalyticsPanel data={activityData} />
           )}
-          {activeTab === 'content' && contentData && (
-            <ContentAnalyticsPanel data={contentData} />
-          )}
+          {activeTab === 'content' && contentData && <ContentAnalyticsPanel data={contentData} />}
         </>
       )}
     </div>
@@ -286,9 +287,11 @@ function FollowAnalyticsPanel({ data }: { data: FollowAnalytics }) {
             ) : (
               topFollowed.map((user, index) => (
                 <div key={user.id} className="flex items-center gap-3">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                    index < 3 ? 'bg-brand-yellow-100 text-brand-dark' : 'bg-wb-10 text-wb-70'
-                  }`}>
+                  <span
+                    className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                      index < 3 ? 'bg-brand-yellow-100 text-brand-dark' : 'bg-wb-10 text-wb-70'
+                    }`}
+                  >
                     {index + 1}
                   </span>
                   <div className="w-8 h-8 rounded-full bg-wb-20 flex items-center justify-center overflow-hidden">
@@ -321,9 +324,13 @@ function FollowAnalyticsPanel({ data }: { data: FollowAnalytics }) {
             ) : (
               topFollowers.map((user, index) => (
                 <div key={user.id} className="flex items-center gap-3">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                    index < 3 ? 'bg-brand-yellow-200/20 text-brand-yellow-200' : 'bg-wb-10 text-wb-70'
-                  }`}>
+                  <span
+                    className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                      index < 3
+                        ? 'bg-brand-yellow-200/20 text-brand-yellow-200'
+                        : 'bg-wb-10 text-wb-70'
+                    }`}
+                  >
                     {index + 1}
                   </span>
                   <div className="w-8 h-8 rounded-full bg-wb-20 flex items-center justify-center overflow-hidden">
@@ -365,12 +372,7 @@ function ActivityAnalyticsPanel({ data }: { data: ActivityAnalytics }) {
           icon={Users}
           color="bg-brand-yellow-200"
         />
-        <StatCard
-          title="週活躍用戶 (WAU)"
-          value={summary.wau}
-          icon={Activity}
-          color="bg-wb-90"
-        />
+        <StatCard title="週活躍用戶 (WAU)" value={summary.wau} icon={Activity} color="bg-wb-90" />
         <StatCard
           title="月活躍用戶 (MAU)"
           value={summary.mau}
@@ -387,18 +389,8 @@ function ActivityAnalyticsPanel({ data }: { data: ActivityAnalytics }) {
 
       {/* 新用戶統計 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          title="總用戶數"
-          value={summary.totalUsers}
-          icon={Users}
-          color="bg-wb-70"
-        />
-        <StatCard
-          title="活躍帳號"
-          value={summary.activeUsers}
-          icon={Activity}
-          color="bg-wb-90"
-        />
+        <StatCard title="總用戶數" value={summary.totalUsers} icon={Users} color="bg-wb-70" />
+        <StatCard title="活躍帳號" value={summary.activeUsers} icon={Activity} color="bg-wb-90" />
         <StatCard
           title="本月新用戶"
           value={summary.newUsersMonth}
@@ -468,7 +460,8 @@ function ActivityAnalyticsPanel({ data }: { data: ActivityAnalytics }) {
 
 // 內容分析面板
 function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
-  const { summary, dailyPosts, dailyBiographies, topBiographies, topPosts, categoryDistribution } = data
+  const { summary, dailyPosts, dailyBiographies, topBiographies, topPosts, categoryDistribution } =
+    data
 
   return (
     <div className="space-y-6">
@@ -520,10 +513,7 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
           <h3 className="font-semibold text-wb-100 mb-4">文章分類分佈</h3>
           <div className="flex flex-wrap gap-3">
             {categoryDistribution.map((cat) => (
-              <div
-                key={cat.category || 'uncategorized'}
-                className="px-4 py-2 bg-wb-10 rounded-lg"
-              >
+              <div key={cat.category || 'uncategorized'} className="px-4 py-2 bg-wb-10 rounded-lg">
                 <span className="text-sm text-wb-70">{cat.category || '未分類'}</span>
                 <span className="ml-2 text-sm font-semibold text-wb-100">{cat.count}</span>
               </div>
@@ -547,9 +537,11 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
                   href={`/biography/${bio.username}`}
                   className="flex items-center gap-3 hover:bg-wb-10 p-2 -mx-2 rounded-lg transition-colors"
                 >
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                    index < 3 ? 'bg-brand-yellow-100 text-brand-dark' : 'bg-wb-10 text-wb-70'
-                  }`}>
+                  <span
+                    className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                      index < 3 ? 'bg-brand-yellow-100 text-brand-dark' : 'bg-wb-10 text-wb-70'
+                    }`}
+                  >
                     {index + 1}
                   </span>
                   <div className="w-8 h-8 rounded-full bg-wb-20 flex items-center justify-center overflow-hidden">
@@ -564,7 +556,8 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
                       {bio.display_name || bio.username}
                     </p>
                     <p className="text-xs text-wb-70">
-                      {(bio.total_views || 0).toLocaleString()} 瀏覽 · {bio.follower_count || 0} 追蹤
+                      {(bio.total_views || 0).toLocaleString()} 瀏覽 · {bio.follower_count || 0}{' '}
+                      追蹤
                     </p>
                   </div>
                   <ArrowUpRight className="h-4 w-4 text-wb-60" />
@@ -587,9 +580,11 @@ function ContentAnalyticsPanel({ data }: { data: ContentAnalytics }) {
                   href={`/blog/${post.slug}`}
                   className="flex items-center gap-3 hover:bg-wb-10 p-2 -mx-2 rounded-lg transition-colors"
                 >
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                    index < 3 ? 'bg-brand-yellow-100 text-brand-dark' : 'bg-wb-10 text-wb-70'
-                  }`}>
+                  <span
+                    className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                      index < 3 ? 'bg-brand-yellow-100 text-brand-dark' : 'bg-wb-10 text-wb-70'
+                    }`}
+                  >
                     {index + 1}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -655,7 +650,9 @@ function ActivityBreakdownCard({
 }) {
   return (
     <div className="text-center p-4 bg-wb-10 rounded-lg">
-      <div className={`w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center ${color}`}>
+      <div
+        className={`w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center ${color}`}
+      >
         <Icon className="h-5 w-5" />
       </div>
       <p className="text-2xl font-bold text-wb-100">{value.toLocaleString()}</p>
@@ -673,11 +670,7 @@ function SimpleTrendChart({
   color: string
 }) {
   if (!data || data.length === 0) {
-    return (
-      <div className="h-40 flex items-center justify-center text-wb-60 text-sm">
-        暫無資料
-      </div>
-    )
+    return <div className="h-40 flex items-center justify-center text-wb-60 text-sm">暫無資料</div>
   }
 
   const maxCount = Math.max(...data.map((d) => d.count), 1)
@@ -690,10 +683,7 @@ function SimpleTrendChart({
         {data.map((item) => {
           const height = (item.count / maxCount) * 100
           return (
-            <div
-              key={item.date}
-              className="flex-1 group relative"
-            >
+            <div key={item.date} className="flex-1 group relative">
               <div
                 className="w-full rounded-t transition-all hover:opacity-80"
                 style={{
@@ -712,7 +702,9 @@ function SimpleTrendChart({
       </div>
       <div className="flex justify-between mt-2 text-xs text-wb-60">
         <span>{data[0]?.date}</span>
-        <span>總計 {total.toLocaleString()} | 平均 {avg}/日</span>
+        <span>
+          總計 {total.toLocaleString()} | 平均 {avg}/日
+        </span>
         <span>{data[data.length - 1]?.date}</span>
       </div>
     </div>

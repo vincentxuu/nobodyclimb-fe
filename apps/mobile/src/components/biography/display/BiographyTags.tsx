@@ -3,12 +3,12 @@
  *
  * 標籤展示，對應 apps/web/src/components/biography/display/BiographyTags.tsx
  */
-import React, { useState, useMemo } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react-native'
 
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ChevronDown, ChevronUp, Sparkles, Tag } from 'lucide-react-native'
+import { useMemo, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface TagSelection {
@@ -125,10 +125,7 @@ export function BiographyTags({ biography, mobileLimit = 8 }: BiographyTagsProps
 
       <View style={styles.tagsContainer}>
         {visibleTags.map((tag) => (
-          <View
-            key={tag.id}
-            style={[styles.tag, tag.isCustom && styles.customTag]}
-          >
+          <View key={tag.id} style={[styles.tag, tag.isCustom && styles.customTag]}>
             {tag.isCustom && <Sparkles size={12} color={BRAND_YELLOW[100]} />}
             <Text
               variant="small"

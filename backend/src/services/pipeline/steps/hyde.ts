@@ -1,4 +1,4 @@
-import { PipelineStep, PipelineContext } from '../types';
+import { PipelineContext, PipelineStep } from '../types'
 
 export const hydeStep: PipelineStep = {
   id: 'hyde',
@@ -9,25 +9,40 @@ export const hydeStep: PipelineStep = {
   defaultOrder: 3,
   requires: ['queryType'],
   provides: ['hydeDoc'],
-  skipWhen: [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'] }],
+  skipWhen: [
+    {
+      field: 'queryType',
+      operator: 'in',
+      value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'],
+    },
+  ],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
     // 業務邏輯跳過：simple query 或 agentic 模式或已有 hydeDoc（similar route 已生成）
-    if (ctx.queryType === 'simple' || ctx.pipelineConfig.rag_strategy === 'agentic' || (ctx.hydeDoc && ctx.hydeDoc !== '')) {
-      return ctx;
+    if (
+      ctx.queryType === 'simple' ||
+      ctx.pipelineConfig.rag_strategy === 'agentic' ||
+      (ctx.hydeDoc && ctx.hydeDoc !== '')
+    ) {
+      return ctx
     }
 
-    const { request, pipelineConfig, prompts, gatewayOptions, tokenBreakdown, trace } = ctx;
-    const llmModel = pipelineConfig.llm_model;
+    const { request, pipelineConfig, prompts, gatewayOptions, tokenBreakdown, trace } = ctx
+    const llmModel = pipelineConfig.llm_model
 
-    const hydeResult = await ctx.queryService.generateHyDE(request.query, llmModel, gatewayOptions, prompts['HYDE_PROMPT']);
+    const hydeResult = await ctx.queryService.generateHyDE(
+      request.query,
+      llmModel,
+      gatewayOptions,
+      prompts['HYDE_PROMPT']
+    )
 
-    ctx.hydeDoc = hydeResult.doc;
+    ctx.hydeDoc = hydeResult.doc
     if (hydeResult.usage) {
-      tokenBreakdown.hyde = { ...hydeResult.usage, model: llmModel };
+      tokenBreakdown.hyde = { ...hydeResult.usage, model: llmModel }
     }
-    if (ctx.hydeDoc) trace.hyde = { document: ctx.hydeDoc.slice(0, 300) };
+    if (ctx.hydeDoc) trace.hyde = { document: ctx.hydeDoc.slice(0, 300) }
 
-    return ctx;
+    return ctx
   },
-};
+}

@@ -3,47 +3,62 @@
  *
  * 對應 apps/web/src/app/crag/[id]/CragDetailClient.tsx
  */
-import React, { useState, useCallback, useRef, useMemo } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  Share,
-  Linking,
-  Pressable,
-} from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { LinearGradient } from 'expo-linear-gradient'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import {
+  Bus,
+  Car,
   ChevronLeft,
-  Share2,
-  MapPin,
-  Mountain,
-  Sun,
-  Navigation,
   ExternalLink,
   List,
-  Car,
-  Bus,
+  MapPin,
+  Mountain,
+  Navigation,
+  Share2,
+  Sun,
 } from 'lucide-react-native'
-
-import { Text, IconButton, Button } from '@/components/ui'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
-  AreaCard, InfoRow, RouteDrawer, type RouteDrawerRef,
-  WeatherDisplay, YouTubeLiveCard, TrafficCamerasCard, DataSourceSection,
-  GradeDistributionChart, computeGradeRanges, GoogleMapsEmbed,
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import {
+  AreaCard,
+  computeGradeRanges,
+  DataSourceSection,
+  GoogleMapsEmbed,
+  GradeDistributionChart,
+  InfoRow,
+  RouteDrawer,
+  type RouteDrawerRef,
+  TrafficCamerasCard,
+  WeatherDisplay,
+  YouTubeLiveCard,
 } from '@/components/crag'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useCragDetail, useCragRoutes, useCragAreas } from '@/lib/hooks/useCrags'
-import { isGradeInRange, type RouteSidebarItem } from '@/lib/crag-data'
+import { Button, IconButton, Text } from '@/components/ui'
+import { isGradeInRange } from '@/lib/crag-data'
+import { useCragAreas, useCragDetail, useCragRoutes } from '@/lib/hooks/useCrags'
 
 export default function CragDetailScreen() {
   const router = useRouter()
-  const { id, area, sector, grade, type: routeType, q } = useLocalSearchParams<{
+  const {
+    id,
+    area,
+    sector,
+    grade,
+    type: routeType,
+    q,
+  } = useLocalSearchParams<{
     id: string
     area?: string
     sector?: string
@@ -86,14 +101,13 @@ export default function CragDetailScreen() {
 
     if (filterState.searchQuery) {
       const query = filterState.searchQuery.toLowerCase()
-      result = result.filter((route) =>
-        route.name.toLowerCase().includes(query)
-      )
+      result = result.filter((route) => route.name.toLowerCase().includes(query))
     }
 
     if (filterState.selectedArea !== 'all') {
       result = result.filter(
-        (route) => route.areaId === filterState.selectedArea || route.areaName === filterState.selectedArea
+        (route) =>
+          route.areaId === filterState.selectedArea || route.areaName === filterState.selectedArea
       )
     }
 
@@ -102,9 +116,7 @@ export default function CragDetailScreen() {
     }
 
     if (filterState.selectedGrade !== 'all') {
-      result = result.filter((route) =>
-        isGradeInRange(route.grade, filterState.selectedGrade)
-      )
+      result = result.filter((route) => isGradeInRange(route.grade, filterState.selectedGrade))
     }
 
     if (filterState.selectedType !== 'all') {
@@ -124,9 +136,9 @@ export default function CragDetailScreen() {
     if (filterState.selectedArea === 'all') return []
     const sectorsSet = new Set<string>()
     routes
-      .filter(route => route.areaId === filterState.selectedArea && route.sector)
-      .forEach(route => sectorsSet.add(route.sector!))
-    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+      .filter((route) => route.areaId === filterState.selectedArea && route.sector)
+      .forEach((route) => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map((sector) => ({ id: sector, name: sector }))
   }, [routes, filterState.selectedArea])
 
   // 用已拉取的 routes 計算每個 area 的實際路線數
@@ -242,9 +254,7 @@ export default function CragDetailScreen() {
 
         <ScrollView
           style={styles.scrollView}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         >
           {/* 封面圖 */}
           <View style={styles.coverContainer}>
@@ -254,10 +264,7 @@ export default function CragDetailScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.6)']}
-              style={styles.gradient}
-            />
+            <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={styles.gradient} />
             <View style={styles.coverContent}>
               <Text variant="h2" fontWeight="700" style={styles.coverTitle}>
                 {crag.name}
@@ -300,12 +307,7 @@ export default function CragDetailScreen() {
           {/* 導航按鈕 */}
           {crag.geoCoordinates && (
             <View style={styles.actionSection}>
-              <Button
-                variant="primary"
-                size="lg"
-                onPress={handleNavigate}
-                style={styles.navButton}
-              >
+              <Button variant="primary" size="lg" onPress={handleNavigate} style={styles.navButton}>
                 <Navigation size={18} color="#FFFFFF" />
                 <Text fontWeight="600" style={styles.navButtonText}>
                   導航前往
@@ -438,10 +440,7 @@ export default function CragDetailScreen() {
                 </Text>
                 <View style={styles.sectionDivider} />
               </View>
-              <GradeDistributionChart
-                gradeRanges={gradeRanges}
-                totalRoutes={routes.length}
-              />
+              <GradeDistributionChart gradeRanges={gradeRanges} totalRoutes={routes.length} />
             </View>
           )}
 
@@ -531,10 +530,7 @@ export default function CragDetailScreen() {
         </ScrollView>
 
         {/* 浮動按鈕 - 開啟路線列表 */}
-        <Pressable
-          style={styles.floatingButton}
-          onPress={handleOpenDrawer}
-        >
+        <Pressable style={styles.floatingButton} onPress={handleOpenDrawer}>
           <List size={24} color="#FFFFFF" />
         </Pressable>
 
@@ -545,9 +541,7 @@ export default function CragDetailScreen() {
           routes={routes}
           filteredRoutes={filteredRoutes}
           filterState={filterState}
-          onSearchChange={(query) =>
-            setFilterState((prev) => ({ ...prev, searchQuery: query }))
-          }
+          onSearchChange={(query) => setFilterState((prev) => ({ ...prev, searchQuery: query }))}
           onAreaChange={(area) =>
             setFilterState((prev) => ({
               ...prev,
@@ -558,12 +552,8 @@ export default function CragDetailScreen() {
           onSectorChange={(sector) =>
             setFilterState((prev) => ({ ...prev, selectedSector: sector }))
           }
-          onGradeChange={(grade) =>
-            setFilterState((prev) => ({ ...prev, selectedGrade: grade }))
-          }
-          onTypeChange={(type) =>
-            setFilterState((prev) => ({ ...prev, selectedType: type }))
-          }
+          onGradeChange={(grade) => setFilterState((prev) => ({ ...prev, selectedGrade: grade }))}
+          onTypeChange={(type) => setFilterState((prev) => ({ ...prev, selectedType: type }))}
           areas={areas}
           sectors={sectors}
           onRoutePress={handleRoutePress}

@@ -1,9 +1,9 @@
 'use client'
 
-import { ReactNode, useEffect } from 'react'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
-import { GoogleOAuthProvider } from '@react-oauth/google'
+import { ReactNode, useEffect } from 'react'
 import { Toaster } from '@/components/ui/toaster'
 import { GOOGLE_CLIENT_ID } from '@/lib/constants'
 
@@ -32,7 +32,7 @@ export function Providers({ children }: ProvidersProps) {
     if (!GOOGLE_CLIENT_ID && process.env.NODE_ENV === 'development') {
       console.warn(
         '[NobodyClimb] NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set. Google OAuth will not work. ' +
-        'Please set it in your .env.local file.'
+          'Please set it in your .env.local file.'
       )
     }
   }, [])
@@ -48,16 +48,10 @@ export function Providers({ children }: ProvidersProps) {
   if (GOOGLE_CLIENT_ID) {
     return (
       <QueryClientProvider client={queryClient}>
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          {content}
-        </GoogleOAuthProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{content}</GoogleOAuthProvider>
       </QueryClientProvider>
     )
   }
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      {content}
-    </QueryClientProvider>
-  )
+  return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>
 }

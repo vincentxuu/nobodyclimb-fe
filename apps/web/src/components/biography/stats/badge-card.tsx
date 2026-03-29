@@ -1,10 +1,10 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
-import { type BadgeDefinition, getBadgeById, BADGE_COLORS } from '@/lib/constants/badges'
-import type { BadgeProgress } from '@/lib/types'
 import { Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { BADGE_COLORS, type BadgeDefinition, getBadgeById } from '@/lib/constants/badges'
+import type { BadgeProgress } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface BadgeCardProps {
   badge: BadgeDefinition | string

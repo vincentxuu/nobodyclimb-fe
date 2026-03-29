@@ -1,8 +1,8 @@
-import { renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react-native'
 import React from 'react'
-import { useMyAscents, useMyAscentStats, useCreateAscent, useDeleteAscent } from '../useAscents'
 import { apiClient } from '@/lib/api'
+import { useCreateAscent, useDeleteAscent, useMyAscentStats, useMyAscents } from '../useAscents'
 
 jest.mock('@/lib/api')
 const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>
@@ -28,9 +28,11 @@ describe('useMyAscents', () => {
     renderHook(() => useMyAscents({ ascent_type: 'redpoint', page: 2 }), {
       wrapper: createWrapper(),
     })
-    await waitFor(() => expect(mockedApiClient.get).toHaveBeenCalledWith(
-      expect.stringContaining('ascent_type=redpoint')
-    ))
+    await waitFor(() =>
+      expect(mockedApiClient.get).toHaveBeenCalledWith(
+        expect.stringContaining('ascent_type=redpoint')
+      )
+    )
   })
 })
 

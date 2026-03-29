@@ -1,19 +1,19 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
-import BackToTop from '@/components/ui/back-to-top'
-import { RouteBasicInfo } from '@/components/crag/RouteBasicInfo'
-import { RouteHeader } from '@/components/crag/RouteHeader'
-import { RouteContentSections } from '@/components/crag/RouteContentSections'
-import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import React, { useEffect, useState } from 'react'
+import { RouteBasicInfo } from '@/components/crag/RouteBasicInfo'
+import { RouteContentSections } from '@/components/crag/RouteContentSections'
+import { RouteHeader } from '@/components/crag/RouteHeader'
+import BackToTop from '@/components/ui/back-to-top'
+import { CollapsibleBreadcrumb } from '@/components/ui/collapsible-breadcrumb'
 import { useToast } from '@/components/ui/use-toast'
+import { Link } from '@/i18n/navigation'
 import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import type { RouteDetailData } from '@/lib/crag-data'
+import { routeLoadingManager } from '@/lib/route-loading-manager'
 
 interface RouteDetailClientProps {
   data: RouteDetailData

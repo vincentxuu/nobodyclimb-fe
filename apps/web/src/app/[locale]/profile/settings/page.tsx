@@ -1,26 +1,26 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { BarChart3, Bell, Key, Loader2, Upload, UserCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import React, { useEffect, useState } from 'react'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
+import NotificationPreferences from '@/components/profile/NotificationPreferences'
+import NotificationStats from '@/components/profile/NotificationStats'
 import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
+import {
+  AvatarOptions,
+  DEFAULT_AVATARS,
+  generateAvatarElement,
+  getAvatarStyleById,
+} from '@/components/shared/avatar-options'
+import ImageCropper from '@/components/shared/image-cropper'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UserCircle, Key, Upload, Loader2, Bell, BarChart3 } from 'lucide-react'
-import NotificationPreferences from '@/components/profile/NotificationPreferences'
-import NotificationStats from '@/components/profile/NotificationStats'
-import {
-  AvatarOptions,
-  generateAvatarElement,
-  getAvatarStyleById,
-  DEFAULT_AVATARS,
-} from '@/components/shared/avatar-options'
-import ImageCropper from '@/components/shared/image-cropper'
-import { cn } from '@/lib/utils'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
 import { useToast } from '@/components/ui/use-toast'
 import { authService, userService } from '@/lib/api/services'
-import { useTranslations } from 'next-intl'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { cn } from '@/lib/utils'
 
 // 表單資料類型
 interface UserFormData {
@@ -88,7 +88,11 @@ const AvatarUpload = ({
       >
         {avatarPreview ? (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={avatarPreview} alt={t('avatarPreview')} className="h-full w-full object-cover" />
+          <img
+            src={avatarPreview}
+            alt={t('avatarPreview')}
+            className="h-full w-full object-cover"
+          />
         ) : useDefaultAvatar ? (
           generateAvatarElement(selectedAvatarStyle, isMobile ? 'w-28 h-28' : 'w-40 h-40')
         ) : (
@@ -126,7 +130,9 @@ const AvatarUpload = ({
       <p className="text-xs text-[#8E8C8C]">{t('avatarAspectRatioHint')}</p>
 
       <div className="mt-2 w-full">
-        <h3 className={`${isMobile ? 'text-sm' : 'text-base'} mb-2 font-medium`}>{t('defaultAvatar')}</h3>
+        <h3 className={`${isMobile ? 'text-sm' : 'text-base'} mb-2 font-medium`}>
+          {t('defaultAvatar')}
+        </h3>
         <div className="rounded-md border border-[#EBEAEA]">
           <AvatarOptions value={avatarStyle} onChange={onDefaultAvatarChange} />
         </div>
@@ -147,48 +153,44 @@ interface ProfileFormProps {
 const ProfileForm = ({ userData, isSaving, onFieldChange, onSave }: ProfileFormProps) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="space-y-4">
-    <FormField label={t('fieldDisplayName')}>
-      <Input
-        value={userData.displayName}
-        onChange={(e) => onFieldChange('displayName', e.target.value)}
-        className="border-[#B6B3B3]"
-      />
-    </FormField>
-    <FormField label={t('fieldUsername')}>
-      <Input
-        value={userData.username}
-        onChange={(e) => onFieldChange('username', e.target.value)}
-        className="border-[#B6B3B3]"
-        placeholder={t('usernamePlaceholder')}
-      />
-      <p className="mt-1 text-xs text-[#8E8C8C]">
-        {t('usernameHint', { username: userData.username || 'username' })}
-      </p>
-    </FormField>
-    <FormField label={t('fieldEmail')}>
-      <Input
-        value={userData.email}
-        className="border-[#B6B3B3]"
-        disabled
-      />
-    </FormField>
-    <Button
-      onClick={onSave}
-      disabled={isSaving}
-      className="mt-4 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
-    >
-      {isSaving ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {t('saving')}
-        </>
-      ) : (
-        t('saveChanges')
-      )}
-    </Button>
-  </div>
-)
+    <div className="space-y-4">
+      <FormField label={t('fieldDisplayName')}>
+        <Input
+          value={userData.displayName}
+          onChange={(e) => onFieldChange('displayName', e.target.value)}
+          className="border-[#B6B3B3]"
+        />
+      </FormField>
+      <FormField label={t('fieldUsername')}>
+        <Input
+          value={userData.username}
+          onChange={(e) => onFieldChange('username', e.target.value)}
+          className="border-[#B6B3B3]"
+          placeholder={t('usernamePlaceholder')}
+        />
+        <p className="mt-1 text-xs text-[#8E8C8C]">
+          {t('usernameHint', { username: userData.username || 'username' })}
+        </p>
+      </FormField>
+      <FormField label={t('fieldEmail')}>
+        <Input value={userData.email} className="border-[#B6B3B3]" disabled />
+      </FormField>
+      <Button
+        onClick={onSave}
+        disabled={isSaving}
+        className="mt-4 bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
+      >
+        {isSaving ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('saving')}
+          </>
+        ) : (
+          t('saveChanges')
+        )}
+      </Button>
+    </div>
+  )
 }
 
 // 密碼變更表單元件 - 移到外部避免重新渲染
@@ -208,47 +210,47 @@ const PasswordForm = ({
 }: PasswordFormProps) => {
   const t = useTranslations('ProfilePage')
   return (
-  <div className="space-y-4">
-    <FormField label={t('fieldCurrentPassword')}>
-      <Input
-        type="password"
-        value={userData.currentPassword}
-        onChange={(e) => onFieldChange('currentPassword', e.target.value)}
-        className="border-[#B6B3B3]"
-      />
-    </FormField>
-    <FormField label={t('fieldNewPassword')}>
-      <Input
-        type="password"
-        value={userData.newPassword}
-        onChange={(e) => onFieldChange('newPassword', e.target.value)}
-        className="border-[#B6B3B3]"
-      />
-    </FormField>
-    <FormField label={t('fieldConfirmNewPassword')}>
-      <Input
-        type="password"
-        value={userData.confirmNewPassword}
-        onChange={(e) => onFieldChange('confirmNewPassword', e.target.value)}
-        className="border-[#B6B3B3]"
-      />
-    </FormField>
-    <Button
-      onClick={onChangePassword}
-      disabled={isChangingPassword}
-      className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
-    >
-      {isChangingPassword ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {t('updating')}
-        </>
-      ) : (
-        t('updatePassword')
-      )}
-    </Button>
-  </div>
-)
+    <div className="space-y-4">
+      <FormField label={t('fieldCurrentPassword')}>
+        <Input
+          type="password"
+          value={userData.currentPassword}
+          onChange={(e) => onFieldChange('currentPassword', e.target.value)}
+          className="border-[#B6B3B3]"
+        />
+      </FormField>
+      <FormField label={t('fieldNewPassword')}>
+        <Input
+          type="password"
+          value={userData.newPassword}
+          onChange={(e) => onFieldChange('newPassword', e.target.value)}
+          className="border-[#B6B3B3]"
+        />
+      </FormField>
+      <FormField label={t('fieldConfirmNewPassword')}>
+        <Input
+          type="password"
+          value={userData.confirmNewPassword}
+          onChange={(e) => onFieldChange('confirmNewPassword', e.target.value)}
+          className="border-[#B6B3B3]"
+        />
+      </FormField>
+      <Button
+        onClick={onChangePassword}
+        disabled={isChangingPassword}
+        className="bg-[#1B1A1A] text-white hover:bg-[#3F3D3D]"
+      >
+        {isChangingPassword ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('updating')}
+          </>
+        ) : (
+          t('updatePassword')
+        )}
+      </Button>
+    </div>
+  )
 }
 
 export default function SettingsPage() {
@@ -670,7 +672,9 @@ export default function SettingsPage() {
         {activeTab === 'security' && (
           <div className="space-y-8">
             <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
-              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>{t('changePassword')}</h2>
+              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>
+                {t('changePassword')}
+              </h2>
               <PasswordForm
                 userData={userData}
                 isChangingPassword={isChangingPassword}
@@ -687,17 +691,19 @@ export default function SettingsPage() {
             <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
               <div className="flex items-center gap-2 mb-4">
                 <BarChart3 size={isMobile ? 18 : 20} className="text-[#3F3D3D]" />
-                <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium`}>{t('notificationStats')}</h2>
+                <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-medium`}>
+                  {t('notificationStats')}
+                </h2>
               </div>
               <NotificationStats />
             </div>
 
             {/* 通知偏好設定 */}
             <div className={`rounded-sm border border-[#DBD8D8] ${isMobile ? 'p-4' : 'p-6'}`}>
-              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>{t('notificationPreferences')}</h2>
-              <p className="text-sm text-[#6D6C6C] mb-6">
-                {t('notificationPreferencesDesc')}
-              </p>
+              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 font-medium`}>
+                {t('notificationPreferences')}
+              </h2>
+              <p className="text-sm text-[#6D6C6C] mb-6">{t('notificationPreferencesDesc')}</p>
               <NotificationPreferences />
             </div>
           </div>

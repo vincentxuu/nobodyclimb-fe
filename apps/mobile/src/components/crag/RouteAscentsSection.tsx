@@ -4,18 +4,18 @@
  * 顯示路線的攀爬統計摘要與最近的攀爬記錄列表
  * 對應 apps/web/src/components/crag/RouteAscentsSection.tsx
  */
-import React from 'react'
-import { StyleSheet, View, ActivityIndicator, Pressable } from 'react-native'
-import { Users, Mountain, Star, Plus } from 'lucide-react-native'
-import { Image } from 'expo-image'
 
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { Mountain, Plus, Star, Users } from 'lucide-react-native'
+import React from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useRouteAscents, useCreateAscent } from '@/lib/hooks/useRouteAscents'
-import { ASCENT_TYPE_LABELS, ASCENT_TYPE_COLORS } from '@/lib/constants/ascent'
 import type { AscentType } from '@/lib/constants/ascent'
-import { AscentForm, type AscentFormRef } from './AscentForm'
+import { ASCENT_TYPE_COLORS, ASCENT_TYPE_LABELS } from '@/lib/constants/ascent'
+import { useCreateAscent, useRouteAscents } from '@/lib/hooks/useRouteAscents'
 import { useAuthStore } from '@/store/authStore'
+import { AscentForm, type AscentFormRef } from './AscentForm'
 
 interface RouteAscentsSectionProps {
   routeId: string
@@ -55,7 +55,12 @@ export function RouteAscentsSection({ routeId, routeName, routeGrade }: RouteAsc
   const { status } = useAuthStore()
   const isLoggedIn = status === 'signIn'
 
-  const handleCreateAscent = async (data: { ascent_type: string; ascent_date: string; rating?: number; notes?: string }) => {
+  const handleCreateAscent = async (data: {
+    ascent_type: string
+    ascent_date: string
+    rating?: number
+    notes?: string
+  }) => {
     await createAscent.mutateAsync({
       route_id: routeId,
       ...data,
@@ -64,157 +69,151 @@ export function RouteAscentsSection({ routeId, routeName, routeGrade }: RouteAsc
 
   return (
     <>
-    <View style={styles.container}>
-      {/* 區塊標題 */}
-      <View style={styles.sectionHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
-          <View style={styles.sectionBar} />
-          <Text variant="body" fontWeight="600">
-            攀爬記錄
-          </Text>
+      <View style={styles.container}>
+        {/* 區塊標題 */}
+        <View style={styles.sectionHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}>
+            <View style={styles.sectionBar} />
+            <Text variant="body" fontWeight="600">
+              攀爬記錄
+            </Text>
+          </View>
+          {isLoggedIn && (
+            <Pressable style={styles.addButton} onPress={() => ascentFormRef.current?.open()}>
+              <Plus size={16} color="#2563EB" />
+              <Text variant="caption" style={{ color: '#2563EB' }}>
+                記錄
+              </Text>
+            </Pressable>
+          )}
         </View>
-        {isLoggedIn && (
-          <Pressable
-            style={styles.addButton}
-            onPress={() => ascentFormRef.current?.open()}
-          >
-            <Plus size={16} color="#2563EB" />
-            <Text variant="caption" style={{ color: '#2563EB' }}>記錄</Text>
-          </Pressable>
+
+        {/* 統計摘要 */}
+        {summary && (
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <View style={styles.statIcon}>
+                <Users size={14} color={SEMANTIC_COLORS.textMuted} />
+              </View>
+              <Text variant="h3" fontWeight="700">
+                {summary.total_ascents}
+              </Text>
+              <Text variant="caption" color="textMuted">
+                總攀登次數
+              </Text>
+            </View>
+            <View style={styles.statCard}>
+              <View style={styles.statIcon}>
+                <Mountain size={14} color={SEMANTIC_COLORS.textMuted} />
+              </View>
+              <Text variant="h3" fontWeight="700">
+                {summary.unique_climbers}
+              </Text>
+              <Text variant="caption" color="textMuted">
+                攀登人數
+              </Text>
+            </View>
+            <View style={styles.statCard}>
+              <View style={styles.statIcon}>
+                <Star size={14} color={SEMANTIC_COLORS.textMuted} />
+              </View>
+              <Text variant="h3" fontWeight="700">
+                {summary.avg_rating?.toFixed(1) || '-'}
+              </Text>
+              <Text variant="caption" color="textMuted">
+                平均評分
+              </Text>
+            </View>
+          </View>
         )}
-      </View>
 
-      {/* 統計摘要 */}
-      {summary && (
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <Users size={14} color={SEMANTIC_COLORS.textMuted} />
-            </View>
-            <Text variant="h3" fontWeight="700">
-              {summary.total_ascents}
+        {/* 記錄列表 */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={SEMANTIC_COLORS.textMuted} />
+          </View>
+        ) : ascents.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Mountain size={36} color="#D1D5DB" />
+            <Text variant="body" color="textMuted" style={styles.emptyText}>
+              還沒有人攀登過這條路線
             </Text>
-            <Text variant="caption" color="textMuted">
-              總攀登次數
+            <Text variant="small" color="textMuted">
+              成為第一個留下紀錄的攀岩者吧！
             </Text>
           </View>
-          <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <Mountain size={14} color={SEMANTIC_COLORS.textMuted} />
-            </View>
-            <Text variant="h3" fontWeight="700">
-              {summary.unique_climbers}
-            </Text>
-            <Text variant="caption" color="textMuted">
-              攀登人數
-            </Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={styles.statIcon}>
-              <Star size={14} color={SEMANTIC_COLORS.textMuted} />
-            </View>
-            <Text variant="h3" fontWeight="700">
-              {summary.avg_rating?.toFixed(1) || '-'}
-            </Text>
-            <Text variant="caption" color="textMuted">
-              平均評分
-            </Text>
-          </View>
-        </View>
-      )}
+        ) : (
+          <View style={styles.recordList}>
+            {ascents.map((ascent) => {
+              const typeLabel =
+                ASCENT_TYPE_LABELS[ascent.ascent_type as AscentType] ?? ascent.ascent_type
+              const typeColor = ASCENT_TYPE_COLORS[ascent.ascent_type as AscentType] ?? '#6B7280'
+              const displayName = ascent.display_name || ascent.username || '匿名攀岩者'
 
-      {/* 記錄列表 */}
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={SEMANTIC_COLORS.textMuted} />
-        </View>
-      ) : ascents.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Mountain size={36} color="#D1D5DB" />
-          <Text variant="body" color="textMuted" style={styles.emptyText}>
-            還沒有人攀登過這條路線
-          </Text>
-          <Text variant="small" color="textMuted">
-            成為第一個留下紀錄的攀岩者吧！
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.recordList}>
-          {ascents.map((ascent) => {
-            const typeLabel =
-              ASCENT_TYPE_LABELS[ascent.ascent_type as AscentType] ?? ascent.ascent_type
-            const typeColor =
-              ASCENT_TYPE_COLORS[ascent.ascent_type as AscentType] ?? '#6B7280'
-            const displayName = ascent.display_name || ascent.username || '匿名攀岩者'
-
-            return (
-              <View key={ascent.id} style={styles.recordCard}>
-                {/* 使用者資訊列 */}
-                <View style={styles.recordHeader}>
-                  {ascent.avatar_url ? (
-                    <Image
-                      source={{ uri: ascent.avatar_url }}
-                      style={styles.avatar}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                      <Text variant="caption" fontWeight="600" color="textMuted">
-                        {displayName.charAt(0).toUpperCase()}
+              return (
+                <View key={ascent.id} style={styles.recordCard}>
+                  {/* 使用者資訊列 */}
+                  <View style={styles.recordHeader}>
+                    {ascent.avatar_url ? (
+                      <Image
+                        source={{ uri: ascent.avatar_url }}
+                        style={styles.avatar}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                        <Text variant="caption" fontWeight="600" color="textMuted">
+                          {displayName.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.recordMeta}>
+                      <Text variant="body" fontWeight="500">
+                        {displayName}
+                      </Text>
+                      <Text variant="caption" color="textMuted">
+                        {formatDate(ascent.ascent_date)}
                       </Text>
                     </View>
-                  )}
-                  <View style={styles.recordMeta}>
-                    <Text variant="body" fontWeight="500">
-                      {displayName}
-                    </Text>
-                    <Text variant="caption" color="textMuted">
-                      {formatDate(ascent.ascent_date)}
-                    </Text>
-                  </View>
-                  <View style={[styles.typeBadge, { backgroundColor: `${typeColor}18` }]}>
-                    <Text
-                      variant="caption"
-                      fontWeight="600"
-                      style={{ color: typeColor }}
-                    >
-                      {typeLabel}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* 評分 & 筆記 */}
-                {(ascent.rating != null || ascent.notes) && (
-                  <View style={styles.recordBody}>
-                    {ascent.rating != null && renderStars(ascent.rating)}
-                    {ascent.notes && (
-                      <Text
-                        variant="small"
-                        color="textSubtle"
-                        numberOfLines={3}
-                        style={styles.notes}
-                      >
-                        {ascent.notes}
+                    <View style={[styles.typeBadge, { backgroundColor: `${typeColor}18` }]}>
+                      <Text variant="caption" fontWeight="600" style={{ color: typeColor }}>
+                        {typeLabel}
                       </Text>
-                    )}
+                    </View>
                   </View>
-                )}
-              </View>
-            )
-          })}
-        </View>
+
+                  {/* 評分 & 筆記 */}
+                  {(ascent.rating != null || ascent.notes) && (
+                    <View style={styles.recordBody}>
+                      {ascent.rating != null && renderStars(ascent.rating)}
+                      {ascent.notes && (
+                        <Text
+                          variant="small"
+                          color="textSubtle"
+                          numberOfLines={3}
+                          style={styles.notes}
+                        >
+                          {ascent.notes}
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </View>
+              )
+            })}
+          </View>
+        )}
+      </View>
+      {isLoggedIn && (
+        <AscentForm
+          ref={ascentFormRef}
+          routeId={routeId}
+          routeName={routeName || ''}
+          routeGrade={routeGrade || ''}
+          onSubmit={handleCreateAscent}
+          isLoading={createAscent.isPending}
+        />
       )}
-    </View>
-    {isLoggedIn && (
-      <AscentForm
-        ref={ascentFormRef}
-        routeId={routeId}
-        routeName={routeName || ''}
-        routeGrade={routeGrade || ''}
-        onSubmit={handleCreateAscent}
-        isLoading={createAscent.isPending}
-      />
-    )}
     </>
   )
 }

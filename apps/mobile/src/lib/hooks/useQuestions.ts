@@ -3,7 +3,7 @@
  *
  * 對應 apps/web/src/lib/hooks/useQuestions.ts
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
 // ═══════════════════════════════════════════
@@ -254,15 +254,12 @@ export function useSubmitChoiceAnswer() {
       customText?: string
       followUpText?: string
     }) => {
-      const response = await apiClient.post(
-        `/biography/${biographyId}/choice-answers`,
-        {
-          question_id: questionId,
-          option_id: optionId,
-          custom_text: customText,
-          follow_up_text: followUpText,
-        }
-      )
+      const response = await apiClient.post(`/biography/${biographyId}/choice-answers`, {
+        question_id: questionId,
+        option_id: optionId,
+        custom_text: customText,
+        follow_up_text: followUpText,
+      })
 
       if (!response.data) {
         throw new Error('Failed to submit answer')
@@ -286,9 +283,7 @@ export function useChoiceAnswers(biographyId: string | undefined) {
     queryFn: async (): Promise<ChoiceAnswer[]> => {
       if (!biographyId) return []
 
-      const response = await apiClient.get(
-        `/biography/${biographyId}/choice-answers`
-      )
+      const response = await apiClient.get(`/biography/${biographyId}/choice-answers`)
 
       if (!response.data) {
         return []

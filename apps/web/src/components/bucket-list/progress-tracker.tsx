@@ -1,9 +1,8 @@
 'use client'
 
-import * as React from 'react'
 import { Check, Circle } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { Milestone } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface ProgressTrackerProps {
   mode: 'manual' | 'milestone' | null
@@ -13,8 +12,8 @@ interface ProgressTrackerProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   editable?: boolean
-  onProgressChange?: (progress: number) => void  // eslint-disable-line no-unused-vars
-  onMilestoneToggle?: (milestoneId: string, completed: boolean) => void  // eslint-disable-line no-unused-vars
+  onProgressChange?: (progress: number) => void // eslint-disable-line no-unused-vars
+  onMilestoneToggle?: (milestoneId: string, completed: boolean) => void // eslint-disable-line no-unused-vars
 }
 
 /**
@@ -121,7 +120,12 @@ export function ProgressTracker({
         <div className="px-3">
           <div className={cn('relative', sizes.milestoneContainer)}>
             {/* 背景線 */}
-            <div className={cn('absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-200', sizes.bar)} />
+            <div
+              className={cn(
+                'absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-full bg-gray-200',
+                sizes.bar
+              )}
+            />
 
             {/* 已完成的進度線 */}
             <div
@@ -153,9 +157,17 @@ export function ProgressTracker({
                   title={milestone.title}
                 >
                   {isCompleted ? (
-                    <Check className={cn(size === 'sm' ? 'h-3 w-3' : size === 'md' ? 'h-4 w-4' : 'h-5 w-5')} />
+                    <Check
+                      className={cn(
+                        size === 'sm' ? 'h-3 w-3' : size === 'md' ? 'h-4 w-4' : 'h-5 w-5'
+                      )}
+                    />
                   ) : (
-                    <Circle className={cn(size === 'sm' ? 'h-2 w-2' : size === 'md' ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
+                    <Circle
+                      className={cn(
+                        size === 'sm' ? 'h-2 w-2' : size === 'md' ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                   )}
                 </button>
               )
@@ -165,12 +177,7 @@ export function ProgressTracker({
 
         {/* 里程碑標籤 */}
         {showLabels && (
-          <div
-            className={cn(
-              'mt-2 px-3',
-              isManyMilestones && 'pb-1'
-            )}
-          >
+          <div className={cn('mt-2 px-3', isManyMilestones && 'pb-1')}>
             <div className="relative">
               {sortedMilestones.map((milestone) => (
                 <div
@@ -183,10 +190,10 @@ export function ProgressTracker({
                   style={{ left: `${milestone.percentage}%` }}
                   title={milestone.title}
                 >
-                  <span className="whitespace-nowrap text-[10px] font-medium">{milestone.percentage}%</span>
-                  <span className="max-w-[3rem] truncate text-[10px]">
-                    {milestone.title}
+                  <span className="whitespace-nowrap text-[10px] font-medium">
+                    {milestone.percentage}%
                   </span>
+                  <span className="max-w-[3rem] truncate text-[10px]">{milestone.title}</span>
                 </div>
               ))}
               {/* 佔位元素，確保容器有高度 */}
@@ -224,7 +231,12 @@ export function ProgressBar({
 
   return (
     <div className={cn('w-full', className)}>
-      <div className={cn('relative w-full overflow-hidden rounded-full bg-gray-200', heightClasses[size])}>
+      <div
+        className={cn(
+          'relative w-full overflow-hidden rounded-full bg-gray-200',
+          heightClasses[size]
+        )}
+      >
         <div
           className="absolute left-0 top-0 h-full rounded-full bg-brand-accent/70 transition-all duration-300"
           style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}

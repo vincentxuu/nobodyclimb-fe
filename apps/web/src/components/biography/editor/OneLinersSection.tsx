@@ -1,10 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  Check,
+  ChevronDown,
+  Clock,
+  Lightbulb,
+  MessageCircle,
+  Plus,
+  RefreshCw,
+  Sparkles,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import type { OneLiner, OneLinerQuestion } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { MessageCircle, Check, ChevronDown, RefreshCw, Plus, Clock, Lightbulb, Sparkles } from 'lucide-react'
-import type { OneLinerQuestion, OneLiner } from '@/lib/types/biography-v2'
 
 interface OneLinersSectionProps {
   /** 問題列表 */
@@ -67,154 +76,143 @@ export function OneLinersSection({
           </span>
           <ChevronDown
             size={20}
-            className={cn(
-              'text-[#B6B3B3] transition-transform',
-              showQuestions && 'rotate-180'
-            )}
+            className={cn('text-[#B6B3B3] transition-transform', showQuestions && 'rotate-180')}
           />
         </div>
       </button>
 
       {showQuestions && (
         <>
-      <p className="text-sm text-[#6D6C6C] flex items-center gap-1">
-        <Lightbulb size={14} />
-        {t('oneLinersHint')}
-      </p>
+          <p className="text-sm text-[#6D6C6C] flex items-center gap-1">
+            <Lightbulb size={14} />
+            {t('oneLinersHint')}
+          </p>
 
-      {/* Questions List */}
-      <div className="space-y-3">
-        {questions.map((question) => {
-          const answer = getAnswer(question.id)
-          const isFilled = !!answer?.trim()
-          const isExpanded = expandedId === question.id
+          {/* Questions List */}
+          <div className="space-y-3">
+            {questions.map((question) => {
+              const answer = getAnswer(question.id)
+              const isFilled = !!answer?.trim()
+              const isExpanded = expandedId === question.id
 
-          return (
-            <div
-              key={question.id}
-              className={cn(
-                'border rounded-lg overflow-hidden transition-all duration-200',
-                isFilled
-                  ? 'border-brand-accent bg-brand-accent/10'
-                  : 'border-[#DBD8D8] bg-white'
-              )}
-            >
-              {/* Question Header */}
-              <button
-                type="button"
-                onClick={() => setExpandedId(isExpanded ? null : question.id)}
-                className="w-full flex items-center justify-between p-4 text-left"
-              >
-                <div className="flex items-center gap-3">
-                  {/* Status Icon */}
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0',
-                      isFilled
-                        ? 'bg-brand-accent text-brand-dark'
-                        : 'border-2 border-[#B6B3B3]'
-                    )}
+              return (
+                <div
+                  key={question.id}
+                  className={cn(
+                    'border rounded-lg overflow-hidden transition-all duration-200',
+                    isFilled
+                      ? 'border-brand-accent bg-brand-accent/10'
+                      : 'border-[#DBD8D8] bg-white'
+                  )}
+                >
+                  {/* Question Header */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : question.id)}
+                    className="w-full flex items-center justify-between p-4 text-left"
                   >
-                    {isFilled && <Check size={12} />}
-                  </div>
-
-                  {/* Question Text */}
-                  <div>
-                    <div className="flex items-center gap-1">
-                      {question.source === 'user' && (
-                        <Sparkles size={14} className="text-brand-accent" />
-                      )}
-                      <span
+                    <div className="flex items-center gap-3">
+                      {/* Status Icon */}
+                      <div
                         className={cn(
-                          'font-medium',
-                          isFilled ? 'text-[#1B1A1A]' : 'text-[#3F3D3D]'
+                          'w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0',
+                          isFilled ? 'bg-brand-accent text-brand-dark' : 'border-2 border-[#B6B3B3]'
                         )}
                       >
-                        {question.question}
-                      </span>
+                        {isFilled && <Check size={12} />}
+                      </div>
+
+                      {/* Question Text */}
+                      <div>
+                        <div className="flex items-center gap-1">
+                          {question.source === 'user' && (
+                            <Sparkles size={14} className="text-brand-accent" />
+                          )}
+                          <span
+                            className={cn(
+                              'font-medium',
+                              isFilled ? 'text-[#1B1A1A]' : 'text-[#3F3D3D]'
+                            )}
+                          >
+                            {question.question}
+                          </span>
+                        </div>
+                        {isFilled && !isExpanded && (
+                          <p className="text-sm text-[#6D6C6C] mt-1 line-clamp-1">{answer}</p>
+                        )}
+                      </div>
                     </div>
-                    {isFilled && !isExpanded && (
-                      <p className="text-sm text-[#6D6C6C] mt-1 line-clamp-1">
-                        {answer}
-                      </p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Expand Icon */}
-                <ChevronDown
-                  size={20}
-                  className={cn(
-                    'text-[#B6B3B3] transition-transform flex-shrink-0',
-                    isExpanded && 'rotate-180'
+                    {/* Expand Icon */}
+                    <ChevronDown
+                      size={20}
+                      className={cn(
+                        'text-[#B6B3B3] transition-transform flex-shrink-0',
+                        isExpanded && 'rotate-180'
+                      )}
+                    />
+                  </button>
+
+                  {/* Answer Input */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 space-y-3">
+                      {question.format_hint && (
+                        <p className="text-sm text-[#6D6C6C] bg-[#F5F5F5] px-3 py-2 rounded-lg flex items-center gap-1">
+                          <Lightbulb size={14} />
+                          {question.format_hint}
+                        </p>
+                      )}
+                      <input
+                        type="text"
+                        value={answer || ''}
+                        onChange={(e) => onAnswerChange(question.id, e.target.value || null)}
+                        placeholder={t('answerInputPlaceholder')}
+                        className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
+                        maxLength={200}
+                      />
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-[#8E8C8C]">{answer?.length || 0}/200</span>
+                        {isFilled && (
+                          <button
+                            type="button"
+                            onClick={() => onAnswerChange(question.id, null)}
+                            className="text-xs text-[#6D6C6C] hover:text-red-500 transition-colors"
+                          >
+                            {t('clearAnswer')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
-                />
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-2">
+            {onRandomRecommend && (
+              <button
+                type="button"
+                onClick={onRandomRecommend}
+                className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors px-3 py-2 bg-[#F5F5F5] rounded-lg"
+              >
+                <RefreshCw size={16} />
+                {t('randomRecommend')}
               </button>
+            )}
 
-              {/* Answer Input */}
-              {isExpanded && (
-                <div className="px-4 pb-4 space-y-3">
-                  {question.format_hint && (
-                    <p className="text-sm text-[#6D6C6C] bg-[#F5F5F5] px-3 py-2 rounded-lg flex items-center gap-1">
-                      <Lightbulb size={14} />
-                      {question.format_hint}
-                    </p>
-                  )}
-                  <input
-                    type="text"
-                    value={answer || ''}
-                    onChange={(e) =>
-                      onAnswerChange(question.id, e.target.value || null)
-                    }
-                    placeholder={t('answerInputPlaceholder')}
-                    className="w-full px-4 py-3 bg-white border border-[#B6B3B3] rounded-lg text-[#1B1A1A] placeholder:text-[#9D9D9D] focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-dark transition-colors"
-                    maxLength={200}
-                  />
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-[#8E8C8C]">
-                      {(answer?.length || 0)}/200
-                    </span>
-                    {isFilled && (
-                      <button
-                        type="button"
-                        onClick={() => onAnswerChange(question.id, null)}
-                        className="text-xs text-[#6D6C6C] hover:text-red-500 transition-colors"
-                      >
-                        {t('clearAnswer')}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-wrap gap-2">
-        {onRandomRecommend && (
-          <button
-            type="button"
-            onClick={onRandomRecommend}
-            className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors px-3 py-2 bg-[#F5F5F5] rounded-lg"
-          >
-            <RefreshCw size={16} />
-            {t('randomRecommend')}
-          </button>
-        )}
-
-        {onAddCustomQuestion && (
-          <button
-            type="button"
-            onClick={onAddCustomQuestion}
-            className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors px-3 py-2 bg-[#F5F5F5] rounded-lg"
-          >
-            <Plus size={16} />
-            {t('addCustomQuestion')}
-          </button>
-        )}
-      </div>
+            {onAddCustomQuestion && (
+              <button
+                type="button"
+                onClick={onAddCustomQuestion}
+                className="flex items-center gap-1 text-sm text-[#6D6C6C] hover:text-[#1B1A1A] transition-colors px-3 py-2 bg-[#F5F5F5] rounded-lg"
+              >
+                <Plus size={16} />
+                {t('addCustomQuestion')}
+              </button>
+            )}
+          </div>
         </>
       )}
     </div>

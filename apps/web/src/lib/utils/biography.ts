@@ -1,5 +1,5 @@
 import { getTagOptionById, SYSTEM_TAG_DIMENSIONS } from '@/lib/constants/biography-tags'
-import type { TagsDataStorage, TagSelection, TagOption } from '@/lib/types/biography-v2'
+import type { TagOption, TagSelection, TagsDataStorage } from '@/lib/types/biography-v2'
 
 // ═══════════════════════════════════════════
 // 一句話資料格式轉換
@@ -43,7 +43,9 @@ export function buildOneLinersData(
  * @param climbingStartYear 開始攀岩的年份字串
  * @returns 攀岩年數，如果無法計算則返回 null
  */
-export function calculateClimbingYears(climbingStartYear: string | null | undefined): number | null {
+export function calculateClimbingYears(
+  climbingStartYear: string | null | undefined
+): number | null {
   if (!climbingStartYear) return null
   const startYear = parseInt(climbingStartYear, 10)
   return isNaN(startYear) ? null : new Date().getFullYear() - startYear
@@ -78,8 +80,8 @@ export interface DisplayTag {
 
 // 默認展示的三個維度
 const DEFAULT_DISPLAY_DIMENSIONS = [
-  SYSTEM_TAG_DIMENSIONS.STYLE_CULT,       // 風格邪教
-  SYSTEM_TAG_DIMENSIONS.SHOE_FACTION,     // 鞋子門派
+  SYSTEM_TAG_DIMENSIONS.STYLE_CULT, // 風格邪教
+  SYSTEM_TAG_DIMENSIONS.SHOE_FACTION, // 鞋子門派
   SYSTEM_TAG_DIMENSIONS.TRAINING_APPROACH, // 訓練取向
 ]
 
@@ -128,7 +130,7 @@ function getDefaultDisplayTags(
   for (const dimensionId of DEFAULT_DISPLAY_DIMENSIONS) {
     if (result.length >= maxCount) break
 
-    const tagInDimension = selections.find(sel => {
+    const tagInDimension = selections.find((sel) => {
       const option = findTagOption(sel.tag_id)
       return option?.dimension_id === dimensionId && !usedTagIds.has(sel.tag_id)
     })
@@ -165,7 +167,10 @@ function getDefaultDisplayTags(
  * - 舊格式：TagSelection[] 陣列
  * - 新格式：TagsDataStorage 物件 { selections, display_tags?, custom_tags?, custom_dimensions? }
  */
-export function getDisplayTags(tagsDataJson: string | null | undefined, maxCount = 3): DisplayTag[] {
+export function getDisplayTags(
+  tagsDataJson: string | null | undefined,
+  maxCount = 3
+): DisplayTag[] {
   if (!tagsDataJson) return []
 
   try {
@@ -209,7 +214,7 @@ export function getDisplayTags(tagsDataJson: string | null | undefined, maxCount
       // 1. 檢查是否在 custom_tags 中
       if (customTagsMap.has(tagId)) return true
       // 2. 檢查 selections 中的 source
-      const selection = tagsData.selections?.find(s => s.tag_id === tagId)
+      const selection = tagsData.selections?.find((s) => s.tag_id === tagId)
       if (selection?.source === 'user') return true
       // 3. 檢查 tag_id 是否以 usr_ 開頭
       if (tagId.startsWith('usr_')) return true
@@ -225,7 +230,7 @@ export function getDisplayTags(tagsDataJson: string | null | undefined, maxCount
           tags.push({
             id: tagId,
             label: option.label,
-            isCustom: isCustomTag(tagId)
+            isCustom: isCustomTag(tagId),
           })
         }
       }

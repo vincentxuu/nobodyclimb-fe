@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, RefObject } from 'react'
+import { RefObject, useCallback, useEffect, useState } from 'react'
 
 interface UseInfiniteScrollProps {
   /** 觀察的 DOM 元素參考，當此元素進入視口時觸發加載 */

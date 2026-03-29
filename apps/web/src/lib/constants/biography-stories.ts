@@ -496,9 +496,7 @@ export function getFilledQuestions(biography: Record<string, unknown>): StoryQue
 /**
  * 將故事按分類分組，並分開已填寫和未填寫
  */
-export function groupStoriesByCategory(
-  biography: Record<string, unknown>
-): {
+export function groupStoriesByCategory(biography: Record<string, unknown>): {
   filled: Map<StoryCategory, StoryQuestion[]>
   unfilled: StoryQuestion[]
 } {

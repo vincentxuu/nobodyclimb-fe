@@ -1,9 +1,9 @@
 'use client'
 
-import { Link, Instagram, Youtube } from 'lucide-react'
+import { Instagram, Link, Youtube } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
 import type { SocialLinks } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface SocialLinksEditorSectionProps {
   socialLinks: SocialLinks
@@ -57,9 +57,7 @@ export function SocialLinksEditorSection({
         <h3 className="font-semibold text-[#1B1A1A]">{t('socialLinksTitle')}</h3>
       </div>
 
-      <p className="text-sm text-[#6D6C6C]">
-        {t('socialLinksHint')}
-      </p>
+      <p className="text-sm text-[#6D6C6C]">{t('socialLinksHint')}</p>
 
       {/* Instagram */}
       <div className="space-y-2">

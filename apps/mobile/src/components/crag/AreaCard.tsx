@@ -3,14 +3,13 @@
  *
  * 對應 apps/web/src/components/crag/area-section.tsx 中的區域卡片
  */
-import React from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { Image } from 'expo-image'
-import { ChevronRight } from 'lucide-react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 
-import { Text } from '@/components/ui'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { LinearGradient } from 'expo-linear-gradient'
+import { ChevronRight } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui'
 
 interface AreaCardProps {
   id: string
@@ -33,19 +32,12 @@ export function AreaCard({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.container,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
     >
       {/* 背景圖 */}
       <View style={styles.imageContainer}>
         {image ? (
-          <Image
-            source={{ uri: image }}
-            style={styles.image}
-            contentFit="cover"
-          />
+          <Image source={{ uri: image }} style={styles.image} contentFit="cover" />
         ) : (
           <LinearGradient
             colors={['#8B7355', '#5D4E37']}
@@ -54,10 +46,7 @@ export function AreaCard({
             end={{ x: 1, y: 1 }}
           />
         )}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.5)']}
-          style={styles.gradient}
-        />
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} style={styles.gradient} />
       </View>
 
       {/* 內容 */}

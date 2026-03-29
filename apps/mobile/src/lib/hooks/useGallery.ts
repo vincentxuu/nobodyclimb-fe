@@ -5,8 +5,8 @@
  * 對應後端 GET /galleries/photos 端點
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api'
 import type { GalleryGridPhoto } from '@/components/gallery'
+import { apiClient } from '@/lib/api'
 
 interface GalleryPhoto {
   id: string

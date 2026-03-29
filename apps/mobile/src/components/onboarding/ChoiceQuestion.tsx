@@ -4,15 +4,25 @@
  * 選擇題組件，用於新手引導流程
  * 對應 apps/web/src/components/onboarding/ChoiceQuestion.tsx
  */
-import React, { useState, useCallback } from 'react'
+
 import {
-  View,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  ScrollView,
+  BORDER_RADIUS,
+  FONT_SIZE,
+  FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { Check, ChevronRight, MessageCircle, Sparkles, Users, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
 import Animated, {
   FadeIn,
@@ -24,26 +34,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated'
-import {
-  Check,
-  Users,
-  ChevronRight,
-  X,
-  Sparkles,
-  MessageCircle,
-} from 'lucide-react-native'
-import {
-  SEMANTIC_COLORS,
-  SPACING,
-  BORDER_RADIUS,
-  FONT_SIZE,
-  FONT_WEIGHT,
-  WB_COLORS,
-  BRAND_YELLOW,
-} from '@nobodyclimb/constants'
-import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
+import { Text } from '@/components/ui/Text'
 import { springConfigLight } from '@/theme/animations'
 
 // ═══════════════════════════════════════════
@@ -128,12 +121,7 @@ function OptionButton({ option, isSelected, disabled, onPress }: OptionButtonPro
       onPressOut={handlePressOut}
     >
       <View style={styles.optionContent}>
-        <Text
-          style={[
-            styles.optionLabel,
-            isSelected && styles.optionLabelSelected,
-          ]}
-        >
+        <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
           {option.label}
         </Text>
         {option.count > 0 && (
@@ -150,12 +138,7 @@ function OptionButton({ option, isSelected, disabled, onPress }: OptionButtonPro
 // 主組件
 // ═══════════════════════════════════════════
 
-export function ChoiceQuestion({
-  question,
-  onSubmit,
-  onSkip,
-  onComplete,
-}: ChoiceQuestionProps) {
+export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: ChoiceQuestionProps) {
   const [phase, setPhase] = useState<Phase>('selecting')
   const [selectedOption, setSelectedOption] = useState<ChoiceOption | null>(null)
   const [customText, setCustomText] = useState('')
@@ -220,11 +203,7 @@ export function ChoiceQuestion({
 
     setIsSubmitting(true)
     try {
-      await onSubmit(
-        selectedOption.id,
-        customText || undefined,
-        followUpText || undefined
-      )
+      await onSubmit(selectedOption.id, customText || undefined, followUpText || undefined)
       setPhase('complete')
       // 短暫顯示完成狀態後繼續
       setTimeout(() => {
@@ -269,29 +248,19 @@ export function ChoiceQuestion({
               <Text style={styles.tagText}>快速認識你</Text>
             </View>
             <Text style={styles.questionTitle}>{question.question}</Text>
-            {question.hint && (
-              <Text style={styles.questionHint}>{question.hint}</Text>
-            )}
+            {question.hint && <Text style={styles.questionHint}>{question.hint}</Text>}
           </Animated.View>
 
           {/* 社群驗證 */}
           {totalCount > 0 && (
-            <Animated.View
-              entering={FadeIn.delay(100).duration(300)}
-              style={styles.socialProof}
-            >
+            <Animated.View entering={FadeIn.delay(100).duration(300)} style={styles.socialProof}>
               <Icon icon={Users} size="sm" color={SEMANTIC_COLORS.textMuted} />
-              <Text style={styles.socialProofText}>
-                已有 {totalCount} 人回答過這個問題
-              </Text>
+              <Text style={styles.socialProofText}>已有 {totalCount} 人回答過這個問題</Text>
             </Animated.View>
           )}
 
           {/* 選項列表 */}
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(300)}
-            style={styles.optionsList}
-          >
+          <Animated.View entering={FadeInDown.delay(200).duration(300)} style={styles.optionsList}>
             {question.options.map((option, index) => (
               <Animated.View
                 key={option.id}
@@ -334,10 +303,7 @@ export function ChoiceQuestion({
           )}
 
           {/* 跳過按鈕 */}
-          <Animated.View
-            entering={FadeIn.delay(400).duration(300)}
-            style={styles.skipContainer}
-          >
+          <Animated.View entering={FadeIn.delay(400).duration(300)} style={styles.skipContainer}>
             <Pressable onPress={onSkip}>
               <Text style={styles.skipText}>先跳過，之後再回答</Text>
             </Pressable>
@@ -353,10 +319,7 @@ export function ChoiceQuestion({
   if (phase === 'response') {
     return (
       <View style={styles.container}>
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={styles.responseContainer}
-        >
+        <Animated.View entering={FadeIn.duration(300)} style={styles.responseContainer}>
           <View style={styles.successIcon}>
             <Icon icon={Check} size="lg" color="#16A34A" />
           </View>
@@ -364,9 +327,7 @@ export function ChoiceQuestion({
           <Text style={styles.responseTitle}>{responseMessage}</Text>
 
           <Text style={styles.responseSubtitle}>
-            已有{' '}
-            <Text style={styles.highlightText}>{communityCount}</Text>{' '}
-            人和你一樣
+            已有 <Text style={styles.highlightText}>{communityCount}</Text> 人和你一樣
           </Text>
 
           <Button
@@ -396,10 +357,7 @@ export function ChoiceQuestion({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Animated.View
-            entering={FadeInRight.duration(300)}
-            style={styles.followUpContainer}
-          >
+          <Animated.View entering={FadeInRight.duration(300)} style={styles.followUpContainer}>
             {/* 標題 */}
             <View style={styles.header}>
               <View style={styles.tagBadge}>
@@ -407,9 +365,7 @@ export function ChoiceQuestion({
                 <Text style={styles.tagText}>一句話就好</Text>
               </View>
               <Text style={styles.followUpTitle}>{question.followUpPrompt}</Text>
-              <Text style={styles.followUpHint}>
-                可選填，讓其他人更了解你的故事
-              </Text>
+              <Text style={styles.followUpHint}>可選填，讓其他人更了解你的故事</Text>
             </View>
 
             {/* 輸入框 */}
@@ -424,11 +380,7 @@ export function ChoiceQuestion({
 
             {/* 按鈕 */}
             <View style={styles.followUpButtons}>
-              <Button
-                variant="outline"
-                onPress={handleSkipFollowUp}
-                style={styles.followUpButton}
-              >
+              <Button variant="outline" onPress={handleSkipFollowUp} style={styles.followUpButton}>
                 跳過
               </Button>
               <Button

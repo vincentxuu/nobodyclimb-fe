@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { Post, Gym, Gallery, SearchParams } from '@/lib/types'
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import { Gallery, Gym, Post, SearchParams } from '@/lib/types'
 
 interface ContentState {
   // 文章相關
@@ -162,7 +162,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           },
         }))
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         postsError: '無法載入文章，請稍後再試',
         postsLoading: false,
@@ -211,7 +211,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           postsLoading: false,
         })
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         postsError: '無法載入文章，請稍後再試',
         postsLoading: false,
@@ -229,7 +229,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
       // 模擬API回應
       const id = slug.split('-').pop() || '1'
       get().fetchPostById(`post-${id}`)
-    } catch (error) {
+    } catch (_error) {
       set({
         postsError: '無法載入文章，請稍後再試',
         postsLoading: false,
@@ -268,7 +268,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           postsLoading: false,
         })
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         postsError: '無法載入精選文章，請稍後再試',
         postsLoading: false,
@@ -313,7 +313,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           },
         }))
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         gymsError: '無法載入攀岩館資訊，請稍後再試',
         gymsLoading: false,
@@ -365,7 +365,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           gymsLoading: false,
         })
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         gymsError: '無法載入攀岩館資訊，請稍後再試',
         gymsLoading: false,
@@ -383,7 +383,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
       // 模擬API回應
       const id = slug.split('-').pop() || '1'
       get().fetchGymById(`gym-${id}`)
-    } catch (error) {
+    } catch (_error) {
       set({
         gymsError: '無法載入攀岩館資訊，請稍後再試',
         gymsLoading: false,
@@ -421,7 +421,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           gymsLoading: false,
         })
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         gymsError: '無法載入精選攀岩館，請稍後再試',
         gymsLoading: false,
@@ -466,7 +466,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           },
         }))
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         galleriesError: '無法載入相簿，請稍後再試',
         galleriesLoading: false,
@@ -510,7 +510,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           galleriesLoading: false,
         })
       }, 800)
-    } catch (error) {
+    } catch (_error) {
       set({
         galleriesError: '無法載入相簿，請稍後再試',
         galleriesLoading: false,
@@ -528,7 +528,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
       // 模擬API回應
       const id = slug.split('-').pop() || '1'
       get().fetchGalleryById(`gallery-${id}`)
-    } catch (error) {
+    } catch (_error) {
       set({
         galleriesError: '無法載入相簿，請稍後再試',
         galleriesLoading: false,
@@ -614,7 +614,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
           searchLoading: false,
         })
       }, 1000)
-    } catch (error) {
+    } catch (_error) {
       set({
         searchError: '搜尋失敗，請稍後再試',
         searchLoading: false,

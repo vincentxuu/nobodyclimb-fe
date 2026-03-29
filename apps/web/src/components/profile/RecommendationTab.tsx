@@ -1,18 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
-import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
-import { RefreshCw, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SourceCard } from '@/components/ai/SourceCard'
-import { MarkdownContent } from '@/components/ai/ChatMessage'
-import { useToast } from '@/components/ui/use-toast'
-import {
-  useRecommendations,
-  useTriggerRecommendation,
-  type Recommendation,
-} from '@/lib/api/ai'
+import { ChevronDown, ChevronUp, RefreshCw, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useRef, useState } from 'react'
+import { MarkdownContent } from '@/components/ai/ChatMessage'
+import { SourceCard } from '@/components/ai/SourceCard'
+import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { type Recommendation, useRecommendations, useTriggerRecommendation } from '@/lib/api/ai'
 
 const ITEMS_PER_PAGE = 10
 
@@ -26,7 +22,8 @@ function RecommendationCard({
   const t = useTranslations('ProfilePage')
   const [expanded, setExpanded] = useState(defaultExpanded)
   const { answer, sources, context_ascents } = recommendation.recommendation
-  const triggeredLabel = recommendation.triggered_by === 'ascent' ? t('triggeredByAscent') : t('triggeredManual')
+  const triggeredLabel =
+    recommendation.triggered_by === 'ascent' ? t('triggeredByAscent') : t('triggeredManual')
   const date = new Date(recommendation.created_at).toLocaleDateString('zh-TW')
 
   return (
@@ -48,9 +45,11 @@ function RecommendationCard({
         </span>
         <span className="flex items-center gap-2">
           <span>{date}</span>
-          {expanded
-            ? <ChevronUp className="h-3.5 w-3.5" />
-            : <ChevronDown className="h-3.5 w-3.5" />}
+          {expanded ? (
+            <ChevronUp className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5" />
+          )}
         </span>
       </button>
 
@@ -182,7 +181,9 @@ export default function RecommendationTab() {
             disabled={triggerMutation.isPending}
             className="gap-1.5"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${triggerMutation.isPending ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${triggerMutation.isPending ? 'animate-spin' : ''}`}
+            />
             {t('reRecommend')}
           </Button>
         }
@@ -200,9 +201,7 @@ export default function RecommendationTab() {
       {!isLoading && !isPolling && allItems.length === 0 && (
         <div className="rounded-lg border border-dashed border-border py-12 text-center space-y-2">
           <Sparkles className="mx-auto h-8 w-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">
-            {t('recommendationEmpty')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('recommendationEmpty')}</p>
           <Button variant="outline" size="sm" onClick={handleRetrigger} className="mt-2">
             {t('recommendNow')}
           </Button>

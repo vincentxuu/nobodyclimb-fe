@@ -275,9 +275,10 @@ export function selectCardContent(
       if (!category) continue
       for (const [key, data] of Object.entries(category)) {
         if (data?.answer && data.answer.trim() && data.visibility === 'public') {
-          const truncated = data.answer.length > CARD_STORY_MAX_LENGTH
-            ? data.answer.slice(0, CARD_STORY_MAX_LENGTH) + '...'
-            : data.answer
+          const truncated =
+            data.answer.length > CARD_STORY_MAX_LENGTH
+              ? data.answer.slice(0, CARD_STORY_MAX_LENGTH) + '...'
+              : data.answer
           allAvailableContent.push({
             key,
             question: STORY_QUESTIONS[key] || '攀岩故事',
@@ -294,9 +295,7 @@ export function selectCardContent(
   }
 
   // 階段 3：策略 1 - 優先選擇未使用的問題
-  const unusedContent = allAvailableContent.filter(
-    item => !questionUsageCount.has(item.key)
-  )
+  const unusedContent = allAvailableContent.filter((item) => !questionUsageCount.has(item.key))
 
   if (unusedContent.length > 0) {
     return selectByHash(id, unusedContent)
@@ -304,21 +303,20 @@ export function selectCardContent(
 
   // 階段 4：策略 2 - 所有問題都被使用過，允許重複但選擇使用次數最少的
   if (allowRepetition) {
-    const availableContent = maxRepetition > 0
-      ? allAvailableContent.filter(
-        item => (questionUsageCount.get(item.key) || 0) < maxRepetition
-      )
-      : allAvailableContent
+    const availableContent =
+      maxRepetition > 0
+        ? allAvailableContent.filter(
+            (item) => (questionUsageCount.get(item.key) || 0) < maxRepetition
+          )
+        : allAvailableContent
 
     // 找出最小使用次數（僅針對可用內容）
-    const usageCounts = availableContent.map(
-      item => questionUsageCount.get(item.key) || 0
-    )
+    const usageCounts = availableContent.map((item) => questionUsageCount.get(item.key) || 0)
     const minUsage = Math.min(...usageCounts)
 
     // 過濾出使用次數最少的內容
     const leastUsedContent = availableContent.filter(
-      item => (questionUsageCount.get(item.key) || 0) === minUsage
+      (item) => (questionUsageCount.get(item.key) || 0) === minUsage
     )
 
     if (leastUsedContent.length > 0) {

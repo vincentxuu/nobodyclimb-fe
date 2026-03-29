@@ -4,19 +4,20 @@
  * 心願完成表單，用於填寫完成故事和心得
  * 對應 apps/web/src/components/bucket-list/bucket-list-completion-form.tsx
  */
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, View, ScrollView, Pressable } from 'react-native'
-import { useForm, Controller } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, X, Plus, Youtube, Image as ImageIcon } from 'lucide-react-native'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { completeBucketListSchema, type CompleteBucketListInput } from '@nobodyclimb/schemas'
+import { type CompleteBucketListInput, completeBucketListSchema } from '@nobodyclimb/schemas'
 import type { BucketListItem } from '@nobodyclimb/types'
-import { Text } from '../ui/Text'
+import { Check, Image as ImageIcon, Plus, X, Youtube } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
-import { TextArea } from '../ui/TextArea'
 import { Label } from '../ui/Label'
+import { Text } from '../ui/Text'
+import { TextArea } from '../ui/TextArea'
 
 export interface BucketListCompletionFormProps {
   /** 要完成的目標 */
@@ -90,9 +91,7 @@ export function BucketListCompletionForm({
     (videoId: string) => {
       setValue('completion_media', {
         ...completionMedia,
-        youtube_videos: (completionMedia.youtube_videos || []).filter(
-          (id) => id !== videoId
-        ),
+        youtube_videos: (completionMedia.youtube_videos || []).filter((id) => id !== videoId),
       })
     },
     [completionMedia, setValue]
@@ -124,9 +123,7 @@ export function BucketListCompletionForm({
     (shortcode: string) => {
       setValue('completion_media', {
         ...completionMedia,
-        instagram_posts: (completionMedia.instagram_posts || []).filter(
-          (s) => s !== shortcode
-        ),
+        instagram_posts: (completionMedia.instagram_posts || []).filter((s) => s !== shortcode),
       })
     },
     [completionMedia, setValue]
@@ -275,11 +272,7 @@ export function BucketListCompletionForm({
               placeholder="貼上 YouTube 影片網址"
               containerStyle={styles.mediaInput}
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={addYoutubeVideo}
-            >
+            <Button variant="secondary" size="sm" onPress={addYoutubeVideo}>
               <Plus size={16} color={SEMANTIC_COLORS.textMain} />
             </Button>
           </View>
@@ -316,11 +309,7 @@ export function BucketListCompletionForm({
               placeholder="貼上 Instagram 貼文網址"
               containerStyle={styles.mediaInput}
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={addInstagramPost}
-            >
+            <Button variant="secondary" size="sm" onPress={addInstagramPost}>
               <Plus size={16} color={SEMANTIC_COLORS.textMain} />
             </Button>
           </View>
@@ -340,11 +329,7 @@ export function BucketListCompletionForm({
         <Button variant="ghost" onPress={onCancel} disabled={isLoading}>
           稍後再填
         </Button>
-        <Button
-          variant="primary"
-          onPress={handleSubmit(onSubmit)}
-          loading={isLoading}
-        >
+        <Button variant="primary" onPress={handleSubmit(onSubmit)} loading={isLoading}>
           完成並儲存
         </Button>
       </View>

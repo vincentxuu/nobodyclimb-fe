@@ -1,10 +1,9 @@
 'use client'
 
-import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { useCallback, useEffect, useState } from 'react'
 import type { Question } from '@/lib/games/rope-system/types'
+import { cn } from '@/lib/utils'
 import { OptionButton, type OptionState } from './OptionButton'
 
 interface ChoiceQuestionProps {
@@ -96,20 +95,14 @@ export function ChoiceQuestion({
       {/* 題目 */}
       <div className="space-y-2">
         <div className="text-sm font-medium text-[#535353]">問題</div>
-        <h2 className="text-lg font-medium text-[#1B1A1A]">
-          {question.question}
-        </h2>
+        <h2 className="text-lg font-medium text-[#1B1A1A]">{question.question}</h2>
       </div>
 
       {/* 題目圖片 */}
       {question.imageUrl && (
         <div className="overflow-hidden rounded-lg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={question.imageUrl}
-            alt="題目圖片"
-            className="h-auto w-full"
-          />
+          <img src={question.imageUrl} alt="題目圖片" className="h-auto w-full" />
         </div>
       )}
 
@@ -126,11 +119,7 @@ export function ChoiceQuestion({
             <div className="flex items-center gap-3">
               {option.image && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={option.image}
-                  alt=""
-                  className="h-10 w-10 rounded object-cover"
-                />
+                <img src={option.image} alt="" className="h-10 w-10 rounded object-cover" />
               )}
               <span>{option.text}</span>
             </div>

@@ -4,37 +4,35 @@
  * 心願清單項目卡片
  * 對應 apps/web/src/components/bucket-list/bucket-list-item.tsx
  */
-import React, { useState, useMemo, useCallback } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import {
-  Target,
-  MapPin,
-  Calendar,
-  Edit,
-  Trash2,
-  Check,
-  MoreVertical,
-  Tent,
-  Home,
-  Trophy,
-  Dumbbell,
-  Plane,
-  Award,
-  Activity,
-} from 'lucide-react-native'
-import type { LucideIcon } from 'lucide-react-native'
+
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import type { BucketListItem as BucketListItemType, BucketListCategory } from '@nobodyclimb/types'
-import { Text } from '../ui/Text'
-import { Button } from '../ui/Button'
-import { ProgressTracker, ProgressBar } from './ProgressTracker'
+import type { BucketListCategory, BucketListItem as BucketListItemType } from '@nobodyclimb/types'
+import type { LucideIcon } from 'lucide-react-native'
+import {
+  Activity,
+  Award,
+  Calendar,
+  Check,
+  Dumbbell,
+  Edit,
+  Home,
+  MapPin,
+  MoreVertical,
+  Plane,
+  Target,
+  Tent,
+  Trash2,
+  Trophy,
+} from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { FadeIn } from '../animations'
+import { Button } from '../ui/Button'
+import { Text } from '../ui/Text'
+import { ProgressBar, ProgressTracker } from './ProgressTracker'
 
 // 分類圖標和標籤映射
-const categoryConfig: Record<
-  BucketListCategory,
-  { icon: LucideIcon; label: string }
-> = {
+const categoryConfig: Record<BucketListCategory, { icon: LucideIcon; label: string }> = {
   outdoor_route: { icon: Tent, label: '戶外路線' },
   indoor_grade: { icon: Home, label: '室內難度' },
   competition: { icon: Trophy, label: '比賽目標' },
@@ -133,11 +131,7 @@ export function BucketListItemCard({
   return (
     <Pressable
       onPress={handlePress}
-      style={[
-        styles.card,
-        isCompleted && styles.cardCompleted,
-        isArchived && styles.cardArchived,
-      ]}
+      style={[styles.card, isCompleted && styles.cardCompleted, isArchived && styles.cardArchived]}
     >
       <View style={[styles.content, variant === 'compact' && styles.contentCompact]}>
         {/* Header */}
@@ -155,10 +149,7 @@ export function BucketListItemCard({
             <Text
               variant={variant === 'compact' ? 'bodyBold' : 'h4'}
               numberOfLines={2}
-              style={[
-                styles.title,
-                isCompleted && styles.titleCompleted,
-              ]}
+              style={[styles.title, isCompleted && styles.titleCompleted]}
             >
               {item.title}
             </Text>
@@ -207,10 +198,7 @@ export function BucketListItemCard({
 
             {showActions && isOwner && (
               <View style={styles.menuContainer}>
-                <Pressable
-                  onPress={() => setShowMenu(!showMenu)}
-                  style={styles.menuButton}
-                >
+                <Pressable onPress={() => setShowMenu(!showMenu)} style={styles.menuButton}>
                   <MoreVertical size={16} color={SEMANTIC_COLORS.textSubtle} />
                 </Pressable>
 
@@ -241,12 +229,7 @@ export function BucketListItemCard({
 
         {/* Description */}
         {variant === 'expanded' && item.description && (
-          <Text
-            variant="body"
-            color="textSubtle"
-            numberOfLines={3}
-            style={styles.description}
-          >
+          <Text variant="body" color="textSubtle" numberOfLines={3} style={styles.description}>
             {item.description}
           </Text>
         )}
@@ -333,7 +316,8 @@ export function BucketListSection({
           {title}
           {showCount && (
             <Text variant="body" color="textSubtle">
-              {' '}({items.length})
+              {' '}
+              ({items.length})
             </Text>
           )}
         </Text>

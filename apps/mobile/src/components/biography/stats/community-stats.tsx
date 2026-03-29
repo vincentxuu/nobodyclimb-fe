@@ -3,21 +3,13 @@
  *
  * 對應 apps/web/src/components/biography/stats/community-stats.tsx
  */
-import React from 'react'
-import { View, StyleSheet, Image, type ViewStyle } from 'react-native'
-import {
-  Users,
-  Target,
-  Trophy,
-  BookOpen,
-  Activity,
-  TrendingUp,
-  User,
-} from 'lucide-react-native'
-import { BRAND_YELLOW, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import type { CommunityStats, LeaderboardItem } from '@nobodyclimb/types'
+import { Activity, BookOpen, Target, TrendingUp, Trophy, User, Users } from 'lucide-react-native'
+import { Image, StyleSheet, View, type ViewStyle } from 'react-native'
 import { Text } from '../../ui/Text'
-import { StatCard, BarChart, CircularProgress } from './progress-chart'
+import { BarChart, CircularProgress, StatCard } from './progress-chart'
 
 // ============================================
 // CommunityStatsOverview 組件
@@ -32,9 +24,7 @@ export interface CommunityStatsOverviewProps {
 
 export function CommunityStatsOverview({ stats, style }: CommunityStatsOverviewProps) {
   const goalCompletionRate =
-    stats.total_goals > 0
-      ? Math.round((stats.completed_goals / stats.total_goals) * 100)
-      : 0
+    stats.total_goals > 0 ? Math.round((stats.completed_goals / stats.total_goals) * 100) : 0
 
   return (
     <View style={[styles.container, style]}>
@@ -125,7 +115,9 @@ export function CommunityStatsOverview({ stats, style }: CommunityStatsOverviewP
               data={stats.trending_categories.map((cat, index) => ({
                 label: cat.category,
                 value: cat.count,
-                color: [SEMANTIC_COLORS.info, '#22c55e', '#eab308', '#a855f7', '#ec4899'][index % 5],
+                color: [SEMANTIC_COLORS.info, '#22c55e', '#eab308', '#a855f7', '#ec4899'][
+                  index % 5
+                ],
               }))}
               showValues
               style={styles.barChart}
@@ -158,12 +150,7 @@ export interface LeaderboardProps {
   style?: ViewStyle
 }
 
-export function Leaderboard({
-  title,
-  items,
-  valueLabel = '分數',
-  style,
-}: LeaderboardProps) {
+export function Leaderboard({ title, items, valueLabel = '分數', style }: LeaderboardProps) {
   if (items.length === 0) {
     return (
       <View style={[styles.leaderboardCard, style]}>
@@ -202,7 +189,12 @@ export function Leaderboard({
         {items.map((item, index) => (
           <View key={item.biography_id} style={[styles.leaderboardItem, getRankStyle(index)]}>
             {/* 排名 */}
-            <View style={[styles.rankBadge, { backgroundColor: getRankBadgeStyle(index).backgroundColor }]}>
+            <View
+              style={[
+                styles.rankBadge,
+                { backgroundColor: getRankBadgeStyle(index).backgroundColor },
+              ]}
+            >
               <Text
                 variant="caption"
                 style={{ color: getRankBadgeStyle(index).color, fontWeight: '700' }}
@@ -214,11 +206,7 @@ export function Leaderboard({
             {/* 頭像 */}
             <View style={styles.avatarContainer}>
               {item.avatar_url ? (
-                <Image
-                  source={{ uri: item.avatar_url }}
-                  style={styles.avatar}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: item.avatar_url }} style={styles.avatar} resizeMode="cover" />
               ) : (
                 <View style={styles.avatarFallback}>
                   <User size={16} color={SEMANTIC_COLORS.textMuted} />
@@ -264,11 +252,7 @@ export interface CommunityDashboardProps {
   style?: ViewStyle
 }
 
-export function CommunityDashboard({
-  stats,
-  leaderboards,
-  style,
-}: CommunityDashboardProps) {
+export function CommunityDashboard({ stats, leaderboards, style }: CommunityDashboardProps) {
   return (
     <View style={[styles.dashboardContainer, style]}>
       {/* 社群概況 */}
@@ -294,18 +278,10 @@ export function CommunityDashboard({
               />
             )}
             {leaderboards.followers && (
-              <Leaderboard
-                title="人氣王"
-                items={leaderboards.followers}
-                valueLabel="追蹤者"
-              />
+              <Leaderboard title="人氣王" items={leaderboards.followers} valueLabel="追蹤者" />
             )}
             {leaderboards.likesReceived && (
-              <Leaderboard
-                title="最受喜愛"
-                items={leaderboards.likesReceived}
-                valueLabel="讚"
-              />
+              <Leaderboard title="最受喜愛" items={leaderboards.likesReceived} valueLabel="讚" />
             )}
           </View>
         </View>

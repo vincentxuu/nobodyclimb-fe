@@ -3,27 +3,19 @@
  *
  * 照片編輯對話框，對應 apps/web/src/components/gallery/photo-edit-dialog.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native'
-import { Image } from 'expo-image'
-import { X, MapPin, Loader2 } from 'lucide-react-native'
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
 
-import { Text } from '@/components/ui/Text'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { TextArea } from '@/components/ui/TextArea'
-import { Label } from '@/components/ui/Label'
-import { IconButton } from '@/components/ui/IconButton'
-import { Dialog } from '@/components/ui/Dialog'
-import { SEMANTIC_COLORS, SPACING, BORDER_RADIUS, WB_COLORS } from '@nobodyclimb/constants'
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { GalleryPhoto } from '@nobodyclimb/types'
+import { Image } from 'expo-image'
+import { MapPin } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
+import { Button } from '@/components/ui/Button'
+import { Dialog } from '@/components/ui/Dialog'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Text } from '@/components/ui/Text'
+import { TextArea } from '@/components/ui/TextArea'
 
 export interface PhotoEditDialogProps {
   /** 是否顯示 */
@@ -35,12 +27,15 @@ export interface PhotoEditDialogProps {
   /** 編輯成功回調 */
   onSuccess: (photo: GalleryPhoto) => void
   /** 更新照片 API */
-  onUpdatePhoto?: (id: string, data: {
-    caption?: string
-    location_country?: string
-    location_city?: string
-    location_spot?: string
-  }) => Promise<{ success: boolean; data?: GalleryPhoto }>
+  onUpdatePhoto?: (
+    id: string,
+    data: {
+      caption?: string
+      location_country?: string
+      location_city?: string
+      location_spot?: string
+    }
+  ) => Promise<{ success: boolean; data?: GalleryPhoto }>
 }
 
 /**
@@ -108,7 +103,16 @@ export function PhotoEditDialog({
     } finally {
       setIsSubmitting(false)
     }
-  }, [photo, caption, locationCountry, locationCity, locationSpot, onUpdatePhoto, onSuccess, onClose])
+  }, [
+    photo,
+    caption,
+    locationCountry,
+    locationCity,
+    locationSpot,
+    onUpdatePhoto,
+    onSuccess,
+    onClose,
+  ])
 
   const handleClose = useCallback(() => {
     if (!isSubmitting) {

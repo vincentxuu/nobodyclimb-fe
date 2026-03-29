@@ -1,6 +1,12 @@
 export type AscentType =
-  | 'redpoint' | 'flash' | 'onsight' | 'attempt'
-  | 'toprope' | 'lead' | 'seconding' | 'repeat'
+  | 'redpoint'
+  | 'flash'
+  | 'onsight'
+  | 'attempt'
+  | 'toprope'
+  | 'lead'
+  | 'seconding'
+  | 'repeat'
 
 export const ASCENT_TYPE_LABELS: Record<AscentType, string> = {
   redpoint: 'Redpoint',

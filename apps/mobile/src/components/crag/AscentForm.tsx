@@ -3,32 +3,15 @@
  *
  * 使用 BottomSheet 的攀登紀錄表單，支援攀登類型、日期、評分與筆記
  */
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  forwardRef,
-  useImperativeHandle,
-} from 'react'
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native'
-import BottomSheet, {
-  BottomSheetScrollView,
-  BottomSheetBackdrop,
-} from '@gorhom/bottom-sheet'
-import { X, Star } from 'lucide-react-native'
 
-import { Text, IconButton } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { ASCENT_TYPE_LABELS, ASCENT_TYPE_COLORS } from '@/lib/constants/ascent'
+import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Star, X } from 'lucide-react-native'
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native'
+import { IconButton, Text } from '@/components/ui'
 import type { AscentType } from '@/lib/constants/ascent'
+import { ASCENT_TYPE_COLORS, ASCENT_TYPE_LABELS } from '@/lib/constants/ascent'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -94,12 +77,7 @@ export const AscentForm = forwardRef<AscentFormRef, AscentFormProps>(
 
     const renderBackdrop = useCallback(
       (props: any) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.5}
-        />
+        <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
       ),
       []
     )
@@ -188,7 +166,11 @@ export const AscentForm = forwardRef<AscentFormRef, AscentFormProps>(
                         styles.chip,
                         isSelected
                           ? { backgroundColor: color }
-                          : { backgroundColor: `${color}18`, borderColor: `${color}40`, borderWidth: 1 },
+                          : {
+                              backgroundColor: `${color}18`,
+                              borderColor: `${color}40`,
+                              borderWidth: 1,
+                            },
                       ]}
                       onPress={() => setAscentType(type)}
                     >
@@ -257,21 +239,14 @@ export const AscentForm = forwardRef<AscentFormRef, AscentFormProps>(
 
             {/* 提交按鈕 */}
             <Pressable
-              style={[
-                styles.submitButton,
-                isSubmitDisabled && styles.submitButtonDisabled,
-              ]}
+              style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled]}
               onPress={handleSubmit}
               disabled={isSubmitDisabled}
             >
               {isLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text
-                  variant="body"
-                  fontWeight="600"
-                  style={styles.submitButtonText}
-                >
+                <Text variant="body" fontWeight="600" style={styles.submitButtonText}>
                   記錄攀登
                 </Text>
               )}

@@ -59,14 +59,12 @@ export function useRoutePhotos(routeId: string, staticPhotos: string[] = []) {
         apiClient.get<PaginatedResponse<RouteStory>>(
           `/route-stories/route/${routeId}?has_photos=true&limit=20`
         ),
-        apiClient.get<PaginatedResponse<UserRouteAscent>>(
-          `/ascents/route/${routeId}?limit=50`
-        ),
+        apiClient.get<PaginatedResponse<UserRouteAscent>>(`/ascents/route/${routeId}?limit=50`),
       ])
 
       const stories: RouteStory[] =
         storiesRes.status === 'fulfilled'
-          ? extractData<PaginatedResponse<RouteStory>>(storiesRes.value)?.data ?? []
+          ? (extractData<PaginatedResponse<RouteStory>>(storiesRes.value)?.data ?? [])
           : []
 
       const ascents: UserRouteAscent[] =

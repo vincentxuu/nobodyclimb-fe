@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import apiClient from './client'
 
 // =============================================
@@ -27,7 +27,14 @@ export interface AIQueryLog {
   latency_ms: number | null
   feedback_score: number | null
   created_at: string
-  query_type: 'simple' | 'complex' | 'general-knowledge' | 'guardrails_blocked' | 'pipeline_timeout' | 'circuit_breaker_rejected' | null
+  query_type:
+    | 'simple'
+    | 'complex'
+    | 'general-knowledge'
+    | 'guardrails_blocked'
+    | 'pipeline_timeout'
+    | 'circuit_breaker_rejected'
+    | null
   groundedness_score: number | null
   auto_score: number | null
   embedding_ms: number | null
@@ -85,10 +92,24 @@ export interface AILogDetail {
     hyde: PipelineStageBase & { triggered: boolean }
     filter: PipelineStageBase & Record<string, unknown>
     embedding: PipelineStageBase & { duration_ms: number | null }
-    retrieval: PipelineStageBase & { duration_ms: number | null; top_score: number | null; doc_count: number | null }
-    generation: PipelineStageBase & { model: string | null; duration_ms: number | null; token_count: number | null; is_high_consumption: boolean }
+    retrieval: PipelineStageBase & {
+      duration_ms: number | null
+      top_score: number | null
+      doc_count: number | null
+    }
+    generation: PipelineStageBase & {
+      model: string | null
+      duration_ms: number | null
+      token_count: number | null
+      is_high_consumption: boolean
+    }
     self_reflection: PipelineStageBase & { triggered: boolean }
-    judge: PipelineStageBase & { groundedness_score: number | null; auto_score: number | null; raw_scores?: Record<string, number>; criteria?: string[] }
+    judge: PipelineStageBase & {
+      groundedness_score: number | null
+      auto_score: number | null
+      raw_scores?: Record<string, number>
+      criteria?: string[]
+    }
     guardrails_output: PipelineStageBase
     memory_extraction: PipelineStageBase
   }
@@ -230,9 +251,14 @@ export interface AILogDetail {
     }
     agentic?: {
       steps: Array<{
-        step: number; type: string; refinedQuery?: string; docs_retrieved?: number
-        targetTool?: string; reason?: string
-        subQueries?: string[]; verifyQuery?: string
+        step: number
+        type: string
+        refinedQuery?: string
+        docs_retrieved?: number
+        targetTool?: string
+        reason?: string
+        subQueries?: string[]
+        verifyQuery?: string
       }>
       total_paths: number
       final_doc_count: number
@@ -248,18 +274,51 @@ export interface AILogDetail {
     plan_execute?: {
       strategy: string
       planning_duration_ms: number
-      plan?: { steps: Array<{ id: number; query: string; tool: string; depends_on: number[]; filters?: Record<string, unknown> }>; execution_mode: string }
-      steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
+      plan?: {
+        steps: Array<{
+          id: number
+          query: string
+          tool: string
+          depends_on: number[]
+          filters?: Record<string, unknown>
+        }>
+        execution_mode: string
+      }
+      steps?: Array<{
+        stepId: number
+        query: string
+        tool: string
+        result_count: number
+        duration_ms: number
+        error?: string
+      }>
       execution_duration_ms?: number
       synthesis_duration_ms?: number
       total_duration_ms: number
       sources_count?: number
       adaptive_replan?: boolean
-      adaptive_replan_info?: { trigger_step_id: number; reason: string; new_steps: Array<{ id: number; query: string; tool: string }> }
-      plan_fallback?: { reason: string; target: string; step_count?: number; min_required?: number; error?: string }
+      adaptive_replan_info?: {
+        trigger_step_id: number
+        reason: string
+        new_steps: Array<{ id: number; query: string; tool: string }>
+      }
+      plan_fallback?: {
+        reason: string
+        target: string
+        step_count?: number
+        min_required?: number
+        error?: string
+      }
     }
     multi_tool?: {
-      steps?: Array<{ stepId: number; query: string; tool: string; result_count: number; duration_ms: number; error?: string }>
+      steps?: Array<{
+        stepId: number
+        query: string
+        tool: string
+        result_count: number
+        duration_ms: number
+        error?: string
+      }>
       execution_mode?: string
       total_duration_ms?: number
       sources_count?: number
@@ -267,28 +326,111 @@ export interface AILogDetail {
       error?: string
     }
     token_breakdown?: {
-      tool_selection?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      text_to_sql?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      hyde?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      multi_query?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      agentic_decisions?: Array<{ step: number; prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }>
-      planning?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      synthesis?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      adaptive_replan?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      main_generation?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      self_reflection_regen?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      judge?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
-      judge_2nd?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; model: string; estimated: boolean }
+      tool_selection?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      text_to_sql?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      hyde?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      multi_query?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      agentic_decisions?: Array<{
+        step: number
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }>
+      planning?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      synthesis?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      adaptive_replan?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      main_generation?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      self_reflection_regen?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      judge?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
+      judge_2nd?: {
+        prompt_tokens: number
+        completion_tokens: number
+        total_tokens: number
+        model: string
+        estimated: boolean
+      }
     }
     mmr_selection?: {
       lambda: number
       input_count: number
       selected_count: number
       popularity_weight: number
-      top_selected?: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+      top_selected?: Array<{
+        title: string
+        relevance_score: number
+        popularity_score: number
+        final_score: number
+      }>
     }
     popularity_rerank?: {
-      top_selected: Array<{ title: string; relevance_score: number; popularity_score: number; final_score: number }>
+      top_selected: Array<{
+        title: string
+        relevance_score: number
+        popularity_score: number
+        final_score: number
+      }>
       popularity_weight: number
       doc_count: number
     }
@@ -360,20 +502,55 @@ export interface CostProvider {
 
 export const DEFAULT_COST_PROVIDERS: CostProvider[] = [
   // 現用模型
-  { id: 'cf-gemma-3-12b',         name: 'Cloudflare Gemma 3 12B',    input_per_1m: 0.345, output_per_1m: 0.556 },
+  {
+    id: 'cf-gemma-3-12b',
+    name: 'Cloudflare Gemma 3 12B',
+    input_per_1m: 0.345,
+    output_per_1m: 0.556,
+  },
   // OpenAI GPT-5 系列（2026 主流）
-  { id: 'openai-gpt-5-4',         name: 'OpenAI GPT-5.4',            input_per_1m: 2.50,  output_per_1m: 15.00 },
-  { id: 'openai-gpt-5',           name: 'OpenAI GPT-5',              input_per_1m: 1.25,  output_per_1m: 10.00 },
-  { id: 'openai-gpt-5-mini',      name: 'OpenAI GPT-5 mini',         input_per_1m: 0.25,  output_per_1m: 2.00  },
-  { id: 'openai-gpt-5-nano',      name: 'OpenAI GPT-5 nano',         input_per_1m: 0.05,  output_per_1m: 0.40  },
+  { id: 'openai-gpt-5-4', name: 'OpenAI GPT-5.4', input_per_1m: 2.5, output_per_1m: 15.0 },
+  { id: 'openai-gpt-5', name: 'OpenAI GPT-5', input_per_1m: 1.25, output_per_1m: 10.0 },
+  { id: 'openai-gpt-5-mini', name: 'OpenAI GPT-5 mini', input_per_1m: 0.25, output_per_1m: 2.0 },
+  { id: 'openai-gpt-5-nano', name: 'OpenAI GPT-5 nano', input_per_1m: 0.05, output_per_1m: 0.4 },
   // Google Gemini
-  { id: 'google-gemini-31-pro',        name: 'Google Gemini 3.1 Pro',        input_per_1m: 2.00,  output_per_1m: 12.00 },
-  { id: 'google-gemini-3-flash',       name: 'Google Gemini 3 Flash',        input_per_1m: 0.50,  output_per_1m: 3.00  },
-  { id: 'google-gemini-31-flash-lite', name: 'Google Gemini 3.1 Flash-Lite', input_per_1m: 0.25,  output_per_1m: 1.50  },
+  {
+    id: 'google-gemini-31-pro',
+    name: 'Google Gemini 3.1 Pro',
+    input_per_1m: 2.0,
+    output_per_1m: 12.0,
+  },
+  {
+    id: 'google-gemini-3-flash',
+    name: 'Google Gemini 3 Flash',
+    input_per_1m: 0.5,
+    output_per_1m: 3.0,
+  },
+  {
+    id: 'google-gemini-31-flash-lite',
+    name: 'Google Gemini 3.1 Flash-Lite',
+    input_per_1m: 0.25,
+    output_per_1m: 1.5,
+  },
   // Anthropic Claude
-  { id: 'anthropic-claude-opus-46',   name: 'Anthropic Claude Opus 4.6',   input_per_1m: 5.00, output_per_1m: 25.00 },
-  { id: 'anthropic-claude-sonnet-46', name: 'Anthropic Claude Sonnet 4.6', input_per_1m: 3.00, output_per_1m: 15.00 },
-  { id: 'anthropic-claude-haiku-45',  name: 'Anthropic Claude Haiku 4.5',  input_per_1m: 1.00, output_per_1m: 5.00  },
+  {
+    id: 'anthropic-claude-opus-46',
+    name: 'Anthropic Claude Opus 4.6',
+    input_per_1m: 5.0,
+    output_per_1m: 25.0,
+  },
+  {
+    id: 'anthropic-claude-sonnet-46',
+    name: 'Anthropic Claude Sonnet 4.6',
+    input_per_1m: 3.0,
+    output_per_1m: 15.0,
+  },
+  {
+    id: 'anthropic-claude-haiku-45',
+    name: 'Anthropic Claude Haiku 4.5',
+    input_per_1m: 1.0,
+    output_per_1m: 5.0,
+  },
 ]
 
 // =============================================
@@ -381,7 +558,9 @@ export const DEFAULT_COST_PROVIDERS: CostProvider[] = [
 // =============================================
 
 export async function getAIDashboard(): Promise<AIDashboardData> {
-  const res = await apiClient.get<{ success: boolean; data: AIDashboardData }>('/admin/ai/dashboard')
+  const res = await apiClient.get<{ success: boolean; data: AIDashboardData }>(
+    '/admin/ai/dashboard'
+  )
   return res.data.data
 }
 

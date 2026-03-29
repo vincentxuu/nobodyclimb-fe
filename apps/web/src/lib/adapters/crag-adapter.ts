@@ -3,8 +3,14 @@
  * 將後端 API 回應轉換為前端使用的格式
  */
 
-import type { ApiCrag, ApiArea, ApiRoute } from '@/lib/types/api-crag'
-import type { CragListItem, CragArea, CragRoute, RouteSidebarItem, RouteDetailData } from '@/lib/crag-data'
+import type {
+  CragArea,
+  CragListItem,
+  CragRoute,
+  RouteDetailData,
+  RouteSidebarItem,
+} from '@/lib/crag-data'
+import type { ApiArea, ApiCrag, ApiRoute } from '@/lib/types/api-crag'
 
 // 岩場備用圖片（當實際圖片不存在時使用）
 const CRAG_FALLBACK_IMAGE = '/photo/climbspot-photo.jpeg'
@@ -17,7 +23,7 @@ export function adaptCragToListItem(apiCrag: ApiCrag): CragListItem {
     id: apiCrag.id,
     name: apiCrag.name,
     nameEn: '', // 後端目前沒有英文名稱欄位
-    image: apiCrag.cover_image || (apiCrag.images?.[0]) || CRAG_FALLBACK_IMAGE,
+    image: apiCrag.cover_image || apiCrag.images?.[0] || CRAG_FALLBACK_IMAGE,
     location: apiCrag.location || apiCrag.region || '',
     type: apiCrag.rock_type || '',
     rockType: apiCrag.rock_type || '',
@@ -74,14 +80,17 @@ export interface AdaptedCragDetail {
  * 將 API 岩場資料轉換為詳情頁格式
  */
 export function adaptCragToDetail(apiCrag: ApiCrag, areas?: ApiArea[]): AdaptedCragDetail {
-  const geoCoordinates = apiCrag.latitude && apiCrag.longitude
-    ? { latitude: apiCrag.latitude, longitude: apiCrag.longitude }
-    : null
+  const geoCoordinates =
+    apiCrag.latitude && apiCrag.longitude
+      ? { latitude: apiCrag.latitude, longitude: apiCrag.longitude }
+      : null
 
   // 優先使用資料庫中的 google_maps_url，否則根據座標生成
-  const googleMapsUrl = apiCrag.google_maps_url || (geoCoordinates
-    ? `https://www.google.com/maps?q=${geoCoordinates.latitude},${geoCoordinates.longitude}`
-    : null)
+  const googleMapsUrl =
+    apiCrag.google_maps_url ||
+    (geoCoordinates
+      ? `https://www.google.com/maps?q=${geoCoordinates.latitude},${geoCoordinates.longitude}`
+      : null)
 
   // 使用資料庫中的 transportation，如果沒有則用 access_info 作為 fallback
   let transportation: Array<{ type: string; description: string }> = apiCrag.transportation || []
@@ -104,11 +113,12 @@ export function adaptCragToDetail(apiCrag: ApiCrag, areas?: ApiArea[]): AdaptedC
     rockType: apiCrag.rock_type || '',
     routes: apiCrag.route_count,
     difficulty: apiCrag.difficulty_range || '',
-    height: apiCrag.height_min && apiCrag.height_max
-      ? `${apiCrag.height_min}-${apiCrag.height_max}m`
-      : apiCrag.height_max
-        ? `${apiCrag.height_max}m`
-        : '',
+    height:
+      apiCrag.height_min && apiCrag.height_max
+        ? `${apiCrag.height_min}-${apiCrag.height_max}m`
+        : apiCrag.height_max
+          ? `${apiCrag.height_max}m`
+          : '',
     approach: apiCrag.approach_time ? `${apiCrag.approach_time} 分鐘` : '',
     parking: apiCrag.parking_info || '',
     amenities: apiCrag.amenities || [],
@@ -165,7 +175,7 @@ export function adaptRouteToSidebarItem(
     grade: apiRoute.grade,
     type: apiRoute.route_type,
     areaId: apiRoute.area_id || '',
-    areaName: apiRoute.area_id ? (areaMap.get(apiRoute.area_id) || '') : '',
+    areaName: apiRoute.area_id ? areaMap.get(apiRoute.area_id) || '' : '',
     sector: apiRoute.sector_name || undefined,
     sectorEn: apiRoute.sector_name_en || undefined,
   }
@@ -207,8 +217,8 @@ export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
   if (apiRoute.videos && Array.isArray(apiRoute.videos)) {
     // 新格式：物件陣列，轉換為 YouTube URL
     videoUrls = apiRoute.videos
-      .filter(v => v.youtubeId)
-      .map(v => `https://www.youtube.com/watch?v=${v.youtubeId}`)
+      .filter((v) => v.youtubeId)
+      .map((v) => `https://www.youtube.com/watch?v=${v.youtubeId}`)
   }
 
   // 如果沒有從關聯查詢獲得影片，嘗試解析舊的 JSON 字串格式（向下相容）
@@ -221,7 +231,7 @@ export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
     name: apiRoute.name,
     englishName: apiRoute.name_en || '',
     grade: apiRoute.grade,
-    length: apiRoute.height || '',  // 後端使用 height 欄位
+    length: apiRoute.height || '', // 後端使用 height 欄位
     type: apiRoute.route_type,
     typeEn: apiRoute.route_type, // 後端型別已經是英文
     firstAscent: apiRoute.first_ascent || '',
@@ -234,8 +244,8 @@ export function adaptRouteToDetail(apiRoute: ApiRoute): AdaptedRouteDetail {
     popularity: apiRoute.popularity || 0,
     views: apiRoute.view_count || 0,
     images: parseJsonArray(apiRoute.images ?? null),
-    videos: videoUrls,  // 使用轉換後的影片 URL 陣列
-    youtubeVideos: parseJsonArray(apiRoute.youtube_videos ?? null),  // 保留舊的 youtube_videos 欄位作為備用
+    videos: videoUrls, // 使用轉換後的影片 URL 陣列
+    youtubeVideos: parseJsonArray(apiRoute.youtube_videos ?? null), // 保留舊的 youtube_videos 欄位作為備用
     instagramPosts: parseJsonArray(apiRoute.instagram_posts ?? null),
     sector: apiRoute.sector_id || '',
   }
@@ -270,8 +280,8 @@ export function adaptApiRouteToCragRoute(apiRoute: ApiRoute): CragRoute {
   if (apiRoute.videos && Array.isArray(apiRoute.videos)) {
     // 新格式：物件陣列，轉換為 YouTube URL
     videoUrls = apiRoute.videos
-      .filter(v => v.youtubeId)
-      .map(v => `https://www.youtube.com/watch?v=${v.youtubeId}`)
+      .filter((v) => v.youtubeId)
+      .map((v) => `https://www.youtube.com/watch?v=${v.youtubeId}`)
   }
 
   // 如果沒有從關聯查詢獲得影片，嘗試解析舊的 JSON 字串格式（向下相容）
@@ -300,7 +310,7 @@ export function adaptApiRouteToCragRoute(apiRoute: ApiRoute): CragRoute {
     popularity: apiRoute.popularity,
     views: apiRoute.view_count,
     images: parseJsonArray(apiRoute.images),
-    videos: videoUrls,  // 使用轉換後的影片 URL 陣列
+    videos: videoUrls, // 使用轉換後的影片 URL 陣列
     youtubeVideos: parseJsonArray(apiRoute.youtube_videos),
     instagramPosts: parseJsonArray(apiRoute.instagram_posts),
     status: apiRoute.status || 'active',
@@ -320,17 +330,15 @@ export function assembleRouteDetailData(
   apiAreas: ApiArea[],
   routeId: string
 ): RouteDetailData | null {
-  const apiRoute = apiRoutes.find(r => r.id === routeId)
+  const apiRoute = apiRoutes.find((r) => r.id === routeId)
   if (!apiRoute) return null
 
-  const apiArea = apiRoute.area_id
-    ? apiAreas.find(a => a.id === apiRoute.area_id)
-    : null
+  const apiArea = apiRoute.area_id ? apiAreas.find((a) => a.id === apiRoute.area_id) : null
 
   const relatedRoutes = apiRoutes
-    .filter(r => r.area_id === apiRoute.area_id && r.id !== routeId)
+    .filter((r) => r.area_id === apiRoute.area_id && r.id !== routeId)
     .slice(0, 5)
-    .map(r => ({
+    .map((r) => ({
       id: r.id,
       name: r.name,
       grade: r.grade,
@@ -348,11 +356,13 @@ export function assembleRouteDetailData(
       slug: apiCrag.slug,
       location: apiCrag.location || '',
     },
-    area: apiArea ? {
-      id: apiArea.id,
-      name: apiArea.name,
-      nameEn: apiArea.name_en || '',
-    } : null,
+    area: apiArea
+      ? {
+          id: apiArea.id,
+          name: apiArea.name,
+          nameEn: apiArea.name_en || '',
+        }
+      : null,
     relatedRoutes,
   }
 }
@@ -374,6 +384,12 @@ export interface CragMetadata {
   parking: string
   amenities: string[]
   googleMapsUrl: string | null
+  latitude: number | null
+  longitude: number | null
+  seasons: string[]
+  liveVideoId: string | null
+  liveVideoTitle: string | null
+  liveVideoDescription: string | null
 }
 
 /**
@@ -390,12 +406,19 @@ export function assembleCragMetadata(apiCrag: ApiCrag): CragMetadata {
     rockType: apiCrag.rock_type || '',
     routes: apiCrag.route_count,
     difficulty: apiCrag.difficulty_range || '',
-    height: apiCrag.height_min && apiCrag.height_max
-      ? `${apiCrag.height_min}-${apiCrag.height_max}m`
-      : '',
+    height:
+      apiCrag.height_min && apiCrag.height_max
+        ? `${apiCrag.height_min}-${apiCrag.height_max}m`
+        : '',
     approach: apiCrag.approach_time ? `${apiCrag.approach_time} 分鐘` : '',
     parking: apiCrag.parking_info || '',
     amenities: apiCrag.amenities || [],
     googleMapsUrl: apiCrag.google_maps_url || null,
+    latitude: apiCrag.latitude || null,
+    longitude: apiCrag.longitude || null,
+    seasons: apiCrag.best_seasons || [],
+    liveVideoId: apiCrag.live_video_id || null,
+    liveVideoTitle: apiCrag.live_video_title || null,
+    liveVideoDescription: apiCrag.live_video_description || null,
   }
 }

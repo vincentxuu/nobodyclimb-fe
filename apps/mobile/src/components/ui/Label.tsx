@@ -3,9 +3,10 @@
  *
  * 表單標籤，與 apps/web/src/components/ui/label.tsx 對應
  */
+
+import { FONT_SIZE, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import React from 'react'
 import { Text as TamaguiText, TextProps as TamaguiTextProps } from 'tamagui'
-import { SEMANTIC_COLORS, FONT_SIZE } from '@nobodyclimb/constants'
 
 export interface LabelProps extends Omit<TamaguiTextProps, 'children'> {
   /** 標籤文字 */
@@ -16,12 +17,7 @@ export interface LabelProps extends Omit<TamaguiTextProps, 'children'> {
   disabled?: boolean
 }
 
-export function Label({
-  children,
-  required = false,
-  disabled = false,
-  ...props
-}: LabelProps) {
+export function Label({ children, required = false, disabled = false, ...props }: LabelProps) {
   return (
     <TamaguiText
       fontSize={FONT_SIZE.sm}

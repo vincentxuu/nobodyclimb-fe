@@ -3,11 +3,12 @@
  *
  * 多標籤輸入，與 apps/web/src/components/ui/tag-input.tsx 對應
  */
-import React, { useCallback, useState } from 'react'
-import { Pressable, StyleSheet, TextInput, View } from 'react-native'
-import { X, Plus } from 'lucide-react-native'
-import { XStack, YStack } from 'tamagui'
+
 import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Plus, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Pressable, StyleSheet, TextInput, View } from 'react-native'
+import { XStack, YStack } from 'tamagui'
 import { Text } from './Text'
 
 export interface TagInputProps {
@@ -37,11 +38,7 @@ export function TagInput({
 
   const handleAddTag = useCallback(() => {
     const trimmedValue = inputValue.trim()
-    if (
-      trimmedValue &&
-      !tags.includes(trimmedValue) &&
-      tags.length < maxTags
-    ) {
+    if (trimmedValue && !tags.includes(trimmedValue) && tags.length < maxTags) {
       onTagsChange([...tags, trimmedValue])
       setInputValue('')
     }
@@ -66,13 +63,7 @@ export function TagInput({
       {tags.length > 0 && (
         <XStack flexWrap="wrap" gap={SPACING.xs}>
           {tags.map((tag) => (
-            <View
-              key={tag}
-              style={[
-                styles.tag,
-                tagStyle === 'outline' && styles.tagOutline,
-              ]}
-            >
+            <View key={tag} style={[styles.tag, tagStyle === 'outline' && styles.tagOutline]}>
               <Text
                 variant="small"
                 color={tagStyle === 'outline' ? 'textMain' : 'textMain'}

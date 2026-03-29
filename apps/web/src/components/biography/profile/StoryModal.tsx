@@ -1,7 +1,7 @@
 'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { STORY_CATEGORIES, StoryCategory } from '@/lib/constants/biography-stories'
 import { cn, normalizeNewlines } from '@/lib/utils'
 
@@ -30,7 +30,7 @@ const CATEGORY_COLORS: Record<StoryCategory, { bg: string; text: string }> = {
  */
 export function StoryModal({ story, open, onClose }: StoryModalProps) {
   const getCategoryName = (categoryId: StoryCategory) => {
-    return STORY_CATEGORIES.find(c => c.id === categoryId)?.name || ''
+    return STORY_CATEGORIES.find((c) => c.id === categoryId)?.name || ''
   }
 
   return (
@@ -62,18 +62,18 @@ export function StoryModal({ story, open, onClose }: StoryModalProps) {
             </button>
 
             {/* 分類標籤 */}
-            <div className={cn(
-              'mb-4 inline-block rounded px-3 py-1 text-sm',
-              CATEGORY_COLORS[story.category].bg,
-              CATEGORY_COLORS[story.category].text
-            )}>
+            <div
+              className={cn(
+                'mb-4 inline-block rounded px-3 py-1 text-sm',
+                CATEGORY_COLORS[story.category].bg,
+                CATEGORY_COLORS[story.category].text
+              )}
+            >
               {getCategoryName(story.category)}
             </div>
 
             {/* 標題 */}
-            <h2 className="mb-6 text-2xl font-bold text-gray-900">
-              {story.title}
-            </h2>
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">{story.title}</h2>
 
             {/* 內容 */}
             <div className="prose prose-gray max-w-none">

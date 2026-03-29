@@ -7,30 +7,29 @@
  * 注意：需要安裝 react-native-webview
  * pnpm add react-native-webview
  */
-import React from 'react'
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { ExternalLink, Play, X } from 'lucide-react-native'
 import {
-  StyleSheet,
-  View,
+  Dimensions,
+  Image,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
-  Linking,
-  Dimensions,
-  Image,
+  StyleSheet,
+  View,
 } from 'react-native'
-import { X, ExternalLink, Play } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { Text } from '@/components/ui/Text'
 import { IconButton } from '@/components/ui/IconButton'
-import { Button } from '@/components/ui/Button'
+import { Text } from '@/components/ui/Text'
 import type { Video } from './types'
 
 // 嘗試導入 WebView，如果未安裝則使用備用方案
 let WebView: any = null
 try {
   WebView = require('react-native-webview').WebView
-} catch (e) {
+} catch (_e) {
   // WebView 未安裝，使用備用方案
 }
 

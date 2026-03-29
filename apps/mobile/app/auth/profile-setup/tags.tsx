@@ -3,16 +3,16 @@
  *
  * 對應 apps/web/src/app/auth/profile-setup/tags/page.tsx
  */
-import React, { useState, useCallback } from 'react'
-import { StyleSheet, Pressable, ScrollView } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
-import { Check } from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, Button, ProgressBar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Check } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Pressable, ScrollView, StyleSheet } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { XStack, YStack } from 'tamagui'
+import { Button, ProgressBar, Text } from '@/components/ui'
 
 // 興趣標籤選項
 const TAG_OPTIONS = [
@@ -64,10 +64,7 @@ export default function TagsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Animated.View entering={FadeInDown.duration(400)}>
           <YStack gap={SPACING.lg}>
             {/* 進度條 */}
@@ -86,9 +83,7 @@ export default function TagsScreen() {
             {/* 標題 */}
             <YStack gap={SPACING.xs}>
               <Text variant="h2">您對什麼類型的攀岩感興趣？</Text>
-              <Text color="textSubtle">
-                選擇最多 5 個標籤，幫助我們推薦適合您的內容
-              </Text>
+              <Text color="textSubtle">選擇最多 5 個標籤，幫助我們推薦適合您的內容</Text>
             </YStack>
 
             {/* 標籤選擇 */}
@@ -99,22 +94,12 @@ export default function TagsScreen() {
                   <Pressable
                     key={tag.id}
                     onPress={() => handleTagToggle(tag.id)}
-                    style={[
-                      styles.tag,
-                      isSelected && styles.tagSelected,
-                    ]}
+                    style={[styles.tag, isSelected && styles.tagSelected]}
                   >
-                    <Text
-                      style={[
-                        styles.tagText,
-                        isSelected && styles.tagTextSelected,
-                      ]}
-                    >
+                    <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>
                       {tag.label}
                     </Text>
-                    {isSelected && (
-                      <Check size={14} color="#FFFFFF" />
-                    )}
+                    {isSelected && <Check size={14} color="#FFFFFF" />}
                   </Pressable>
                 )
               })}
@@ -133,9 +118,7 @@ export default function TagsScreen() {
                 disabled={isLoading}
                 style={styles.nextButton}
               >
-                <Text style={styles.buttonText}>
-                  {isLoading ? '處理中...' : '下一步'}
-                </Text>
+                <Text style={styles.buttonText}>{isLoading ? '處理中...' : '下一步'}</Text>
               </Button>
               <Button
                 variant="ghost"

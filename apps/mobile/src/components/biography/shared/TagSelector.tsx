@@ -1,28 +1,28 @@
-import React, { useState } from 'react'
-import { View, Pressable } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { TagDimension, TagOption } from '@nobodyclimb/types'
+import type { LucideIcon } from 'lucide-react-native'
 import {
+  Check,
   ChevronDown,
   ChevronUp,
-  Plus,
-  Tag,
   Clock,
-  Lightbulb,
-  Sparkles,
-  HeartPulse,
-  Footprints,
-  Tent,
-  Music,
-  Target,
-  Users,
-  Hand,
   Dumbbell,
+  Footprints,
+  Hand,
+  HeartPulse,
+  Lightbulb,
   MapPin,
-  Check,
+  Music,
+  Plus,
+  Sparkles,
+  Tag,
+  Target,
+  Tent,
+  Users,
 } from 'lucide-react-native'
-import type { LucideIcon } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { TagDimension, TagOption } from '@nobodyclimb/types'
+import { useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 // Icon mapping for dynamic rendering
 const iconMap: Record<string, LucideIcon> = {
@@ -62,7 +62,11 @@ function TagCard({ tag, selected, onClick, multiSelect = true }: TagCardProps) {
         borderRadius: 8,
         borderWidth: 1,
         borderColor: selected ? COLORS.brand.accent : COLORS.border.light,
-        backgroundColor: selected ? `${COLORS.brand.accent}1A` : pressed ? COLORS.background.subtle : 'white',
+        backgroundColor: selected
+          ? `${COLORS.brand.accent}1A`
+          : pressed
+            ? COLORS.background.subtle
+            : 'white',
       })}
     >
       {/* Selection indicator */}
@@ -290,15 +294,10 @@ export function TagSelectorGroup({
 }: TagSelectorGroupProps) {
   const [showAll, setShowAll] = useState(false)
 
-  const visibleDimensions = showAll
-    ? dimensions
-    : dimensions.slice(0, visibleCount)
+  const visibleDimensions = showAll ? dimensions : dimensions.slice(0, visibleCount)
   const hiddenCount = dimensions.length - visibleCount
 
-  const totalSelected = Object.values(selections).reduce(
-    (sum, ids) => sum + ids.length,
-    0
-  )
+  const totalSelected = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
 
   return (
     <YStack gap="$4">
@@ -347,9 +346,7 @@ export function TagSelectorGroup({
             onSelectionChange={(ids) => onSelectionChange(dimension.id, ids)}
             defaultExpanded={index < 2}
             showAddCustom={showAddCustom}
-            onAddCustom={
-              onAddCustomTag ? () => onAddCustomTag(dimension.id) : undefined
-            }
+            onAddCustom={onAddCustomTag ? () => onAddCustomTag(dimension.id) : undefined}
           />
         ))}
       </YStack>

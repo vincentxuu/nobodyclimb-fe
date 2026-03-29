@@ -3,15 +3,15 @@
  *
  * Chapter 4 - 給自己的話，對應 apps/web/src/components/biography/profile/ChapterAdvice.tsx
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import { Lock } from 'lucide-react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
 
-import { Text, Card } from '@/components/ui'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Lock } from 'lucide-react-native'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface CoreStory {
   id: string
@@ -75,25 +75,35 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
   const handleToggleLike = async () => {
     if (!story) throw new Error('No story')
     // Optimistic update
-    setStory(prev => prev ? {
-      ...prev,
-      is_liked: !prev.is_liked,
-      like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
-    } : null)
+    setStory((prev) =>
+      prev
+        ? {
+            ...prev,
+            is_liked: !prev.is_liked,
+            like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
+          }
+        : null
+    )
     try {
       const response = await apiClient.post(`/content/core-stories/${story.id}/like`)
       const data = response.data?.data ?? response.data
       if (data) {
-        setStory(prev => prev ? { ...prev, is_liked: data.liked, like_count: data.like_count } : null)
+        setStory((prev) =>
+          prev ? { ...prev, is_liked: data.liked, like_count: data.like_count } : null
+        )
         return data
       }
     } catch (error) {
       // Rollback
-      setStory(prev => prev ? {
-        ...prev,
-        is_liked: !prev.is_liked,
-        like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
-      } : null)
+      setStory((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_liked: !prev.is_liked,
+              like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
+            }
+          : null
+      )
       console.error('Failed to toggle like:', error)
     }
     return { liked: story.is_liked ?? false, like_count: story.like_count ?? 0 }
@@ -115,10 +125,12 @@ export function ChapterAdvice({ biographyId, personName, updatedAt }: ChapterAdv
   const handleAddComment = async (content: string) => {
     if (!story) return { id: Date.now().toString(), content, created_at: new Date().toISOString() }
     try {
-      const response = await apiClient.post(`/content/core-stories/${story.id}/comments`, { content })
+      const response = await apiClient.post(`/content/core-stories/${story.id}/comments`, {
+        content,
+      })
       const data = response.data?.data ?? response.data
       if (data) {
-        setStory(prev => prev ? { ...prev, comment_count: prev.comment_count + 1 } : null)
+        setStory((prev) => (prev ? { ...prev, comment_count: prev.comment_count + 1 } : null))
         return data
       }
     } catch (error) {

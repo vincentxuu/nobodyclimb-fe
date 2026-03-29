@@ -1,7 +1,7 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import type { RankId } from '@nobodyclimb/types'
+import { cn } from '@/lib/utils'
 
 interface RankConfig {
   display: string

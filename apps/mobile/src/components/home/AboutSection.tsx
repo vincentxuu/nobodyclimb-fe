@@ -3,15 +3,14 @@
  *
  * 關於小人物攀岩區塊，對應 apps/web/src/components/home/about-section.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Image } from 'react-native'
-import { YStack } from 'tamagui'
-import { useRouter } from 'expo-router'
 
-import { Text, Button } from '@/components/ui'
-import { FadeIn } from '@/components/animation'
-import { useAuthStore } from '@/store/authStore'
 import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Image, StyleSheet, View } from 'react-native'
+import { YStack } from 'tamagui'
+import { FadeIn } from '@/components/animation'
+import { Button, Text } from '@/components/ui'
+import { useAuthStore } from '@/store/authStore'
 
 export function AboutSection() {
   const router = useRouter()
@@ -51,12 +50,7 @@ export function AboutSection() {
 
           {/* 按鈕區 */}
           <YStack gap={SPACING[3]} style={styles.buttonContainer}>
-            <Button
-              variant="secondary"
-              size="lg"
-              onPress={handleAboutPress}
-              fullWidth
-            >
+            <Button variant="secondary" size="lg" onPress={handleAboutPress} fullWidth>
               認識小人物
             </Button>
 

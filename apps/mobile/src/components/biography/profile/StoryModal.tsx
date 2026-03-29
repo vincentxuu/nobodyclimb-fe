@@ -3,13 +3,12 @@
  *
  * 故事詳情彈窗，對應 apps/web/src/components/biography/profile/StoryModal.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, Modal, ScrollView } from 'react-native'
-import { X } from 'lucide-react-native'
-import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
 
-import { Text } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { X } from 'lucide-react-native'
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
+import { Text } from '@/components/ui'
 
 // 分類類型
 type StoryCategory = 'growth' | 'psychology' | 'community' | 'practical' | 'dreams' | 'life'
@@ -54,22 +53,14 @@ export function StoryModal({ story, open, onClose }: StoryModalProps) {
   const categoryName = CATEGORY_NAMES[story.category]
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       {/* 背景遮罩 */}
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View entering={FadeIn.duration(200)} style={styles.backdropInner} />
       </Pressable>
 
       {/* Modal 內容 */}
-      <Animated.View
-        entering={SlideInUp.duration(300).springify()}
-        style={styles.modalContainer}
-      >
+      <Animated.View entering={SlideInUp.duration(300).springify()} style={styles.modalContainer}>
         <View style={styles.modalContent}>
           {/* 關閉按鈕 */}
           <Pressable style={styles.closeButton} onPress={onClose}>

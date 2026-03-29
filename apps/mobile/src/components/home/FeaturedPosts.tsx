@@ -3,15 +3,14 @@
  *
  * 探索攀岩區塊，對應 apps/web/src/components/home/featured-posts.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable, FlatList } from 'react-native'
-import { useRouter } from 'expo-router'
-import { YStack } from 'tamagui'
-import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter } from 'expo-router'
+import { FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { YStack } from 'tamagui'
+import { Text } from '@/components/ui'
 
 // 文章資料類型
 interface Post {
@@ -61,10 +60,7 @@ function ExploreCard({ post, index }: { post: Post; index: number }) {
     <Animated.View entering={FadeInDown.delay(index * 100).duration(500)}>
       <Pressable
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.cardContainer,
-          pressed && styles.cardPressed,
-        ]}
+        style={({ pressed }) => [styles.cardContainer, pressed && styles.cardPressed]}
       >
         <LinearGradient
           colors={post.colors}
@@ -105,9 +101,7 @@ export function FeaturedPosts() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item, index }) => (
-          <ExploreCard post={item} index={index} />
-        )}
+        renderItem={({ item, index }) => <ExploreCard post={item} index={index} />}
         ItemSeparatorComponent={() => <View style={{ width: SPACING.sm }} />}
       />
     </YStack>

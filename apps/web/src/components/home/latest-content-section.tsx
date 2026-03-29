@@ -1,16 +1,16 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
 import { Button } from '@/components/ui/button'
 import { postService } from '@/lib/api/services'
-import { BackendPost, PostCategory, getCategoryLabel } from '@/lib/types'
+import { BackendPost, getCategoryLabel, PostCategory } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
-import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
-import { useTranslations } from 'next-intl'
 
 // 緩存配置
 const CACHE_KEY = 'nobodyclimb_home_articles'
@@ -221,7 +221,9 @@ export function LatestContentSection() {
       <div className="container mx-auto px-4">
         {/* 標題區 */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">{t('latestArticlesTitle')}</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-[40px]">
+            {t('latestArticlesTitle')}
+          </h2>
           <p className="mt-4 text-base text-[#6D6C6C]">{t('latestArticlesSubtitle')}</p>
         </div>
 

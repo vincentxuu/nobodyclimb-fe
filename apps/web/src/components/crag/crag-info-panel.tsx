@@ -1,12 +1,12 @@
 'use client'
 
+import { ExternalLink, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { MapPin, ExternalLink } from 'lucide-react'
-import PlaceholderImage from '@/components/ui/placeholder-image'
-import { WeatherDisplay } from '@/components/shared/weather-display'
-import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
-import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
 import { useTranslations } from 'next-intl'
+import { TrafficCamerasCard } from '@/components/crag/traffic-cameras-card'
+import { YouTubeLiveCard } from '@/components/crag/youtube-live-card'
+import { WeatherDisplay } from '@/components/shared/weather-display'
+import PlaceholderImage from '@/components/ui/placeholder-image'
 
 export interface CragInfoData {
   id: string
@@ -78,9 +78,7 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
             <h2 className="text-lg font-medium text-orange-500">{t('cragIntro')}</h2>
             <div className="h-px w-full bg-gray-200"></div>
           </div>
-          <div className="mt-4 whitespace-pre-line text-base text-gray-700">
-            {crag.description}
-          </div>
+          <div className="mt-4 whitespace-pre-line text-base text-gray-700">{crag.description}</div>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -204,10 +202,7 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
             <div className="h-px w-full bg-gray-200"></div>
           </div>
           <div className="mt-4">
-            <WeatherDisplay
-              location={crag.weatherLocation}
-              showForecast={true}
-            />
+            <WeatherDisplay location={crag.weatherLocation} showForecast={true} />
           </div>
         </div>
 
@@ -249,9 +244,7 @@ export function CragInfoPanel({ crag }: CragInfoPanelProps) {
                     <PlaceholderImage text={area.name} bgColor="#f8f9fa" />
                   </div>
                   <div className="p-3">
-                    <h3 className="text-sm font-medium group-hover:text-[#1B1A1A]">
-                      {area.name}
-                    </h3>
+                    <h3 className="text-sm font-medium group-hover:text-[#1B1A1A]">{area.name}</h3>
                     <div className="mt-1 text-xs text-gray-500">
                       {area.difficulty} · {t('areaRouteCount', { count: area.routes })}
                     </div>

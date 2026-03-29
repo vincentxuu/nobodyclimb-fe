@@ -1,11 +1,11 @@
 'use client'
 
+import { useQueryClient } from '@tanstack/react-query'
+import { AlertCircle, CheckCircle, Loader2, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
-import { formatTaipei } from '@/lib/utils'
-import { Loader2, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAIKnowledge } from '@/lib/api/admin-ai'
 import apiClient from '@/lib/api/client'
-import { useQueryClient } from '@tanstack/react-query'
+import { formatTaipei } from '@/lib/utils'
 
 type IndexType = 'route' | 'crag' | 'all'
 
@@ -41,7 +41,7 @@ export default function AdminAIKnowledgePage() {
     let totalFailed = 0
 
     try {
-        // 岩場數量少，一次完成
+      // 岩場數量少，一次完成
       if (type === 'crag' || type === 'all') {
         const res = await apiClient.post<IndexApiResponse>(
           '/ai/index',
@@ -180,9 +180,7 @@ export default function AdminAIKnowledgePage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-wb-50 text-xs">
-                      {source.last_indexed_at
-                        ? formatTaipei(source.last_indexed_at)
-                        : '從未索引'}
+                      {source.last_indexed_at ? formatTaipei(source.last_indexed_at) : '從未索引'}
                     </td>
                     <td className="px-5 py-4">
                       <button

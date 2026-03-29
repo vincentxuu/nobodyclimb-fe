@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -16,9 +15,7 @@ export function ScoreDisplay({ score, className }: ScoreDisplayProps) {
     damping: 20,
   })
 
-  const displayScore = useTransform(springScore, (value) =>
-    Math.round(value).toLocaleString()
-  )
+  const displayScore = useTransform(springScore, (value) => Math.round(value).toLocaleString())
 
   return (
     <div className={cn('flex items-center gap-2', className)}>

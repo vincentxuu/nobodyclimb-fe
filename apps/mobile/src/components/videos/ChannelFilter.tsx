@@ -1,9 +1,3 @@
-/**
- * ChannelFilter 組件
- *
- * 頻道過濾器，對應 apps/web/src/components/videos/channel-filter.tsx
- */
-import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Select, type SelectOption } from '@/components/ui/Select'
 
@@ -28,11 +22,7 @@ export interface ChannelFilterProps {
  * />
  * ```
  */
-export function ChannelFilter({
-  channels,
-  selectedChannel,
-  onChannelChange,
-}: ChannelFilterProps) {
+export function ChannelFilter({ channels, selectedChannel, onChannelChange }: ChannelFilterProps) {
   // 建立選項列表
   const options: SelectOption[] = [
     { value: 'all', label: '全部頻道' },

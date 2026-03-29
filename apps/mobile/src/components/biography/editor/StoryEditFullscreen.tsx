@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { Story, StoryQuestion } from '@nobodyclimb/types'
+import { Check, Lightbulb, Loader2, Trash2, X } from 'lucide-react-native'
+import { useEffect, useRef, useState } from 'react'
 import {
-  View,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Modal,
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  TextInput,
+  View,
 } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { X, Check, Lightbulb, Loader2, Trash2 } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { StoryQuestion, Story } from '@nobodyclimb/types'
+import { Text, XStack } from 'tamagui'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 

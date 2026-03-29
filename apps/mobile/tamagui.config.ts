@@ -4,21 +4,21 @@
  * 從 @nobodyclimb/constants 導入共用設計 tokens
  * 確保與 Web 品牌一致
  */
-import { createTamagui, createTokens } from '@tamagui/core'
-import { shorthands } from '@tamagui/shorthands'
-import { createInterFont } from '@tamagui/font-inter'
 
 // 從共用套件導入設計 tokens
 import {
-  WB_COLORS,
-  BRAND_YELLOW,
+  BORDER_RADIUS,
   BRAND_RED,
-  SEMANTIC_COLORS,
+  BRAND_YELLOW,
   FONT_FAMILY,
   FONT_SIZE,
+  SEMANTIC_COLORS,
   SPACING,
-  BORDER_RADIUS,
+  WB_COLORS,
 } from '@nobodyclimb/constants'
+import { createTamagui, createTokens } from '@tamagui/core'
+import { createInterFont } from '@tamagui/font-inter'
+import { shorthands } from '@tamagui/shorthands'
 
 // 建立 color tokens
 const colorTokens = {

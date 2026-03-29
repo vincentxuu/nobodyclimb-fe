@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { Cloud, Droplets, ThermometerSun, Loader2, AlertCircle } from 'lucide-react'
+import { AlertCircle, Cloud, Droplets, Loader2, ThermometerSun } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { weatherService } from '@/lib/api/services'
 import { Weather } from '@/lib/types'
 
@@ -40,11 +40,7 @@ function getWeatherColor(condition: string | null): string {
 }
 
 // 格式化日期顯示（含早晚時段）
-function formatForecastDate(
-  dateString: string,
-  todayStr: string,
-  tomorrowStr: string
-): string {
+function formatForecastDate(dateString: string, todayStr: string, tomorrowStr: string): string {
   const date = new Date(dateString)
   // 根據實際時間判斷早晚：06:00 為早，18:00 為晚
   const hour = date.getHours()
@@ -149,7 +145,9 @@ export function WeatherDisplay({
   // 精簡模式
   if (compact) {
     return (
-      <div className={`inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 ${className}`}>
+      <div
+        className={`inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 ${className}`}
+      >
         <Cloud className={`h-5 w-5 ${getWeatherColor(weather.condition)}`} />
         <span className="text-lg font-medium">{formatTemp(weather.temperature)}°C</span>
         <div className="border-l border-gray-300 pl-2">
@@ -188,9 +186,7 @@ export function WeatherDisplay({
               {formatPercent(weather.precipitation)}
             </span>
           </div>
-          {weather.comfort && (
-            <p className="mt-1 text-xs text-gray-500">{weather.comfort}</p>
-          )}
+          {weather.comfort && <p className="mt-1 text-xs text-gray-500">{weather.comfort}</p>}
         </div>
       </div>
 
@@ -200,10 +196,7 @@ export function WeatherDisplay({
           <h4 className="mb-3 text-sm font-medium text-gray-700">未來七天天氣</h4>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
             {weather.forecast.slice(0, FORECAST_PERIODS).map((day, index) => (
-              <div
-                key={`${day.date}-${index}`}
-                className="rounded-lg bg-white p-2 text-center"
-              >
+              <div key={`${day.date}-${index}`} className="rounded-lg bg-white p-2 text-center">
                 <p className="text-xs font-medium text-gray-600">
                   {formatForecastDate(day.date, todayStr, tomorrowStr)}
                 </p>
@@ -222,7 +215,6 @@ export function WeatherDisplay({
           </div>
         </div>
       )}
-
     </div>
   )
 }

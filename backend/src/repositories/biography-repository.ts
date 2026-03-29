@@ -1,45 +1,45 @@
-import { D1Database } from '@cloudflare/workers-types';
-import { Biography } from '../types';
+import { D1Database } from '@cloudflare/workers-types'
+import { Biography } from '../types'
 
 /**
  * Biography 基本資訊（從 basic_info_data JSON 解析）
  */
 export interface BiographyBasicInfo {
-  climbing_start_year?: string;
-  frequent_locations?: string;
-  favorite_route_type?: string;
-  climbing_reason?: string;
-  [key: string]: any;
+  climbing_start_year?: string
+  frequent_locations?: string
+  favorite_route_type?: string
+  climbing_reason?: string
+  [key: string]: any
 }
 
 /**
  * Biography 列表項目（用於列表顯示）
  */
 export interface BiographyListItem {
-  id: string;
-  user_id: string | null;
-  slug: string;
-  name: string;
-  title: string | null;
-  avatar_url: string | null;
-  cover_image: string | null;
-  basic_info_data: string | null;
-  tags_data: string | null;
-  one_liners_data: string | null;
-  stories_data: string | null;
-  visibility: 'private' | 'public' | 'unlisted' | 'anonymous' | 'community';
+  id: string
+  user_id: string | null
+  slug: string
+  name: string
+  title: string | null
+  avatar_url: string | null
+  cover_image: string | null
+  basic_info_data: string | null
+  tags_data: string | null
+  one_liners_data: string | null
+  stories_data: string | null
+  visibility: 'private' | 'public' | 'unlisted' | 'anonymous' | 'community'
 }
 
 /**
  * 查詢選項
  */
 export interface BiographyQueryOptions {
-  page?: number;
-  limit?: number;
-  visibility?: string;
-  userId?: string; // 當前用戶 ID（用於權限檢查）
-  isFeatured?: boolean;
-  searchTerm?: string;
+  page?: number
+  limit?: number
+  visibility?: string
+  userId?: string // 當前用戶 ID（用於權限檢查）
+  isFeatured?: boolean
+  searchTerm?: string
 }
 
 /**
@@ -57,7 +57,7 @@ export class BiographyRepository {
    * 根據用戶身份產生 visibility WHERE 子句
    */
   private getVisibilityWhereClause(userId: string | undefined, tableAlias: string = 'b'): string {
-    const prefix = tableAlias ? `${tableAlias}.` : '';
+    const prefix = tableAlias ? `${tableAlias}.` : ''
 
     if (userId) {
       // 登入用戶：可看 public、community、anonymous，以及自己的 private
@@ -66,13 +66,13 @@ export class BiographyRepository {
         ${prefix}visibility = 'community' OR
         ${prefix}visibility = 'anonymous' OR
         (${prefix}visibility = 'private' AND ${prefix}user_id = '${userId}')
-      )`;
+      )`
     } else {
       // 未登入用戶：只能看 public 和 anonymous
       return `(
         ${prefix}visibility = 'public' OR
         ${prefix}visibility = 'anonymous'
-      )`;
+      )`
     }
   }
 
@@ -80,22 +80,16 @@ export class BiographyRepository {
    * 查詢 biographies 列表
    */
   async findMany(options: BiographyQueryOptions): Promise<BiographyListItem[]> {
-    const {
-      page = 1,
-      limit = 20,
-      userId,
-      isFeatured,
-      searchTerm,
-    } = options;
+    const { page = 1, limit = 20, userId, isFeatured, searchTerm } = options
 
-    const offset = (page - 1) * limit;
-    const visibilityClause = this.getVisibilityWhereClause(userId, 'b');
+    const offset = (page - 1) * limit
+    const visibilityClause = this.getVisibilityWhereClause(userId, 'b')
 
     // 建構 WHERE 條件
-    const conditions = [visibilityClause];
+    const conditions = [visibilityClause]
 
     if (isFeatured !== undefined) {
-      conditions.push(`b.is_featured = ${isFeatured ? 1 : 0}`);
+      conditions.push(`b.is_featured = ${isFeatured ? 1 : 0}`)
     }
 
     if (searchTerm) {
@@ -103,10 +97,10 @@ export class BiographyRepository {
         b.name LIKE '%${searchTerm}%' OR
         b.bio LIKE '%${searchTerm}%' OR
         b.slug LIKE '%${searchTerm}%'
-      )`);
+      )`)
     }
 
-    const whereClause = conditions.join(' AND ');
+    const whereClause = conditions.join(' AND ')
 
     const query = `
       SELECT
@@ -127,28 +121,26 @@ export class BiographyRepository {
       WHERE ${whereClause}
       ORDER BY b.created_at DESC
       LIMIT ? OFFSET ?
-    `;
+    `
 
-    const result = await this.db.prepare(query)
-      .bind(limit, offset)
-      .all<BiographyListItem>();
+    const result = await this.db.prepare(query).bind(limit, offset).all<BiographyListItem>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
    * 計算符合條件的 biographies 總數
    */
   async count(options: BiographyQueryOptions): Promise<number> {
-    const { userId, isFeatured, searchTerm } = options;
+    const { userId, isFeatured, searchTerm } = options
 
-    const visibilityClause = this.getVisibilityWhereClause(userId, 'b');
+    const visibilityClause = this.getVisibilityWhereClause(userId, 'b')
 
     // 建構 WHERE 條件
-    const conditions = [visibilityClause];
+    const conditions = [visibilityClause]
 
     if (isFeatured !== undefined) {
-      conditions.push(`b.is_featured = ${isFeatured ? 1 : 0}`);
+      conditions.push(`b.is_featured = ${isFeatured ? 1 : 0}`)
     }
 
     if (searchTerm) {
@@ -156,26 +148,26 @@ export class BiographyRepository {
         b.name LIKE '%${searchTerm}%' OR
         b.bio LIKE '%${searchTerm}%' OR
         b.slug LIKE '%${searchTerm}%'
-      )`);
+      )`)
     }
 
-    const whereClause = conditions.join(' AND ');
+    const whereClause = conditions.join(' AND ')
 
     const query = `
       SELECT COUNT(*) as count
       FROM biographies b
       WHERE ${whereClause}
-    `;
+    `
 
-    const result = await this.db.prepare(query).first<{ count: number }>();
-    return result?.count || 0;
+    const result = await this.db.prepare(query).first<{ count: number }>()
+    return result?.count || 0
   }
 
   /**
    * 根據 ID 查詢單筆 biography
    */
   async findById(id: string, userId?: string): Promise<Biography | null> {
-    const visibilityClause = this.getVisibilityWhereClause(userId, 'b');
+    const visibilityClause = this.getVisibilityWhereClause(userId, 'b')
 
     const query = `
       SELECT
@@ -188,20 +180,18 @@ export class BiographyRepository {
       LEFT JOIN users u ON b.user_id = u.id
       LEFT JOIN user_ranks ur ON b.user_id = ur.user_id
       WHERE b.id = ? AND ${visibilityClause}
-    `;
+    `
 
-    const result = await this.db.prepare(query)
-      .bind(id)
-      .first<Biography>();
+    const result = await this.db.prepare(query).bind(id).first<Biography>()
 
-    return result || null;
+    return result || null
   }
 
   /**
    * 根據 slug 查詢單筆 biography
    */
   async findBySlug(slug: string, userId?: string): Promise<Biography | null> {
-    const visibilityClause = this.getVisibilityWhereClause(userId, 'b');
+    const visibilityClause = this.getVisibilityWhereClause(userId, 'b')
 
     const query = `
       SELECT
@@ -214,13 +204,11 @@ export class BiographyRepository {
       LEFT JOIN users u ON b.user_id = u.id
       LEFT JOIN user_ranks ur ON b.user_id = ur.user_id
       WHERE b.slug = ? AND ${visibilityClause}
-    `;
+    `
 
-    const result = await this.db.prepare(query)
-      .bind(slug)
-      .first<Biography>();
+    const result = await this.db.prepare(query).bind(slug).first<Biography>()
 
-    return result || null;
+    return result || null
   }
 
   /**
@@ -247,13 +235,11 @@ export class BiographyRepository {
         AND b.is_featured = 1
       ORDER BY b.published_at DESC
       LIMIT ?
-    `;
+    `
 
-    const result = await this.db.prepare(query)
-      .bind(limit)
-      .all<BiographyListItem>();
+    const result = await this.db.prepare(query).bind(limit).all<BiographyListItem>()
 
-    return result.results || [];
+    return result.results || []
   }
 
   /**
@@ -269,29 +255,46 @@ export class BiographyRepository {
       FROM biographies b
       LEFT JOIN users u ON b.user_id = u.id
       WHERE b.user_id = ?
-    `;
+    `
 
-    const result = await this.db.prepare(query)
-      .bind(userId)
-      .first<Biography>();
+    const result = await this.db.prepare(query).bind(userId).first<Biography>()
 
-    return result || null;
+    return result || null
   }
 
   /**
    * 創建新的 biography
    */
-  async create(data: Partial<Biography> & { id: string; user_id: string; name: string; slug: string }): Promise<Biography> {
-    const now = new Date().toISOString();
-    const isPublic = data.visibility === 'public';
+  async create(
+    data: Partial<Biography> & { id: string; user_id: string; name: string; slug: string }
+  ): Promise<Biography> {
+    const now = new Date().toISOString()
+    const isPublic = data.visibility === 'public'
 
     const fields = [
-      'id', 'user_id', 'name', 'slug', 'title', 'bio', 'avatar_url', 'cover_image',
-      'achievements', 'social_links', 'is_featured', 'visibility',
-      'tags_data', 'basic_info_data', 'youtube_channel_id', 'featured_video_id',
-      'height_cm', 'arm_span_cm', 'grade_targets',
-      'published_at', 'created_at', 'updated_at'
-    ];
+      'id',
+      'user_id',
+      'name',
+      'slug',
+      'title',
+      'bio',
+      'avatar_url',
+      'cover_image',
+      'achievements',
+      'social_links',
+      'is_featured',
+      'visibility',
+      'tags_data',
+      'basic_info_data',
+      'youtube_channel_id',
+      'featured_video_id',
+      'height_cm',
+      'arm_span_cm',
+      'grade_targets',
+      'published_at',
+      'created_at',
+      'updated_at',
+    ]
 
     const values = [
       data.id,
@@ -316,79 +319,96 @@ export class BiographyRepository {
       isPublic ? now : null,
       now,
       now,
-    ];
+    ]
 
-    const placeholders = fields.map(() => '?').join(', ');
+    const placeholders = fields.map(() => '?').join(', ')
 
-    await this.db.prepare(
-      `INSERT INTO biographies (${fields.join(', ')}) VALUES (${placeholders})`
-    ).bind(...values).run();
+    await this.db
+      .prepare(`INSERT INTO biographies (${fields.join(', ')}) VALUES (${placeholders})`)
+      .bind(...values)
+      .run()
 
-    const result = await this.db.prepare('SELECT * FROM biographies WHERE id = ?')
+    const result = await this.db
+      .prepare('SELECT * FROM biographies WHERE id = ?')
       .bind(data.id)
-      .first<Biography>();
+      .first<Biography>()
 
     if (!result) {
-      throw new Error('Failed to create biography');
+      throw new Error('Failed to create biography')
     }
 
-    return result;
+    return result
   }
 
   /**
    * 更新 biography
    */
   async update(id: string, data: Partial<Biography>): Promise<Biography> {
-    const updates: string[] = [];
-    const values: (string | number | null)[] = [];
+    const updates: string[] = []
+    const values: (string | number | null)[] = []
 
     // 可更新的欄位
     const updatableFields = [
-      'name', 'title', 'bio', 'avatar_url', 'cover_image',
-      'achievements', 'social_links', 'is_featured', 'visibility',
-      'tags_data', 'basic_info_data', 'youtube_channel_id', 'featured_video_id',
-      'height_cm', 'arm_span_cm', 'grade_targets',
-    ];
+      'name',
+      'title',
+      'bio',
+      'avatar_url',
+      'cover_image',
+      'achievements',
+      'social_links',
+      'is_featured',
+      'visibility',
+      'tags_data',
+      'basic_info_data',
+      'youtube_channel_id',
+      'featured_video_id',
+      'height_cm',
+      'arm_span_cm',
+      'grade_targets',
+    ]
 
     for (const field of updatableFields) {
       if (data[field as keyof Biography] !== undefined) {
-        updates.push(`${field} = ?`);
-        values.push(data[field as keyof Biography] as string | number | null);
+        updates.push(`${field} = ?`)
+        values.push(data[field as keyof Biography] as string | number | null)
       }
     }
 
     // 處理 published_at (當第一次變成 public 時設定)
     if (data.visibility === 'public') {
-      const current = await this.db.prepare(
-        'SELECT published_at, visibility FROM biographies WHERE id = ?'
-      ).bind(id).first<{ published_at: string | null; visibility: string | null }>();
+      const current = await this.db
+        .prepare('SELECT published_at, visibility FROM biographies WHERE id = ?')
+        .bind(id)
+        .first<{ published_at: string | null; visibility: string | null }>()
 
       if (current && !current.published_at && current.visibility !== 'public') {
-        updates.push('published_at = ?');
-        values.push(new Date().toISOString());
+        updates.push('published_at = ?')
+        values.push(new Date().toISOString())
       }
     }
 
     if (updates.length === 0) {
-      throw new Error('No fields to update');
+      throw new Error('No fields to update')
     }
 
-    updates.push("updated_at = datetime('now')");
-    values.push(id);
+    updates.push("updated_at = datetime('now')")
+    values.push(id)
 
-    await this.db.prepare(
-      `UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`
-    ).bind(...values).run();
+    await this.db
+      .prepare(`UPDATE biographies SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...values)
+      .run()
 
-    const result = await this.db.prepare('SELECT * FROM biographies WHERE id = ?')
+    const result = await this.db
+      .prepare('SELECT * FROM biographies WHERE id = ?')
       .bind(id)
-      .first<Biography>();
+      .first<Biography>()
 
     if (!result) {
-      throw new Error('Failed to update biography');
+      throw new Error('Failed to update biography')
     }
 
-    return result;
+    return result
   }
 
   /**
@@ -396,14 +416,14 @@ export class BiographyRepository {
    */
   parseBasicInfo(basicInfoData: string | null): BiographyBasicInfo {
     if (!basicInfoData) {
-      return {};
+      return {}
     }
 
     try {
-      return JSON.parse(basicInfoData);
+      return JSON.parse(basicInfoData)
     } catch (error) {
-      console.error('Failed to parse basic_info_data:', error);
-      return {};
+      console.error('Failed to parse basic_info_data:', error)
+      return {}
     }
   }
 }

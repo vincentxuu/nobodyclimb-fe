@@ -1,33 +1,33 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { parseUTC, formatTaipei, formatTaipeiDate } from '@/lib/utils'
-import { adminUserService, AdminUser, AdminUserStats } from '@/lib/api/services'
 import {
-  useUserRankDetail,
-  useRecalculateRank,
-  useOverrideUserRank,
-  RankId,
-} from '@/lib/api/admin-ai'
-import {
-  Users,
-  UserCheck,
-  UserX,
-  Shield,
-  Search,
-  RefreshCw,
   AlertCircle,
+  ArrowUpDown,
+  Calendar,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
-  Mail,
-  Calendar,
-  TrendingUp,
   Clock,
-  ArrowUpDown,
+  Mail,
+  MoreVertical,
   Mountain,
+  RefreshCw,
+  Search,
+  Shield,
+  TrendingUp,
+  UserCheck,
+  Users,
+  UserX,
   X,
 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  RankId,
+  useOverrideUserRank,
+  useRecalculateRank,
+  useUserRankDetail,
+} from '@/lib/api/admin-ai'
+import { AdminUser, AdminUserStats, adminUserService } from '@/lib/api/services'
+import { formatTaipei, formatTaipeiDate, parseUTC } from '@/lib/utils'
 
 function formatRelativeTime(dateStr: string | null): string {
   if (!dateStr) return '從未登入'
@@ -123,7 +123,10 @@ function UserRankModal({
     : []
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-md rounded-2xl bg-white shadow-xl p-6 mx-4"
         onClick={(e) => e.stopPropagation()}
@@ -131,9 +134,7 @@ function UserRankModal({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Mountain className="h-5 w-5 text-emerald-600" />
-            <h2 className="text-base font-semibold text-wb-100">
-              {username} 的等級詳情
-            </h2>
+            <h2 className="text-base font-semibold text-wb-100">{username} 的等級詳情</h2>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-wb-10 rounded-lg transition-colors">
             <X className="h-4 w-4 text-wb-60" />
@@ -167,7 +168,9 @@ function UserRankModal({
             {/* 等級與分數 */}
             <div className="flex items-center justify-between rounded-xl bg-wb-5 border border-wb-10 px-4 py-3">
               <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-sm font-bold ${rankColors[rank.rank_id] ?? 'bg-wb-10 text-wb-70'}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-bold ${rankColors[rank.rank_id] ?? 'bg-wb-10 text-wb-70'}`}
+                >
                   {rank.rank_display_name}
                 </span>
                 {rank.rank_override_id && (
@@ -220,7 +223,9 @@ function UserRankModal({
                 disabled={recalculate.isPending}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-wb-20 text-sm text-wb-80 hover:bg-wb-5 transition-colors disabled:opacity-50"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${recalculate.isPending ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${recalculate.isPending ? 'animate-spin' : ''}`}
+                />
                 立即重算積分
               </button>
               <div>
@@ -294,7 +299,9 @@ export default function AdminUserManagement() {
           role: roleFilter || undefined,
           status: statusFilter || undefined,
           sort: sortBy,
-          activity: activityFilter as 'recent_7d' | 'recent_30d' | 'inactive_30d' | undefined || undefined,
+          activity:
+            (activityFilter as 'recent_7d' | 'recent_30d' | 'inactive_30d' | undefined) ||
+            undefined,
         }),
         adminUserService.getStats(),
       ])
@@ -352,9 +359,7 @@ export default function AdminUserManagement() {
     try {
       const response = await adminUserService.updateRole(user.id, newRole)
       if (response.success) {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
-        )
+        setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u)))
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : '操作失敗')
@@ -545,7 +550,10 @@ export default function AdminUserManagement() {
             <span className="text-xs text-wb-60">排序：</span>
             <button
               type="button"
-              onClick={() => { setSortBy('created_at'); setPage(1) }}
+              onClick={() => {
+                setSortBy('created_at')
+                setPage(1)
+              }}
               className={`px-3 py-1 text-xs rounded-full transition-colors ${
                 sortBy === 'created_at'
                   ? 'bg-wb-100 text-white'
@@ -556,7 +564,10 @@ export default function AdminUserManagement() {
             </button>
             <button
               type="button"
-              onClick={() => { setSortBy('last_active_at'); setPage(1) }}
+              onClick={() => {
+                setSortBy('last_active_at')
+                setPage(1)
+              }}
               className={`px-3 py-1 text-xs rounded-full transition-colors ${
                 sortBy === 'last_active_at'
                   ? 'bg-wb-100 text-white'
@@ -643,7 +654,12 @@ export default function AdminUserManagement() {
                   <td className="px-6 py-4">
                     {user.rank_id ? (
                       <button
-                        onClick={() => setRankModalUser({ id: user.id, username: user.display_name || user.username })}
+                        onClick={() =>
+                          setRankModalUser({
+                            id: user.id,
+                            username: user.display_name || user.username,
+                          })
+                        }
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors hover:opacity-80 ${rankColors[user.rank_id] ?? 'bg-wb-10 text-wb-70'}`}
                       >
                         {rankLabels[user.rank_id] ?? user.rank_id}
@@ -667,10 +683,10 @@ export default function AdminUserManagement() {
                         !user.last_active_at
                           ? 'text-wb-40'
                           : Date.now() - parseUTC(user.last_active_at).getTime() < 7 * 86400000
-                          ? 'text-green-600'
-                          : Date.now() - parseUTC(user.last_active_at).getTime() < 30 * 86400000
-                          ? 'text-wb-70'
-                          : 'text-wb-40'
+                            ? 'text-green-600'
+                            : Date.now() - parseUTC(user.last_active_at).getTime() < 30 * 86400000
+                              ? 'text-wb-70'
+                              : 'text-wb-40'
                       }`}
                       title={user.last_active_at ?? undefined}
                     >
@@ -695,7 +711,10 @@ export default function AdminUserManagement() {
                           <button
                             onClick={() => {
                               setMenuOpen(null)
-                              setRankModalUser({ id: user.id, username: user.display_name || user.username })
+                              setRankModalUser({
+                                id: user.id,
+                                username: user.display_name || user.username,
+                              })
                             }}
                             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
                           >
@@ -789,9 +808,7 @@ export default function AdminUserManagement() {
       </div>
 
       {/* 點擊其他地方關閉選單 */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-0" onClick={() => setMenuOpen(null)} />
-      )}
+      {menuOpen && <div className="fixed inset-0 z-0" onClick={() => setMenuOpen(null)} />}
 
       {/* 等級詳情 Modal */}
       {rankModalUser && (

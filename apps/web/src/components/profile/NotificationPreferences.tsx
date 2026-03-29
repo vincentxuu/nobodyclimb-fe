@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
-import { notificationService } from '@/lib/api/services'
-import { useToast } from '@/components/ui/use-toast'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { useToast } from '@/components/ui/use-toast'
+import { notificationService } from '@/lib/api/services'
 
 interface NotificationPreferencesState {
   goal_liked: boolean

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { Question, StoryInput } from './questions'
 
@@ -61,9 +61,7 @@ export function QuestionEditor({
       <main className="mx-auto max-w-2xl px-4 py-8 pb-24">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-[#1B1A1A]">{question.title}</h1>
-          {question.subtitle && (
-            <p className="mt-2 text-gray-600">{question.subtitle}</p>
-          )}
+          {question.subtitle && <p className="mt-2 text-gray-600">{question.subtitle}</p>}
           {question.categoryName && (
             <span className="mt-2 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
               {question.categoryName}

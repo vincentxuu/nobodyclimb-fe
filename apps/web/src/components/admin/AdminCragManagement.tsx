@@ -1,19 +1,15 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import {
-  Mountain,
-  RefreshCw,
-  Plus,
-} from 'lucide-react'
-import { adminCragService, AdminCragStats } from '@/lib/api/services'
-import { AdminCrag, AdminArea, AdminSector } from '@/lib/types'
+import { Mountain, Plus, RefreshCw } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { AdminCragStats, adminCragService } from '@/lib/api/services'
+import { AdminArea, AdminCrag, AdminSector } from '@/lib/types'
 
 import CragTree, { SelectedItem, SelectedItemType } from './crag/CragTree'
-import InlineCragForm from './crag/InlineCragForm'
 import InlineAreaForm from './crag/InlineAreaForm'
-import InlineSectorForm from './crag/InlineSectorForm'
+import InlineCragForm from './crag/InlineCragForm'
 import InlineRouteForm from './crag/InlineRouteForm'
+import InlineSectorForm from './crag/InlineSectorForm'
 import { AdminRoute } from './crag/types'
 
 export default function AdminCragManagement() {
@@ -101,10 +97,7 @@ export default function AdminCragManagement() {
   }
 
   // Handle add button click from tree
-  const handleAddItem = (
-    type: SelectedItemType,
-    parentIds: SelectedItem['parentIds']
-  ) => {
+  const handleAddItem = (type: SelectedItemType, parentIds: SelectedItem['parentIds']) => {
     setSelectedItem({
       type,
       id: '',
@@ -155,9 +148,7 @@ export default function AdminCragManagement() {
           <div className="text-center">
             <Mountain className="h-12 w-12 mx-auto mb-3 text-wb-30" />
             <p>請從左側選擇一個項目進行編輯</p>
-            <p className="text-xs text-wb-40 mt-1">
-              或點擊 [+] 按鈕新增項目
-            </p>
+            <p className="text-xs text-wb-40 mt-1">或點擊 [+] 按鈕新增項目</p>
           </div>
         </div>
       )
@@ -170,9 +161,7 @@ export default function AdminCragManagement() {
             crag={
               selectedItem.isNew
                 ? null
-                : (selectedItem.data as AdminCrag) ||
-                  cragCache[selectedItem.id] ||
-                  null
+                : (selectedItem.data as AdminCrag) || cragCache[selectedItem.id] || null
             }
             isNew={selectedItem.isNew}
             onSave={handleFormSave}
@@ -187,9 +176,7 @@ export default function AdminCragManagement() {
             area={
               selectedItem.isNew
                 ? null
-                : (selectedItem.data as AdminArea) ||
-                  areaCache[selectedItem.id] ||
-                  null
+                : (selectedItem.data as AdminArea) || areaCache[selectedItem.id] || null
             }
             cragId={selectedItem.parentIds.cragId}
             cragName={getCragName(selectedItem.parentIds.cragId)}
@@ -206,17 +193,13 @@ export default function AdminCragManagement() {
             sector={
               selectedItem.isNew
                 ? null
-                : (selectedItem.data as AdminSector) ||
-                  sectorCache[selectedItem.id] ||
-                  null
+                : (selectedItem.data as AdminSector) || sectorCache[selectedItem.id] || null
             }
             cragId={selectedItem.parentIds.cragId}
             areaId={selectedItem.parentIds.areaId || ''}
             cragName={getCragName(selectedItem.parentIds.cragId)}
             areaName={
-              selectedItem.parentIds.areaId
-                ? getAreaName(selectedItem.parentIds.areaId)
-                : undefined
+              selectedItem.parentIds.areaId ? getAreaName(selectedItem.parentIds.areaId) : undefined
             }
             isNew={selectedItem.isNew}
             onSave={handleFormSave}
@@ -228,19 +211,13 @@ export default function AdminCragManagement() {
       case 'route':
         return (
           <InlineRouteForm
-            route={
-              selectedItem.isNew
-                ? null
-                : (selectedItem.data as AdminRoute) || null
-            }
+            route={selectedItem.isNew ? null : (selectedItem.data as AdminRoute) || null}
             cragId={selectedItem.parentIds.cragId}
             areaId={selectedItem.parentIds.areaId}
             sectorId={selectedItem.parentIds.sectorId}
             cragName={getCragName(selectedItem.parentIds.cragId)}
             areaName={
-              selectedItem.parentIds.areaId
-                ? getAreaName(selectedItem.parentIds.areaId)
-                : undefined
+              selectedItem.parentIds.areaId ? getAreaName(selectedItem.parentIds.areaId) : undefined
             }
             sectorName={
               selectedItem.parentIds.sectorId
@@ -264,9 +241,7 @@ export default function AdminCragManagement() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-wb-100">
-            岩場管理
-          </h1>
+          <h1 className="text-xl font-bold text-wb-100">岩場管理</h1>
           <p className="mt-1 text-sm text-wb-60">
             {statsLoading
               ? '載入中...'

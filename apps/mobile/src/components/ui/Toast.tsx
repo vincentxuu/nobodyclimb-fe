@@ -3,28 +3,22 @@
  *
  * 輕量提示組件
  */
-import React, { useEffect, useCallback, createContext, useContext, useState } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SHADOWS, SPACING } from '@nobodyclimb/constants'
+import type { LucideIcon } from 'lucide-react-native'
+import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react-native'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withSpring,
-  runOnJS,
+  withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react-native'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  SPACING,
-  SHADOWS,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
-import { Text } from './Text'
-import { Icon } from './Icon'
 import { DURATION, EASING, springConfigStandard } from '@/theme/animations'
-import type { LucideIcon } from 'lucide-react-native'
+import { Icon } from './Icon'
+import { Text } from './Text'
 
 export type ToastVariant = 'success' | 'error' | 'info' | 'warning'
 
@@ -124,13 +118,7 @@ export function Toast({
   if (!visible) return null
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        { top: insets.top + SPACING[2] },
-        animatedStyle,
-      ]}
-    >
+    <Animated.View style={[styles.container, { top: insets.top + SPACING[2] }, animatedStyle]}>
       <View style={[styles.toast, { backgroundColor }, SHADOWS.md]}>
         <Icon icon={icon} size="md" color={iconColor} />
         <Text variant="body" color="main" style={styles.message} numberOfLines={2}>
@@ -175,29 +163,27 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Compatibility function for title/description API
-  const toast = useCallback((options: ToastOptions) => {
-    const message = options.message || options.title || ''
-    const description = options.description
-    const fullMessage = description ? `${message}\n${description}` : message
-    const variant: ToastVariant = options.variant === 'destructive' ? 'error' : (options.variant || 'info')
+  const toast = useCallback(
+    (options: ToastOptions) => {
+      const message = options.message || options.title || ''
+      const description = options.description
+      const fullMessage = description ? `${message}\n${description}` : message
+      const variant: ToastVariant =
+        options.variant === 'destructive' ? 'error' : options.variant || 'info'
 
-    show({
-      message: fullMessage,
-      variant,
-      duration: options.duration,
-    })
-  }, [show])
+      show({
+        message: fullMessage,
+        variant,
+        duration: options.duration,
+      })
+    },
+    [show]
+  )
 
   return (
     <ToastContext.Provider value={{ show, hide, toast }}>
       {children}
-      {toastConfig && (
-        <Toast
-          visible={visible}
-          onHide={hide}
-          {...toastConfig}
-        />
-      )}
+      {toastConfig && <Toast visible={visible} onHide={hide} {...toastConfig} />}
     </ToastContext.Provider>
   )
 }

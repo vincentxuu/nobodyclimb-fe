@@ -1,12 +1,11 @@
-import React, { useState } from 'react'
-import { View, StyleSheet, Pressable } from 'react-native'
-import { TrendingUp, Brain, Users, Wrench, Star, Check, ChevronRight } from 'lucide-react-native'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import type { LucideIcon } from 'lucide-react-native'
-import { Text } from '../ui/Text'
+import { Brain, Check, ChevronRight, Star, TrendingUp, Users, Wrench } from 'lucide-react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { Icon } from '../ui/Icon'
+import { Text } from '../ui/Text'
 import CollapsibleSection from './CollapsibleSection'
 import { AdvancedStories } from './types'
-import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 // Icon mapping
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -88,9 +87,7 @@ const STORY_CATEGORIES = [
     id: 'life',
     title: 'F. 生活整合',
     icon: 'Heart',
-    fields: [
-      { key: 'life_outside_climbing', label: '攀岩外的生活' },
-    ],
+    fields: [{ key: 'life_outside_climbing', label: '攀岩外的生活' }],
   },
 ] as const
 
@@ -115,9 +112,7 @@ export default function AdvancedStoriesSection({
     if (!category) return { current: 0, total: 0 }
 
     const total = category.fields.length
-    const current = category.fields.filter(
-      (f) => getFieldValue(f.key).length > 0
-    ).length
+    const current = category.fields.filter((f) => getFieldValue(f.key).length > 0).length
 
     return { current, total }
   }
@@ -137,7 +132,9 @@ export default function AdvancedStoriesSection({
           <View key={category.id} style={styles.categoryContainer}>
             <CollapsibleSection
               title={category.title}
-              icon={<Icon icon={ICON_MAP[category.icon]} size="sm" color={SEMANTIC_COLORS.textSubtle} />}
+              icon={
+                <Icon icon={ICON_MAP[category.icon]} size="sm" color={SEMANTIC_COLORS.textSubtle} />
+              }
               defaultExpanded={false}
               badge={
                 <View style={styles.progressBadge}>
@@ -161,18 +158,11 @@ export default function AdvancedStoriesSection({
                     >
                       <View style={styles.fieldContent}>
                         <View style={styles.fieldHeader}>
-                          <Text
-                            variant="body"
-                            style={{ color: SEMANTIC_COLORS.textMain }}
-                          >
+                          <Text variant="body" style={{ color: SEMANTIC_COLORS.textMain }}>
                             {field.label}
                           </Text>
                           {hasValue && (
-                            <Icon
-                              icon={Check}
-                              size="xs"
-                              color={SEMANTIC_COLORS.success}
-                            />
+                            <Icon icon={Check} size="xs" color={SEMANTIC_COLORS.success} />
                           )}
                         </View>
                         {hasValue && (
@@ -186,11 +176,7 @@ export default function AdvancedStoriesSection({
                         )}
                       </View>
                       {isEditing && (
-                        <Icon
-                          icon={ChevronRight}
-                          size="sm"
-                          color={SEMANTIC_COLORS.textMuted}
-                        />
+                        <Icon icon={ChevronRight} size="sm" color={SEMANTIC_COLORS.textMuted} />
                       )}
                     </Pressable>
                   )

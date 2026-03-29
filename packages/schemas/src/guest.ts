@@ -63,10 +63,7 @@ export const createAnonymousBiographySchema = z
     contact_email: z.string().email('請輸入有效的電子郵件').optional(),
   })
   .refine(
-    (data) =>
-      data.core_stories.length > 0 ||
-      data.one_liners.length > 0 ||
-      data.stories.length > 0,
+    (data) => data.core_stories.length > 0 || data.one_liners.length > 0 || data.stories.length > 0,
     { message: '請至少填寫一個故事' }
   )
 

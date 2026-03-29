@@ -1,8 +1,8 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { act, renderHook, waitFor } from '@testing-library/react-native'
 import { createElement } from 'react'
-import { useRecommendations, useTriggerRecommendation } from '../useRecommendations'
 import { apiClient } from '@/lib/api'
+import { useRecommendations, useTriggerRecommendation } from '../useRecommendations'
 
 jest.mock('@/lib/api')
 const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>
@@ -21,7 +21,16 @@ const MOCK_RESPONSE = {
       status: 'success',
       recommendation: {
         answer: '推薦你嘗試龍洞南壁的 5.10a 路線',
-        sources: [{ id: 's1', type: 'route', title: '藍色海灣', excerpt: '適合初中級者', url: 'https://example.com', score: 0.9 }],
+        sources: [
+          {
+            id: 's1',
+            type: 'route',
+            title: '藍色海灣',
+            excerpt: '適合初中級者',
+            url: 'https://example.com',
+            score: 0.9,
+          },
+        ],
         context_ascents: [],
       },
       created_at: '2024-01-01T00:00:00Z',
@@ -51,7 +60,9 @@ describe('useTriggerRecommendation', () => {
   it('posts to /ai/recommendations', async () => {
     mockedApiClient.post.mockResolvedValueOnce({ data: { data: {} } })
     const { result } = renderHook(() => useTriggerRecommendation(), { wrapper: createWrapper() })
-    await act(async () => { await result.current.mutateAsync() })
+    await act(async () => {
+      await result.current.mutateAsync()
+    })
     expect(mockedApiClient.post).toHaveBeenCalledWith('/ai/recommendations')
   })
 })

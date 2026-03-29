@@ -1,19 +1,24 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
 import type {
   BiographyV2,
+  OneLinerQuestion,
+  StoryCategoryId,
+  StoryQuestion,
   TagDimension,
   TagOption,
-  OneLinerQuestion,
-  StoryQuestion,
-  StoryCategoryId,
 } from '@nobodyclimb/types'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 interface UseCustomContentOptions {
   biography: BiographyV2
   tagDimensions: TagDimension[]
   oneLinerQuestions: OneLinerQuestion[]
   storyQuestionsByCategory: Record<StoryCategoryId, StoryQuestion[]>
-  onSaveCustomTag: (tag: TagOption, isUserDimension: boolean, newCustomDimensions?: TagDimension[], newCustomTags?: TagOption[]) => void
+  onSaveCustomTag: (
+    tag: TagOption,
+    isUserDimension: boolean,
+    newCustomDimensions?: TagDimension[],
+    newCustomTags?: TagOption[]
+  ) => void
   onSaveCustomDimension: (dimension: TagDimension, newCustomDimensions: TagDimension[]) => void
 }
 
@@ -61,9 +66,7 @@ export function useCustomContent({
   const allTagDimensions = useMemo(() => {
     // 將用戶自訂標籤合併到對應的系統維度
     const mergedSystemDimensions = tagDimensions.map((dim) => {
-      const customTags = customTagsForSystemDimensions.filter(
-        (tag) => tag.dimension_id === dim.id
-      )
+      const customTags = customTagsForSystemDimensions.filter((tag) => tag.dimension_id === dim.id)
       if (customTags.length > 0) {
         return {
           ...dim,

@@ -3,5 +3,5 @@
  */
 
 export { Logo } from './Logo'
-export { UserMenu } from './UserMenu'
 export { SearchBar } from './SearchBar'
+export { UserMenu } from './UserMenu'

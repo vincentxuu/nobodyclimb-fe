@@ -3,22 +3,16 @@
  *
  * 整合岩場、岩館、影片等探索功能
  */
-import React, { useState, useCallback } from 'react'
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import {
-  Mountain,
-  Building2,
-  Video,
-  MapPin,
-  ChevronRight,
-} from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, SearchInput, Card } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { Building2, ChevronRight, MapPin, Mountain, Video } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Card, SearchInput, Text } from '@/components/ui'
 
 // 探索類別
 const EXPLORE_CATEGORIES = [
@@ -59,7 +53,7 @@ const POPULAR_LOCATIONS = [
 ]
 
 interface CategoryCardProps {
-  category: typeof EXPLORE_CATEGORIES[0]
+  category: (typeof EXPLORE_CATEGORIES)[0]
   onPress: () => void
   index: number
 }
@@ -93,12 +87,15 @@ export default function ExploreScreen() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
 
-  const handleSearch = useCallback((value: string) => {
-    setSearchTerm(value)
-    if (value.trim()) {
-      router.push(`/search?q=${encodeURIComponent(value.trim())}` as any)
-    }
-  }, [router])
+  const handleSearch = useCallback(
+    (value: string) => {
+      setSearchTerm(value)
+      if (value.trim()) {
+        router.push(`/search?q=${encodeURIComponent(value.trim())}` as any)
+      }
+    },
+    [router]
+  )
 
   const handleCategoryPress = useCallback(
     (route: string) => {

@@ -3,22 +3,22 @@
  *
  * 對應 apps/web/src/app/auth/profile-setup/self-intro/page.tsx
  */
-import React, { useState, useCallback } from 'react'
+
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { useCallback, useState } from 'react'
 import {
-  StyleSheet,
-  View,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { YStack, XStack } from 'tamagui'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
-import { Text, Button, ProgressBar } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING, FONT_SIZE, RADIUS } from '@nobodyclimb/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { XStack, YStack } from 'tamagui'
+import { Button, ProgressBar, Text } from '@/components/ui'
 
 // 自我介紹提示問題
 const INTRO_PROMPTS = [
@@ -75,9 +75,7 @@ export default function SelfIntroScreen() {
               {/* 標題 */}
               <YStack gap={SPACING.xs}>
                 <Text variant="h2">分享您的攀岩故事</Text>
-                <Text color="textSubtle">
-                  讓其他攀岩愛好者更了解您
-                </Text>
+                <Text color="textSubtle">讓其他攀岩愛好者更了解您</Text>
               </YStack>
 
               {/* 提示問題 */}
@@ -121,9 +119,7 @@ export default function SelfIntroScreen() {
                   disabled={isLoading}
                   style={styles.nextButton}
                 >
-                  <Text style={styles.buttonText}>
-                    {isLoading ? '處理中...' : '下一步'}
-                  </Text>
+                  <Text style={styles.buttonText}>{isLoading ? '處理中...' : '下一步'}</Text>
                 </Button>
                 <Button
                   variant="ghost"

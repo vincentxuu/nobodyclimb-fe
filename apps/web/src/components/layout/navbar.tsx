@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { motion, useScroll, useSpring } from 'framer-motion'
-
-// 導入導航組件
-import Logo from './navbar/Logo'
-import UnifiedNav from './navbar/UnifiedNav'
-import UserMenu from './navbar/UserMenu'
-import MobileMenu from './navbar/MobileMenu'
+import { useEffect, useState } from 'react'
 import { NotificationCenter } from '@/components/shared/notification-center'
 import { LocaleSwitcher } from './locale-switcher'
+// 導入導航組件
+import Logo from './navbar/Logo'
+import MobileMenu from './navbar/MobileMenu'
+import UnifiedNav from './navbar/UnifiedNav'
+import UserMenu from './navbar/UserMenu'
 
 /**
  * 主導航欄組件

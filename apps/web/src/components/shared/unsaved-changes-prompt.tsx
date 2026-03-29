@@ -1,7 +1,7 @@
 'use client'
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface UnsavedChangesPromptProps {

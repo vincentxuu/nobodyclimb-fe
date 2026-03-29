@@ -3,51 +3,38 @@
  *
  * 對應 apps/web/src/app/about/page.tsx
  */
-import React from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Pressable,
-  Dimensions,
-  Image as RNImage,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
+
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
 import {
+  BookOpen,
+  Building2,
+  Camera,
   ChevronLeft,
+  FileText,
+  type LucideIcon,
+  MapPin,
   MountainSnow,
   Users,
-  BookOpen,
-  MapPin,
   Video,
-  Camera,
-  FileText,
-  Building2,
-  type LucideIcon,
 } from 'lucide-react-native'
+import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
-
-import { Text, Button, IconButton, Skeleton } from '@/components/ui'
-import {
-  SEMANTIC_COLORS,
-  SPACING,
-  BRAND_YELLOW,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, IconButton, Skeleton, Text } from '@/components/ui'
 import { useAboutStats } from '@/lib/hooks/useAboutStats'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 // 語意化間距別名（數字 key 映射）
 const GAP = {
-  xs: SPACING[2],   // 8
-  sm: SPACING[3],   // 12
-  md: SPACING[4],   // 16
-  lg: SPACING[5],   // 20
-  xl: SPACING[6],   // 24
-  xxl: SPACING[8],  // 32
+  xs: SPACING[2], // 8
+  sm: SPACING[3], // 12
+  md: SPACING[4], // 16
+  lg: SPACING[5], // 20
+  xl: SPACING[6], // 24
+  xxl: SPACING[8], // 32
 }
 
 // ============================================
@@ -69,15 +56,10 @@ function HeroSection() {
           />
         </Animated.View>
 
-        <Animated.View
-          entering={FadeIn.duration(400).delay(300)}
-          style={styles.heroAccentLine}
-        />
+        <Animated.View entering={FadeIn.duration(400).delay(300)} style={styles.heroAccentLine} />
 
         <Animated.View entering={FadeInDown.duration(600).delay(400)}>
-          <Text style={styles.heroTagline}>
-            每個 Nobody 都有屬於自己的攀岩故事
-          </Text>
+          <Text style={styles.heroTagline}>每個 Nobody 都有屬於自己的攀岩故事</Text>
         </Animated.View>
       </View>
     </View>
@@ -92,10 +74,7 @@ function StorySection() {
     <View style={styles.sectionWhite}>
       <View style={styles.storyGrid}>
         {/* 文字內容 */}
-        <Animated.View
-          entering={FadeInDown.duration(600).delay(100)}
-          style={styles.storyContent}
-        >
+        <Animated.View entering={FadeInDown.duration(600).delay(100)} style={styles.storyContent}>
           <Text variant="h2" style={styles.sectionTitle}>
             故事起源
           </Text>
@@ -109,16 +88,14 @@ function StorySection() {
               在攀岩的路上，我們都是小人物。不論你是剛踏入岩館的新手，還是征戰各大岩場的老手，每個人都有屬於自己的故事、自己的掙扎、自己的突破。
             </Text>
             <Text style={styles.storyText}>
-              我們希望打造一個平台，讓每位攀岩愛好者都能找到資訊、分享故事、建立連結。因為在這裡，每個 Nobody 都值得被看見。
+              我們希望打造一個平台，讓每位攀岩愛好者都能找到資訊、分享故事、建立連結。因為在這裡，每個
+              Nobody 都值得被看見。
             </Text>
           </View>
         </Animated.View>
 
         {/* Logo 區塊 */}
-        <Animated.View
-          entering={FadeIn.duration(600).delay(200)}
-          style={styles.storyLogoContainer}
-        >
+        <Animated.View entering={FadeIn.duration(600).delay(200)} style={styles.storyLogoContainer}>
           <Image
             source={require('../../assets/logo/logo512.png')}
             style={styles.storyLogo}
@@ -144,22 +121,19 @@ const MISSIONS: MissionItem[] = [
   {
     icon: MountainSnow,
     title: '推廣攀岩',
-    description:
-      '降低入門門檻，提供完整的岩場資訊與攻略，讓更多人認識並愛上攀岩運動。',
+    description: '降低入門門檻，提供完整的岩場資訊與攻略，讓更多人認識並愛上攀岩運動。',
     color: BRAND_YELLOW[100],
   },
   {
     icon: Users,
     title: '建立社群',
-    description:
-      '連結台灣各地的攀岩愛好者，創造交流與分享的空間，一起成長進步。',
+    description: '連結台灣各地的攀岩愛好者，創造交流與分享的空間，一起成長進步。',
     color: BRAND_YELLOW[200],
   },
   {
     icon: BookOpen,
     title: '記錄故事',
-    description:
-      '透過人物誌與部落格，記錄每位攀岩者的珍貴回憶與獨特經歷。',
+    description: '透過人物誌與部落格，記錄每位攀岩者的珍貴回憶與獨特經歷。',
     color: '#DA3737',
   },
 ]
@@ -167,10 +141,7 @@ const MISSIONS: MissionItem[] = [
 function MissionSection() {
   return (
     <View style={styles.sectionGray}>
-      <Animated.View
-        entering={FadeInDown.duration(500)}
-        style={styles.sectionHeader}
-      >
+      <Animated.View entering={FadeInDown.duration(500)} style={styles.sectionHeader}>
         <Text variant="h2" style={styles.sectionTitle}>
           我們的使命
         </Text>
@@ -186,9 +157,7 @@ function MissionSection() {
               entering={FadeInDown.duration(500).delay(index * 100)}
               style={styles.missionCard}
             >
-              <View
-                style={[styles.missionIconContainer, { backgroundColor: mission.color }]}
-              >
+              <View style={[styles.missionIconContainer, { backgroundColor: mission.color }]}>
                 <IconComponent size={32} color={SEMANTIC_COLORS.textMain} />
               </View>
               <Text variant="h4" style={styles.missionTitle}>
@@ -257,17 +226,12 @@ function FeaturesSection() {
 
   return (
     <View style={styles.sectionWhite}>
-      <Animated.View
-        entering={FadeInDown.duration(500)}
-        style={styles.sectionHeader}
-      >
+      <Animated.View entering={FadeInDown.duration(500)} style={styles.sectionHeader}>
         <Text variant="h2" style={styles.sectionTitle}>
           平台功能
         </Text>
         <View style={styles.titleUnderline} />
-        <Text style={styles.sectionSubtitle}>
-          從入門到進階，提供你攀岩旅程所需的一切資源
-        </Text>
+        <Text style={styles.sectionSubtitle}>從入門到進階，提供你攀岩旅程所需的一切資源</Text>
       </Animated.View>
 
       <View style={styles.featuresGrid}>
@@ -279,10 +243,7 @@ function FeaturesSection() {
               entering={FadeInDown.duration(500).delay(index * 80)}
             >
               <Pressable
-                style={({ pressed }) => [
-                  styles.featureCard,
-                  pressed && styles.featureCardPressed,
-                ]}
+                style={({ pressed }) => [styles.featureCard, pressed && styles.featureCardPressed]}
                 onPress={() => router.push(feature.href as any)}
               >
                 <View style={styles.featureIconContainer}>
@@ -368,10 +329,7 @@ function CTASection() {
 
   return (
     <View style={styles.sectionGray}>
-      <Animated.View
-        entering={FadeInDown.duration(500)}
-        style={styles.ctaContent}
-      >
+      <Animated.View entering={FadeInDown.duration(500)} style={styles.ctaContent}>
         <Image
           source={require('../../assets/logo/nobodyclimb-black.png')}
           style={styles.ctaLogo}
@@ -427,10 +385,7 @@ export default function AboutScreen() {
       </SafeAreaView>
 
       {/* 內容 */}
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <HeroSection />
         <StorySection />
         <MissionSection />

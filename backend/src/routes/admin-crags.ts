@@ -1,39 +1,41 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { describeRoute, validator } from 'hono-openapi';
-import { D1Database } from '@cloudflare/workers-types';
-import { Env, Crag, Route } from '../types';
-import { authMiddleware, adminMiddleware } from '../middleware/auth';
-import { parsePagination, generateId } from '../utils/id';
+import { D1Database } from '@cloudflare/workers-types'
+import { Hono } from 'hono'
+import { describeRoute, validator } from 'hono-openapi'
+import { z } from 'zod'
+import { adminMiddleware, authMiddleware } from '../middleware/auth'
+import { Crag, Env, Route } from '../types'
+import { generateId, parsePagination } from '../utils/id'
 
 // Validation schemas
 const batchImportCragsSchema = z.object({
-  crags: z.array(z.object({
-    id: z.string().optional(),
-    name: z.string().min(1),
-    slug: z.string().min(1),
-    description: z.string().optional(),
-    location: z.string().optional(),
-    region: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
-    altitude: z.number().optional(),
-    rock_type: z.string().optional(),
-    climbing_types: z.array(z.string()).optional(),
-    difficulty_range: z.string().optional(),
-    route_count: z.number().optional(),
-    bolt_count: z.number().optional(),
-    cover_image: z.string().optional(),
-    images: z.array(z.string()).optional(),
-    is_featured: z.number().optional(),
-    access_info: z.string().optional(),
-    parking_info: z.string().optional(),
-    approach_time: z.string().optional(),
-    best_seasons: z.array(z.string()).optional(),
-    restrictions: z.string().optional(),
-  })),
+  crags: z.array(
+    z.object({
+      id: z.string().optional(),
+      name: z.string().min(1),
+      slug: z.string().min(1),
+      description: z.string().optional(),
+      location: z.string().optional(),
+      region: z.string().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+      altitude: z.number().optional(),
+      rock_type: z.string().optional(),
+      climbing_types: z.array(z.string()).optional(),
+      difficulty_range: z.string().optional(),
+      route_count: z.number().optional(),
+      bolt_count: z.number().optional(),
+      cover_image: z.string().optional(),
+      images: z.array(z.string()).optional(),
+      is_featured: z.number().optional(),
+      access_info: z.string().optional(),
+      parking_info: z.string().optional(),
+      approach_time: z.string().optional(),
+      best_seasons: z.array(z.string()).optional(),
+      restrictions: z.string().optional(),
+    })
+  ),
   skipExisting: z.boolean().optional(),
-});
+})
 
 const createRouteSchema = z.object({
   id: z.string().optional(),
@@ -47,7 +49,7 @@ const createRouteSchema = z.object({
   first_ascent: z.string().optional(),
   area_id: z.string().optional(),
   sector_id: z.string().optional(),
-});
+})
 
 const updateRouteSchema = z.object({
   name: z.string().optional(),
@@ -60,24 +62,26 @@ const updateRouteSchema = z.object({
   first_ascent: z.string().nullable().optional(),
   area_id: z.string().nullable().optional(),
   sector_id: z.string().nullable().optional(),
-});
+})
 
 const batchImportRoutesSchema = z.object({
-  routes: z.array(z.object({
-    id: z.string().optional(),
-    name: z.string().min(1),
-    grade: z.string().optional(),
-    grade_system: z.string().optional(),
-    height: z.number().optional(),
-    bolt_count: z.number().optional(),
-    route_type: z.string().optional(),
-    description: z.string().optional(),
-    first_ascent: z.string().optional(),
-    area_id: z.string().optional(),
-    sector_id: z.string().optional(),
-  })),
+  routes: z.array(
+    z.object({
+      id: z.string().optional(),
+      name: z.string().min(1),
+      grade: z.string().optional(),
+      grade_system: z.string().optional(),
+      height: z.number().optional(),
+      bolt_count: z.number().optional(),
+      route_type: z.string().optional(),
+      description: z.string().optional(),
+      first_ascent: z.string().optional(),
+      area_id: z.string().optional(),
+      sector_id: z.string().optional(),
+    })
+  ),
   skipExisting: z.boolean().optional(),
-});
+})
 
 // Helper function to update crag route and bolt counts
 async function updateCragCounts(db: D1Database, cragId: string) {
@@ -92,13 +96,13 @@ async function updateCragCounts(db: D1Database, cragId: string) {
   `
     )
     .bind(cragId, cragId, cragId)
-    .run();
+    .run()
 }
 
-export const adminCragsRoutes = new Hono<{ Bindings: Env }>();
+export const adminCragsRoutes = new Hono<{ Bindings: Env }>()
 
 // All routes require admin authentication
-adminCragsRoutes.use('*', authMiddleware, adminMiddleware);
+adminCragsRoutes.use('*', authMiddleware, adminMiddleware)
 
 // ============================================
 // Static routes MUST come before dynamic routes
@@ -118,60 +122,58 @@ adminCragsRoutes.get(
     },
   }),
   async (c) => {
-  const { page, limit, offset } = parsePagination(
-    c.req.query('page'),
-    c.req.query('limit')
-  );
-  const search = c.req.query('search');
-  const region = c.req.query('region');
+    const { page, limit, offset } = parsePagination(c.req.query('page'), c.req.query('limit'))
+    const search = c.req.query('search')
+    const region = c.req.query('region')
 
-  let whereClause = '1=1';
-  const params: (string | number)[] = [];
+    let whereClause = '1=1'
+    const params: (string | number)[] = []
 
-  if (search) {
-    whereClause += ' AND (name LIKE ? OR slug LIKE ? OR location LIKE ?)';
-    const searchPattern = `%${search}%`;
-    params.push(searchPattern, searchPattern, searchPattern);
-  }
+    if (search) {
+      whereClause += ' AND (name LIKE ? OR slug LIKE ? OR location LIKE ?)'
+      const searchPattern = `%${search}%`
+      params.push(searchPattern, searchPattern, searchPattern)
+    }
 
-  if (region) {
-    whereClause += ' AND region = ?';
-    params.push(region);
-  }
+    if (region) {
+      whereClause += ' AND region = ?'
+      params.push(region)
+    }
 
-  // Get total count
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM crags WHERE ${whereClause}`
-  )
-    .bind(...params)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
+    // Get total count
+    const countResult = await c.env.DB.prepare(
+      `SELECT COUNT(*) as count FROM crags WHERE ${whereClause}`
+    )
+      .bind(...params)
+      .first<{ count: number }>()
+    const total = countResult?.count || 0
 
-  // Get paginated results
-  const crags = await c.env.DB.prepare(
-    `SELECT * FROM crags WHERE ${whereClause}
+    // Get paginated results
+    const crags = await c.env.DB.prepare(
+      `SELECT * FROM crags WHERE ${whereClause}
      ORDER BY updated_at DESC, name ASC
      LIMIT ? OFFSET ?`
-  )
-    .bind(...params, limit, offset)
-    .all<Crag>();
+    )
+      .bind(...params, limit, offset)
+      .all<Crag>()
 
-  return c.json({
-    success: true,
-    data: crags.results.map((crag) => ({
-      ...crag,
-      climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
-      images: crag.images ? JSON.parse(crag.images) : [],
-      best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
-    })),
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: crags.results.map((crag) => ({
+        ...crag,
+        climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
+        images: crag.images ? JSON.parse(crag.images) : [],
+        best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        total_pages: Math.ceil(total / limit),
+      },
+    })
+  }
+)
 
 // GET /admin/crags/stats - Get crag statistics (MUST be before /:id)
 adminCragsRoutes.get(
@@ -187,7 +189,7 @@ adminCragsRoutes.get(
     },
   }),
   async (c) => {
-  const stats = await c.env.DB.prepare(`
+    const stats = await c.env.DB.prepare(`
     SELECT
       COUNT(*) as total_crags,
       SUM(route_count) as total_routes,
@@ -196,30 +198,31 @@ adminCragsRoutes.get(
       COUNT(CASE WHEN created_at >= datetime('now', '-30 days') THEN 1 END) as new_this_month
     FROM crags
   `).first<{
-    total_crags: number;
-    total_routes: number;
-    total_bolts: number;
-    featured_count: number;
-    new_this_month: number;
-  }>();
+      total_crags: number
+      total_routes: number
+      total_bolts: number
+      featured_count: number
+      new_this_month: number
+    }>()
 
-  // Get region distribution
-  const regionStats = await c.env.DB.prepare(`
+    // Get region distribution
+    const regionStats = await c.env.DB.prepare(`
     SELECT region, COUNT(*) as count
     FROM crags
     WHERE region IS NOT NULL
     GROUP BY region
     ORDER BY count DESC
-  `).all<{ region: string; count: number }>();
+  `).all<{ region: string; count: number }>()
 
-  return c.json({
-    success: true,
-    data: {
-      ...stats,
-      regions: regionStats.results,
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: {
+        ...stats,
+        regions: regionStats.results,
+      },
+    })
+  }
+)
 
 // POST /admin/crags/batch-import - Batch import crags (MUST be before /:id)
 adminCragsRoutes.post(
@@ -237,38 +240,36 @@ adminCragsRoutes.post(
   }),
   validator('json', batchImportCragsSchema),
   async (c) => {
-  const body = c.req.valid('json');
+    const body = c.req.valid('json')
 
-  const results = {
-    imported: 0,
-    skipped: 0,
-    errors: [] as string[],
-  };
+    const results = {
+      imported: 0,
+      skipped: 0,
+      errors: [] as string[],
+    }
 
-  for (const cragData of body.crags) {
-    try {
-      if (!cragData.name || !cragData.slug) {
-        results.errors.push(`Missing name or slug for crag`);
-        continue;
-      }
-
-      // Check if exists
-      if (body.skipExisting) {
-        const existing = await c.env.DB.prepare(
-          'SELECT id FROM crags WHERE slug = ?'
-        )
-          .bind(cragData.slug)
-          .first();
-
-        if (existing) {
-          results.skipped++;
-          continue;
+    for (const cragData of body.crags) {
+      try {
+        if (!cragData.name || !cragData.slug) {
+          results.errors.push(`Missing name or slug for crag`)
+          continue
         }
-      }
 
-      const id = cragData.id || generateId();
+        // Check if exists
+        if (body.skipExisting) {
+          const existing = await c.env.DB.prepare('SELECT id FROM crags WHERE slug = ?')
+            .bind(cragData.slug)
+            .first()
 
-      await c.env.DB.prepare(`
+          if (existing) {
+            results.skipped++
+            continue
+          }
+        }
+
+        const id = cragData.id || generateId()
+
+        await c.env.DB.prepare(`
         INSERT INTO crags (
           id, name, slug, description, location, region,
           latitude, longitude, altitude, rock_type, climbing_types,
@@ -298,47 +299,46 @@ adminCragsRoutes.post(
           restrictions = excluded.restrictions,
           updated_at = datetime('now')
       `)
-        .bind(
-          id,
-          cragData.name,
-          cragData.slug,
-          cragData.description || null,
-          cragData.location || null,
-          cragData.region || null,
-          cragData.latitude || null,
-          cragData.longitude || null,
-          cragData.altitude || null,
-          cragData.rock_type || null,
-          cragData.climbing_types
-            ? JSON.stringify(cragData.climbing_types)
-            : null,
-          cragData.difficulty_range || null,
-          cragData.route_count || 0,
-          cragData.bolt_count || 0,
-          cragData.cover_image || null,
-          cragData.images ? JSON.stringify(cragData.images) : null,
-          cragData.is_featured || 0,
-          cragData.access_info || null,
-          cragData.parking_info || null,
-          cragData.approach_time || null,
-          cragData.best_seasons ? JSON.stringify(cragData.best_seasons) : null,
-          cragData.restrictions || null
+          .bind(
+            id,
+            cragData.name,
+            cragData.slug,
+            cragData.description || null,
+            cragData.location || null,
+            cragData.region || null,
+            cragData.latitude || null,
+            cragData.longitude || null,
+            cragData.altitude || null,
+            cragData.rock_type || null,
+            cragData.climbing_types ? JSON.stringify(cragData.climbing_types) : null,
+            cragData.difficulty_range || null,
+            cragData.route_count || 0,
+            cragData.bolt_count || 0,
+            cragData.cover_image || null,
+            cragData.images ? JSON.stringify(cragData.images) : null,
+            cragData.is_featured || 0,
+            cragData.access_info || null,
+            cragData.parking_info || null,
+            cragData.approach_time || null,
+            cragData.best_seasons ? JSON.stringify(cragData.best_seasons) : null,
+            cragData.restrictions || null
+          )
+          .run()
+
+        results.imported++
+      } catch (error) {
+        results.errors.push(
+          `Failed to import ${cragData.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
         )
-        .run();
-
-      results.imported++;
-    } catch (error) {
-      results.errors.push(
-        `Failed to import ${cragData.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      }
     }
-  }
 
-  return c.json({
-    success: results.errors.length === 0,
-    data: results,
-  });
-});
+    return c.json({
+      success: results.errors.length === 0,
+      data: results,
+    })
+  }
+)
 
 // ============================================
 // Video Search (MUST be before /:id)
@@ -358,35 +358,35 @@ adminCragsRoutes.get(
     },
   }),
   async (c) => {
-    const search = c.req.query('q') || '';
-    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
+    const search = c.req.query('q') || ''
+    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50)
 
     let query = `SELECT id, title, youtube_id, thumbnail_url, duration, channel, channel_id, published_at, view_count
-                 FROM videos`;
-    const params: (string | number)[] = [];
+                 FROM videos`
+    const params: (string | number)[] = []
 
     if (search) {
-      query += ' WHERE title LIKE ? OR channel LIKE ? OR youtube_id = ?';
-      const searchPattern = `%${search}%`;
-      params.push(searchPattern, searchPattern, search);
+      query += ' WHERE title LIKE ? OR channel LIKE ? OR youtube_id = ?'
+      const searchPattern = `%${search}%`
+      params.push(searchPattern, searchPattern, search)
     }
 
-    query += ' ORDER BY published_at DESC NULLS LAST LIMIT ?';
-    params.push(limit);
+    query += ' ORDER BY published_at DESC NULLS LAST LIMIT ?'
+    params.push(limit)
 
     const videos = await c.env.DB.prepare(query)
       .bind(...params)
       .all<{
-        id: string;
-        title: string;
-        youtube_id: string | null;
-        thumbnail_url: string | null;
-        duration: number | null;
-        channel: string | null;
-        channel_id: string | null;
-        published_at: string | null;
-        view_count: number | null;
-      }>();
+        id: string
+        title: string
+        youtube_id: string | null
+        thumbnail_url: string | null
+        duration: number | null
+        channel: string | null
+        channel_id: string | null
+        published_at: string | null
+        view_count: number | null
+      }>()
 
     return c.json({
       success: true,
@@ -401,9 +401,9 @@ adminCragsRoutes.get(
         publishedAt: v.published_at,
         viewCount: v.view_count,
       })),
-    });
+    })
   }
-);
+)
 
 // ============================================
 // Dynamic crag routes (/:id)
@@ -424,41 +424,40 @@ adminCragsRoutes.get(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?')
-    .bind(id)
-    .first<Crag>();
+    const crag = await c.env.DB.prepare('SELECT * FROM crags WHERE id = ?').bind(id).first<Crag>()
 
-  if (!crag) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
+    if (!crag) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
+    }
+
+    // Get routes for this crag
+    const routes = await c.env.DB.prepare(
+      'SELECT * FROM routes WHERE crag_id = ? ORDER BY grade ASC'
+    )
+      .bind(id)
+      .all<Route>()
+
+    return c.json({
+      success: true,
+      data: {
+        ...crag,
+        climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
+        images: crag.images ? JSON.parse(crag.images) : [],
+        best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
+        routes: routes.results,
       },
-      404
-    );
+    })
   }
-
-  // Get routes for this crag
-  const routes = await c.env.DB.prepare(
-    'SELECT * FROM routes WHERE crag_id = ? ORDER BY grade ASC'
-  )
-    .bind(id)
-    .all<Route>();
-
-  return c.json({
-    success: true,
-    data: {
-      ...crag,
-      climbing_types: crag.climbing_types ? JSON.parse(crag.climbing_types) : [],
-      images: crag.images ? JSON.parse(crag.images) : [],
-      best_seasons: crag.best_seasons ? JSON.parse(crag.best_seasons) : [],
-      routes: routes.results,
-    },
-  });
-});
+)
 
 // POST /admin/crags/:id/update-counts - Update route and bolt counts
 adminCragsRoutes.post(
@@ -475,52 +474,51 @@ adminCragsRoutes.post(
     },
   }),
   async (c) => {
-  const id = c.req.param('id');
+    const id = c.req.param('id')
 
-  // First verify crag exists
-  const cragExists = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
-    .bind(id)
-    .first();
+    // First verify crag exists
+    const cragExists = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?').bind(id).first()
 
-  if (!cragExists) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
-      },
-      404
-    );
-  }
+    if (!cragExists) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
+    }
 
-  // Calculate counts from routes table
-  const counts = await c.env.DB.prepare(`
+    // Calculate counts from routes table
+    const counts = await c.env.DB.prepare(`
     SELECT
       COUNT(*) as route_count,
       COALESCE(SUM(bolt_count), 0) as bolt_count
     FROM routes
     WHERE crag_id = ?
   `)
-    .bind(id)
-    .first<{ route_count: number; bolt_count: number }>();
+      .bind(id)
+      .first<{ route_count: number; bolt_count: number }>()
 
-  // Update crag
-  await c.env.DB.prepare(`
+    // Update crag
+    await c.env.DB.prepare(`
     UPDATE crags
     SET route_count = ?, bolt_count = ?, updated_at = datetime('now')
     WHERE id = ?
   `)
-    .bind(counts?.route_count || 0, counts?.bolt_count || 0, id)
-    .run();
+      .bind(counts?.route_count || 0, counts?.bolt_count || 0, id)
+      .run()
 
-  return c.json({
-    success: true,
-    data: {
-      route_count: counts?.route_count || 0,
-      bolt_count: counts?.bolt_count || 0,
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: {
+        route_count: counts?.route_count || 0,
+        bolt_count: counts?.bolt_count || 0,
+      },
+    })
+  }
+)
 
 // ============================================
 // Route Management - Static routes first
@@ -543,41 +541,39 @@ adminCragsRoutes.post(
   }),
   validator('json', batchImportRoutesSchema),
   async (c) => {
-  const cragId = c.req.param('cragId');
-  const body = c.req.valid('json');
+    const cragId = c.req.param('cragId')
+    const body = c.req.valid('json')
 
-  // Verify crag exists
-  const crag = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
-    .bind(cragId)
-    .first();
+    // Verify crag exists
+    const crag = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?').bind(cragId).first()
 
-  if (!crag) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
-      },
-      404
-    );
-  }
+    if (!crag) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
+    }
 
-  const results = {
-    imported: 0,
-    skipped: 0,
-    errors: [] as string[],
-  };
+    const results = {
+      imported: 0,
+      skipped: 0,
+      errors: [] as string[],
+    }
 
-  for (const routeData of body.routes) {
-    try {
-      if (!routeData.name) {
-        results.errors.push('Missing name for route');
-        continue;
-      }
+    for (const routeData of body.routes) {
+      try {
+        if (!routeData.name) {
+          results.errors.push('Missing name for route')
+          continue
+        }
 
-      const id = routeData.id || generateId();
+        const id = routeData.id || generateId()
 
-      await c.env.DB.prepare(`
+        await c.env.DB.prepare(`
         INSERT INTO routes (
           id, crag_id, name, grade, grade_system,
           height, bolt_count, route_type, description, first_ascent,
@@ -595,38 +591,39 @@ adminCragsRoutes.post(
           area_id = excluded.area_id,
           sector_id = excluded.sector_id
       `)
-        .bind(
-          id,
-          cragId,
-          routeData.name,
-          routeData.grade || null,
-          routeData.grade_system || 'yds',
-          routeData.height || null,
-          routeData.bolt_count || null,
-          routeData.route_type || 'sport',
-          routeData.description || null,
-          routeData.first_ascent || null,
-          routeData.area_id || null,
-          routeData.sector_id || null
+          .bind(
+            id,
+            cragId,
+            routeData.name,
+            routeData.grade || null,
+            routeData.grade_system || 'yds',
+            routeData.height || null,
+            routeData.bolt_count || null,
+            routeData.route_type || 'sport',
+            routeData.description || null,
+            routeData.first_ascent || null,
+            routeData.area_id || null,
+            routeData.sector_id || null
+          )
+          .run()
+
+        results.imported++
+      } catch (error) {
+        results.errors.push(
+          `Failed to import ${routeData.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
         )
-        .run();
-
-      results.imported++;
-    } catch (error) {
-      results.errors.push(
-        `Failed to import ${routeData.name}: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+      }
     }
+
+    // Update crag counts
+    await updateCragCounts(c.env.DB, cragId)
+
+    return c.json({
+      success: results.errors.length === 0,
+      data: results,
+    })
   }
-
-  // Update crag counts
-  await updateCragCounts(c.env.DB, cragId);
-
-  return c.json({
-    success: results.errors.length === 0,
-    data: results,
-  });
-});
+)
 
 // ============================================
 // Dynamic route routes
@@ -646,56 +643,54 @@ adminCragsRoutes.get(
     },
   }),
   async (c) => {
-  const cragId = c.req.param('cragId');
-  const areaId = c.req.query('area_id');
-  const sectorId = c.req.query('sector_id');
-  const { page, limit, offset } = parsePagination(
-    c.req.query('page'),
-    c.req.query('limit')
-  );
+    const cragId = c.req.param('cragId')
+    const areaId = c.req.query('area_id')
+    const sectorId = c.req.query('sector_id')
+    const { page, limit, offset } = parsePagination(c.req.query('page'), c.req.query('limit'))
 
-  // Build WHERE clause
-  let whereClause = 'crag_id = ?';
-  const bindParams: (string | number)[] = [cragId];
+    // Build WHERE clause
+    let whereClause = 'crag_id = ?'
+    const bindParams: (string | number)[] = [cragId]
 
-  if (areaId) {
-    whereClause += ' AND area_id = ?';
-    bindParams.push(areaId);
-  }
+    if (areaId) {
+      whereClause += ' AND area_id = ?'
+      bindParams.push(areaId)
+    }
 
-  if (sectorId) {
-    whereClause += ' AND sector_id = ?';
-    bindParams.push(sectorId);
-  }
+    if (sectorId) {
+      whereClause += ' AND sector_id = ?'
+      bindParams.push(sectorId)
+    }
 
-  // Get total count
-  const countResult = await c.env.DB.prepare(
-    `SELECT COUNT(*) as count FROM routes WHERE ${whereClause}`
-  )
-    .bind(...bindParams)
-    .first<{ count: number }>();
-  const total = countResult?.count || 0;
+    // Get total count
+    const countResult = await c.env.DB.prepare(
+      `SELECT COUNT(*) as count FROM routes WHERE ${whereClause}`
+    )
+      .bind(...bindParams)
+      .first<{ count: number }>()
+    const total = countResult?.count || 0
 
-  // Get paginated results
-  const routes = await c.env.DB.prepare(
-    `SELECT * FROM routes WHERE ${whereClause}
+    // Get paginated results
+    const routes = await c.env.DB.prepare(
+      `SELECT * FROM routes WHERE ${whereClause}
      ORDER BY grade ASC, name ASC
      LIMIT ? OFFSET ?`
-  )
-    .bind(...bindParams, limit, offset)
-    .all<Route>();
+    )
+      .bind(...bindParams, limit, offset)
+      .all<Route>()
 
-  return c.json({
-    success: true,
-    data: routes.results,
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
-  });
-});
+    return c.json({
+      success: true,
+      data: routes.results,
+      pagination: {
+        page,
+        limit,
+        total,
+        total_pages: Math.ceil(total / limit),
+      },
+    })
+  }
+)
 
 // POST /admin/crags/:cragId/routes - Create route
 adminCragsRoutes.post(
@@ -714,65 +709,64 @@ adminCragsRoutes.post(
   }),
   validator('json', createRouteSchema),
   async (c) => {
-  const cragId = c.req.param('cragId');
-  const body = c.req.valid('json');
+    const cragId = c.req.param('cragId')
+    const body = c.req.valid('json')
 
-  // Verify crag exists
-  const crag = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?')
-    .bind(cragId)
-    .first();
+    // Verify crag exists
+    const crag = await c.env.DB.prepare('SELECT id FROM crags WHERE id = ?').bind(cragId).first()
 
-  if (!crag) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Crag not found',
-      },
-      404
-    );
-  }
+    if (!crag) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Crag not found',
+        },
+        404
+      )
+    }
 
-  const id = body.id || generateId();
+    const id = body.id || generateId()
 
-  await c.env.DB.prepare(`
+    await c.env.DB.prepare(`
     INSERT INTO routes (
       id, crag_id, name, grade, grade_system,
       height, bolt_count, route_type, description, first_ascent,
       area_id, sector_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
-    .bind(
-      id,
-      cragId,
-      body.name,
-      body.grade || null,
-      body.grade_system || 'yds',
-      body.height || null,
-      body.bolt_count || null,
-      body.route_type || 'sport',
-      body.description || null,
-      body.first_ascent || null,
-      body.area_id || null,
-      body.sector_id || null
+      .bind(
+        id,
+        cragId,
+        body.name,
+        body.grade || null,
+        body.grade_system || 'yds',
+        body.height || null,
+        body.bolt_count || null,
+        body.route_type || 'sport',
+        body.description || null,
+        body.first_ascent || null,
+        body.area_id || null,
+        body.sector_id || null
+      )
+      .run()
+
+    // Update crag route count
+    await updateCragCounts(c.env.DB, cragId)
+
+    const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ?')
+      .bind(id)
+      .first<Route>()
+
+    return c.json(
+      {
+        success: true,
+        data: route,
+      },
+      201
     )
-    .run();
-
-  // Update crag route count
-  await updateCragCounts(c.env.DB, cragId);
-
-  const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ?')
-    .bind(id)
-    .first<Route>();
-
-  return c.json(
-    {
-      success: true,
-      data: route,
-    },
-    201
-  );
-});
+  }
+)
 
 // PUT /admin/crags/:cragId/routes/:routeId - Update route
 adminCragsRoutes.put(
@@ -791,97 +785,98 @@ adminCragsRoutes.put(
   }),
   validator('json', updateRouteSchema),
   async (c) => {
-  const cragId = c.req.param('cragId');
-  const routeId = c.req.param('routeId');
-  const body = c.req.valid('json');
+    const cragId = c.req.param('cragId')
+    const routeId = c.req.param('routeId')
+    const body = c.req.valid('json')
 
-  // Query existing route with bolt_count for incremental update
-  const existing = await c.env.DB.prepare(
-    'SELECT id, bolt_count FROM routes WHERE id = ? AND crag_id = ?'
-  )
-    .bind(routeId, cragId)
-    .first<{ id: string; bolt_count: number | null }>();
+    // Query existing route with bolt_count for incremental update
+    const existing = await c.env.DB.prepare(
+      'SELECT id, bolt_count FROM routes WHERE id = ? AND crag_id = ?'
+    )
+      .bind(routeId, cragId)
+      .first<{ id: string; bolt_count: number | null }>()
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Route not found',
-      },
-      404
-    );
-  }
-
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
-
-  const fields = [
-    'name',
-    'grade',
-    'grade_system',
-    'height',
-    'bolt_count',
-    'route_type',
-    'description',
-    'first_ascent',
-    'area_id',
-    'sector_id',
-  ];
-
-  for (const field of fields) {
-    if (body[field as keyof typeof body] !== undefined) {
-      updates.push(`${field} = ?`);
-      values.push(body[field as keyof typeof body] as string | number | null);
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Route not found',
+        },
+        404
+      )
     }
-  }
 
-  if (updates.length === 0) {
-    return c.json(
-      {
-        success: false,
-        error: 'Bad Request',
-        message: 'No fields to update',
-      },
-      400
-    );
-  }
+    const updates: string[] = []
+    const values: (string | number | null)[] = []
 
-  values.push(routeId);
+    const fields = [
+      'name',
+      'grade',
+      'grade_system',
+      'height',
+      'bolt_count',
+      'route_type',
+      'description',
+      'first_ascent',
+      'area_id',
+      'sector_id',
+    ]
 
-  await c.env.DB.prepare(`UPDATE routes SET ${updates.join(', ')} WHERE id = ?`)
-    .bind(...values)
-    .run();
+    for (const field of fields) {
+      if (body[field as keyof typeof body] !== undefined) {
+        updates.push(`${field} = ?`)
+        values.push(body[field as keyof typeof body] as string | number | null)
+      }
+    }
 
-  // Use incremental bolt_count update if bolt_count was changed
-  if (body.bolt_count !== undefined) {
-    const oldBoltCount = existing.bolt_count || 0;
-    const newBoltCount = body.bolt_count || 0;
-    const diff = newBoltCount - oldBoltCount;
+    if (updates.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: 'No fields to update',
+        },
+        400
+      )
+    }
 
-    if (diff !== 0) {
-      await c.env.DB.prepare(
-        `
+    values.push(routeId)
+
+    await c.env.DB.prepare(`UPDATE routes SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...values)
+      .run()
+
+    // Use incremental bolt_count update if bolt_count was changed
+    if (body.bolt_count !== undefined) {
+      const oldBoltCount = existing.bolt_count || 0
+      const newBoltCount = body.bolt_count || 0
+      const diff = newBoltCount - oldBoltCount
+
+      if (diff !== 0) {
+        await c.env.DB.prepare(
+          `
         UPDATE crags
         SET bolt_count = bolt_count + ?,
             updated_at = datetime('now')
         WHERE id = ?
       `
-      )
-        .bind(diff, cragId)
-        .run();
+        )
+          .bind(diff, cragId)
+          .run()
+      }
     }
+
+    const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ?')
+      .bind(routeId)
+      .first<Route>()
+
+    return c.json({
+      success: true,
+      data: route,
+    })
   }
-
-  const route = await c.env.DB.prepare('SELECT * FROM routes WHERE id = ?')
-    .bind(routeId)
-    .first<Route>();
-
-  return c.json({
-    success: true,
-    data: route,
-  });
-});
+)
 
 // DELETE /admin/crags/:cragId/routes/:routeId - Delete route
 adminCragsRoutes.delete(
@@ -898,36 +893,35 @@ adminCragsRoutes.delete(
     },
   }),
   async (c) => {
-  const cragId = c.req.param('cragId');
-  const routeId = c.req.param('routeId');
+    const cragId = c.req.param('cragId')
+    const routeId = c.req.param('routeId')
 
-  const existing = await c.env.DB.prepare(
-    'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
-  )
-    .bind(routeId, cragId)
-    .first();
+    const existing = await c.env.DB.prepare('SELECT id FROM routes WHERE id = ? AND crag_id = ?')
+      .bind(routeId, cragId)
+      .first()
 
-  if (!existing) {
-    return c.json(
-      {
-        success: false,
-        error: 'Not Found',
-        message: 'Route not found',
-      },
-      404
-    );
+    if (!existing) {
+      return c.json(
+        {
+          success: false,
+          error: 'Not Found',
+          message: 'Route not found',
+        },
+        404
+      )
+    }
+
+    await c.env.DB.prepare('DELETE FROM routes WHERE id = ?').bind(routeId).run()
+
+    // Update crag counts
+    await updateCragCounts(c.env.DB, cragId)
+
+    return c.json({
+      success: true,
+      message: 'Route deleted successfully',
+    })
   }
-
-  await c.env.DB.prepare('DELETE FROM routes WHERE id = ?').bind(routeId).run();
-
-  // Update crag counts
-  await updateCragCounts(c.env.DB, cragId);
-
-  return c.json({
-    success: true,
-    message: 'Route deleted successfully',
-  });
-});
+)
 
 // ============================================
 // Route Video Management
@@ -948,21 +942,16 @@ adminCragsRoutes.get(
     },
   }),
   async (c) => {
-    const cragId = c.req.param('cragId');
-    const routeId = c.req.param('routeId');
+    const cragId = c.req.param('cragId')
+    const routeId = c.req.param('routeId')
 
     // Verify route exists
-    const route = await c.env.DB.prepare(
-      'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
-    )
+    const route = await c.env.DB.prepare('SELECT id FROM routes WHERE id = ? AND crag_id = ?')
       .bind(routeId, cragId)
-      .first();
+      .first()
 
     if (!route) {
-      return c.json(
-        { success: false, error: 'Not Found', message: 'Route not found' },
-        404
-      );
+      return c.json({ success: false, error: 'Not Found', message: 'Route not found' }, 404)
     }
 
     const videos = await c.env.DB.prepare(
@@ -976,17 +965,17 @@ adminCragsRoutes.get(
     )
       .bind(routeId)
       .all<{
-        id: string;
-        title: string;
-        youtube_id: string | null;
-        thumbnail_url: string | null;
-        duration: number | null;
-        channel: string | null;
-        channel_id: string | null;
-        published_at: string | null;
-        view_count: number | null;
-        sort_order: number;
-      }>();
+        id: string
+        title: string
+        youtube_id: string | null
+        thumbnail_url: string | null
+        duration: number | null
+        channel: string | null
+        channel_id: string | null
+        published_at: string | null
+        view_count: number | null
+        sort_order: number
+      }>()
 
     return c.json({
       success: true,
@@ -1002,9 +991,9 @@ adminCragsRoutes.get(
         viewCount: v.view_count,
         sortOrder: v.sort_order,
       })),
-    });
+    })
   }
-);
+)
 
 const addRouteVideoSchema = z.object({
   youtubeId: z.string().min(1),
@@ -1016,7 +1005,7 @@ const addRouteVideoSchema = z.object({
   publishedAt: z.string().optional(),
   viewCount: z.number().optional(),
   sortOrder: z.number().optional(),
-});
+})
 
 // POST /admin/crags/:cragId/routes/:routeId/videos - Add video to a route
 adminCragsRoutes.post(
@@ -1035,37 +1024,32 @@ adminCragsRoutes.post(
   }),
   validator('json', addRouteVideoSchema),
   async (c) => {
-    const cragId = c.req.param('cragId');
-    const routeId = c.req.param('routeId');
-    const body = c.req.valid('json');
+    const cragId = c.req.param('cragId')
+    const routeId = c.req.param('routeId')
+    const body = c.req.valid('json')
 
     // Verify route exists
-    const route = await c.env.DB.prepare(
-      'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
-    )
+    const route = await c.env.DB.prepare('SELECT id FROM routes WHERE id = ? AND crag_id = ?')
       .bind(routeId, cragId)
-      .first();
+      .first()
 
     if (!route) {
-      return c.json(
-        { success: false, error: 'Not Found', message: 'Route not found' },
-        404
-      );
+      return c.json({ success: false, error: 'Not Found', message: 'Route not found' }, 404)
     }
 
     // Check if video already exists in videos table
-    let videoId = body.youtubeId;
+    let videoId = body.youtubeId
     const existingVideo = await c.env.DB.prepare(
       'SELECT id FROM videos WHERE id = ? OR youtube_id = ?'
     )
       .bind(videoId, videoId)
-      .first<{ id: string }>();
+      .first<{ id: string }>()
 
     if (existingVideo) {
-      videoId = existingVideo.id;
+      videoId = existingVideo.id
     } else {
       // Create the video record
-      const slug = `yt-${body.youtubeId}`;
+      const slug = `yt-${body.youtubeId}`
       await c.env.DB.prepare(
         `INSERT OR IGNORE INTO videos (id, title, slug, youtube_id, thumbnail_url, duration,
           channel, channel_id, published_at, view_count, created_at, updated_at)
@@ -1083,7 +1067,7 @@ adminCragsRoutes.post(
           body.publishedAt || null,
           body.viewCount || 0
         )
-        .run();
+        .run()
     }
 
     // Check if route-video link already exists
@@ -1091,7 +1075,7 @@ adminCragsRoutes.post(
       'SELECT id FROM route_videos WHERE route_id = ? AND video_id = ?'
     )
       .bind(routeId, videoId)
-      .first();
+      .first()
 
     if (existingLink) {
       return c.json(
@@ -1101,18 +1085,18 @@ adminCragsRoutes.post(
           message: '此影片已關聯到此路線',
         },
         400
-      );
+      )
     }
 
     // Create the route-video link
-    const linkId = `${routeId}-${videoId}`;
-    const sortOrder = body.sortOrder ?? 0;
+    const linkId = `${routeId}-${videoId}`
+    const sortOrder = body.sortOrder ?? 0
     await c.env.DB.prepare(
       `INSERT INTO route_videos (id, route_id, video_id, sort_order, created_at)
        VALUES (?, ?, ?, ?, datetime('now'))`
     )
       .bind(linkId, routeId, videoId, sortOrder)
-      .run();
+      .run()
 
     return c.json(
       {
@@ -1130,9 +1114,9 @@ adminCragsRoutes.post(
         },
       },
       201
-    );
+    )
   }
-);
+)
 
 // DELETE /admin/crags/:cragId/routes/:routeId/videos/:videoId - Remove video from route
 adminCragsRoutes.delete(
@@ -1149,29 +1133,24 @@ adminCragsRoutes.delete(
     },
   }),
   async (c) => {
-    const cragId = c.req.param('cragId');
-    const routeId = c.req.param('routeId');
-    const videoId = c.req.param('videoId');
+    const cragId = c.req.param('cragId')
+    const routeId = c.req.param('routeId')
+    const videoId = c.req.param('videoId')
 
     // Verify route exists
-    const route = await c.env.DB.prepare(
-      'SELECT id FROM routes WHERE id = ? AND crag_id = ?'
-    )
+    const route = await c.env.DB.prepare('SELECT id FROM routes WHERE id = ? AND crag_id = ?')
       .bind(routeId, cragId)
-      .first();
+      .first()
 
     if (!route) {
-      return c.json(
-        { success: false, error: 'Not Found', message: 'Route not found' },
-        404
-      );
+      return c.json({ success: false, error: 'Not Found', message: 'Route not found' }, 404)
     }
 
     const existing = await c.env.DB.prepare(
       'SELECT id FROM route_videos WHERE route_id = ? AND video_id = ?'
     )
       .bind(routeId, videoId)
-      .first();
+      .first()
 
     if (!existing) {
       return c.json(
@@ -1181,19 +1160,16 @@ adminCragsRoutes.delete(
           message: 'Route-video link not found',
         },
         404
-      );
+      )
     }
 
-    await c.env.DB.prepare(
-      'DELETE FROM route_videos WHERE route_id = ? AND video_id = ?'
-    )
+    await c.env.DB.prepare('DELETE FROM route_videos WHERE route_id = ? AND video_id = ?')
       .bind(routeId, videoId)
-      .run();
+      .run()
 
     return c.json({
       success: true,
       message: 'Video removed from route successfully',
-    });
+    })
   }
-);
-
+)

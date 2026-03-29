@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link'
+import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect } from 'react'
+import { Link } from '@/i18n/navigation'
 
 export default function RouteError({
   error,
@@ -28,19 +28,13 @@ export default function RouteError({
           <AlertTriangle className="h-8 w-8 text-red-600" />
         </div>
 
-        <h2 className="mb-2 text-xl font-semibold text-gray-900">
-          {t('routeErrorTitle')}
-        </h2>
+        <h2 className="mb-2 text-xl font-semibold text-gray-900">{t('routeErrorTitle')}</h2>
 
-        <p className="mb-6 text-sm text-gray-600">
-          {t('routeErrorDescription')}
-        </p>
+        <p className="mb-6 text-sm text-gray-600">{t('routeErrorDescription')}</p>
 
         {process.env.NODE_ENV === 'development' && error.message && (
           <div className="mb-6 rounded-lg bg-gray-100 p-3 text-left">
-            <p className="text-xs font-mono text-gray-700 break-all">
-              {error.message}
-            </p>
+            <p className="text-xs font-mono text-gray-700 break-all">{error.message}</p>
           </div>
         )}
 

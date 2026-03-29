@@ -1,11 +1,11 @@
 'use client'
 
+import apiClient from '@/lib/api/client'
+import type { ContentComment } from '@/lib/api/services'
 import { cn } from '@/lib/utils'
 import { ContentActions } from './ContentActions'
-import { QuickReactionBar } from './QuickReactionBar'
-import type { ContentComment } from '@/lib/api/services'
 import type { InteractorUser } from './ContentInteractorsPanel'
-import apiClient from '@/lib/api/client'
+import { QuickReactionBar } from './QuickReactionBar'
 
 type ContentType = 'core-stories' | 'one-liners' | 'stories'
 

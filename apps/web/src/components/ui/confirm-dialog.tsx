@@ -1,8 +1,7 @@
 'use client'
 
-import React from 'react'
-import { Button } from './button'
 import { X } from 'lucide-react'
+import { Button } from './button'
 
 interface ConfirmDialogProps {
   isOpen: boolean

@@ -3,16 +3,17 @@
  *
  * 複選框
  */
+
+import { DURATION, RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { Check } from 'lucide-react-native'
 import React from 'react'
 import { Pressable, StyleSheet } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { Check } from 'lucide-react-native'
-import { DURATION, RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 
 export interface CheckboxProps {
   /** 是否選中 */

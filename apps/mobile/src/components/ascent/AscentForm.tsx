@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react'
+import { FONT_SIZE, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { X } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
 import {
-  Modal, View, Text, TextInput, Pressable,
-  StyleSheet, ScrollView, ActivityIndicator,
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { X } from 'lucide-react-native'
-import { SEMANTIC_COLORS, SPACING, RADIUS, FONT_SIZE, WB_COLORS } from '@nobodyclimb/constants'
-import { AscentTypeSelect } from './AscentTypeSelect'
 import type { AscentType } from '@/lib/constants/ascent'
+import { AscentTypeSelect } from './AscentTypeSelect'
 
 interface AscentFormData {
   ascent_type: AscentType
@@ -59,7 +65,12 @@ export function AscentForm({ visible, ascent, onSubmit, onClose, loading }: Asce
   if (!visible) return null
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>編輯攀登記錄</Text>
@@ -71,7 +82,9 @@ export function AscentForm({ visible, ascent, onSubmit, onClose, loading }: Asce
         <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
           <View style={styles.routeInfo}>
             <Text style={styles.routeName}>{ascent.route_name}</Text>
-            <Text style={styles.routeMeta}>{ascent.crag_name} · {ascent.grade}</Text>
+            <Text style={styles.routeMeta}>
+              {ascent.crag_name} · {ascent.grade}
+            </Text>
           </View>
 
           <View style={styles.field}>
@@ -97,7 +110,12 @@ export function AscentForm({ visible, ascent, onSubmit, onClose, loading }: Asce
             <View style={styles.ratingRow}>
               {Array.from({ length: 5 }).map((_, i) => (
                 <Pressable key={i} onPress={() => setForm((f) => ({ ...f, rating: i + 1 }))}>
-                  <Text style={{ fontSize: 24, color: i < form.rating ? '#F59E0B' : SEMANTIC_COLORS.border }}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      color: i < form.rating ? '#F59E0B' : SEMANTIC_COLORS.border,
+                    }}
+                  >
                     ★
                   </Text>
                 </Pressable>
@@ -128,7 +146,9 @@ export function AscentForm({ visible, ascent, onSubmit, onClose, loading }: Asce
             onPress={() => onSubmit(form)}
             disabled={loading}
           >
-            {loading && <ActivityIndicator size="small" color={WB_COLORS[0]} style={styles.spinner} />}
+            {loading && (
+              <ActivityIndicator size="small" color={WB_COLORS[0]} style={styles.spinner} />
+            )}
             <Text style={styles.saveText}>儲存</Text>
           </Pressable>
         </View>
@@ -140,9 +160,13 @@ export function AscentForm({ visible, ascent, onSubmit, onClose, loading }: Asce
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: SEMANTIC_COLORS.pageBg },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,
-    borderBottomWidth: 1, borderBottomColor: SEMANTIC_COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: SEMANTIC_COLORS.border,
   },
   title: { fontSize: FONT_SIZE.lg, fontWeight: '700', color: SEMANTIC_COLORS.textMain },
   body: { flex: 1 },
@@ -153,24 +177,40 @@ const styles = StyleSheet.create({
   field: { gap: SPACING.xs },
   fieldLabel: { fontSize: FONT_SIZE.sm, fontWeight: '600', color: SEMANTIC_COLORS.textMain },
   input: {
-    borderWidth: 1, borderColor: SEMANTIC_COLORS.border, borderRadius: RADIUS.sm,
-    paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs,
-    color: SEMANTIC_COLORS.textMain, fontSize: FONT_SIZE.base,
+    borderWidth: 1,
+    borderColor: SEMANTIC_COLORS.border,
+    borderRadius: RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    color: SEMANTIC_COLORS.textMain,
+    fontSize: FONT_SIZE.base,
   },
   textarea: { height: 100, textAlignVertical: 'top' },
   ratingRow: { flexDirection: 'row', gap: SPACING.xs },
   footer: {
-    flexDirection: 'row', gap: SPACING.sm, padding: SPACING.md,
-    borderTopWidth: 1, borderTopColor: SEMANTIC_COLORS.border,
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    padding: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: SEMANTIC_COLORS.border,
   },
   cancelBtn: {
-    flex: 1, borderWidth: 1, borderColor: SEMANTIC_COLORS.border,
-    borderRadius: RADIUS.sm, padding: SPACING.sm, alignItems: 'center',
+    flex: 1,
+    borderWidth: 1,
+    borderColor: SEMANTIC_COLORS.border,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.sm,
+    alignItems: 'center',
   },
   cancelText: { color: SEMANTIC_COLORS.textMain, fontSize: FONT_SIZE.base },
   saveBtn: {
-    flex: 2, flexDirection: 'row', backgroundColor: '#10B981',
-    borderRadius: RADIUS.sm, padding: SPACING.sm, alignItems: 'center', justifyContent: 'center',
+    flex: 2,
+    flexDirection: 'row',
+    backgroundColor: '#10B981',
+    borderRadius: RADIUS.sm,
+    padding: SPACING.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveBtnDisabled: { opacity: 0.5 },
   spinner: { marginRight: SPACING.xs },

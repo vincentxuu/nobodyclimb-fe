@@ -3,12 +3,11 @@
  *
  * 內容互動列，對應 apps/web/src/components/biography/display/ContentInteractionBar.tsx
  */
-import React from 'react'
-import { StyleSheet, View } from 'react-native'
 
 import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { ContentLikeButton } from './ContentLikeButton'
+import { StyleSheet, View } from 'react-native'
 import { ContentCommentSheet } from './ContentCommentSheet'
+import { ContentLikeButton } from './ContentLikeButton'
 import { QuickReactionBar } from './QuickReactionBar'
 
 type ContentType = 'core-stories' | 'one-liners' | 'stories'
@@ -64,18 +63,8 @@ export function ContentInteractionBar({
   centered = false,
 }: ContentInteractionBarProps) {
   return (
-    <View
-      style={[
-        styles.container,
-        showBorder && styles.withBorder,
-        centered && styles.centered,
-      ]}
-    >
-      <QuickReactionBar
-        contentType={contentType}
-        contentId={contentId}
-        size={size}
-      />
+    <View style={[styles.container, showBorder && styles.withBorder, centered && styles.centered]}>
+      <QuickReactionBar contentType={contentType} contentId={contentId} size={size} />
       <View style={[styles.actionsRow, centered && styles.actionsCentered]}>
         <ContentLikeButton
           isLiked={isLiked}

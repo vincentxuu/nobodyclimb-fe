@@ -1,8 +1,8 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { Check, Sparkles } from 'lucide-react'
 import type { TagOption } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface TagChipProps {
   /** 標籤資料 */
@@ -61,9 +61,7 @@ export function TagChip({
     <>
       {isCustom && <Sparkles size={12} className="text-brand-accent" />}
       <span>{tag.label}</span>
-      {editable && selected && (
-        <Check size={12} className="ml-0.5 opacity-70" />
-      )}
+      {editable && selected && <Check size={12} className="ml-0.5 opacity-70" />}
     </>
   )
 
@@ -75,11 +73,7 @@ export function TagChip({
     )
   }
 
-  return (
-    <span className={baseClasses}>
-      {content}
-    </span>
-  )
+  return <span className={baseClasses}>{content}</span>
 }
 
 /**
@@ -122,11 +116,7 @@ export function TagCard({
         <span
           className={cn(
             'font-medium flex items-center gap-1',
-            selected
-              ? isCustom
-                ? 'text-[#1B1A1A]'
-                : 'text-[#1B1A1A]'
-              : 'text-[#3F3D3D]'
+            selected ? (isCustom ? 'text-[#1B1A1A]' : 'text-[#1B1A1A]') : 'text-[#3F3D3D]'
           )}
         >
           {isCustom && <Sparkles size={14} className="text-brand-accent" />}
@@ -146,9 +136,7 @@ export function TagCard({
           {selected && <Check size={12} />}
         </span>
       </div>
-      {tag.description && (
-        <span className="text-xs text-[#6D6C6C]">{tag.description}</span>
-      )}
+      {tag.description && <span className="text-xs text-[#6D6C6C]">{tag.description}</span>}
     </button>
   )
 }

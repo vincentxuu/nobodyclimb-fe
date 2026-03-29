@@ -5,8 +5,8 @@
 import { createApiClient } from '../core/client'
 import { createWebTokenStorage } from './tokenStorage'
 
-export { createWebTokenStorage } from './tokenStorage'
 export { createApiClient } from '../core/client'
+export { createWebTokenStorage } from './tokenStorage'
 
 /**
  * 建立 Web 平台的 API Client

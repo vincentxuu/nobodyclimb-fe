@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { usePathname, useRouter, Link } from '@/i18n/navigation'
-import { X, Menu, LogOut } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import { LogOut, Menu, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { generateAvatarElement, DEFAULT_AVATARS } from '@/components/shared/avatar-options'
+import { useState } from 'react'
+import { DEFAULT_AVATARS, generateAvatarElement } from '@/components/shared/avatar-options'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 import { Button } from '@/components/ui/button'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
+import { useAuthStore } from '@/store/authStore'
 
 const NAV_ITEMS = [
   { href: '/biography', key: 'biography' },
@@ -95,7 +95,9 @@ export default function MobileMenu() {
             className="fixed right-0 top-0 z-[10001] flex h-[100dvh] max-h-[100dvh] w-[280px] flex-col bg-white shadow-xl md:hidden"
           >
             <div className="flex flex-shrink-0 items-center justify-between bg-white px-3 py-2 xs:p-3">
-              <h2 className="font-['Noto_Sans_TC'] text-sm font-bold text-[#1B1A1A] xs:text-base">{t('menuTitle')}</h2>
+              <h2 className="font-['Noto_Sans_TC'] text-sm font-bold text-[#1B1A1A] xs:text-base">
+                {t('menuTitle')}
+              </h2>
               <button
                 onClick={closeMenu}
                 className="flex items-center justify-center p-1 text-[#1B1A1A] transition-colors hover:text-[#1B1A1A]/80 xs:p-1.5"

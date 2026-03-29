@@ -1,8 +1,8 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
-import { Text } from '../../ui/Text'
-import { Icon } from '../../ui/Icon'
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import React from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Icon } from '../../ui/Icon'
+import { Text } from '../../ui/Text'
 
 interface ProfileDashboardCardProps {
   icon: React.ReactNode
@@ -25,9 +25,7 @@ export default function ProfileDashboardCard({
   preview,
   size = 'normal',
 }: ProfileDashboardCardProps) {
-  const progressPercent = progress
-    ? Math.round((progress.current / progress.total) * 100)
-    : 0
+  const progressPercent = progress ? Math.round((progress.current / progress.total) * 100) : 0
 
   return (
     <Pressable
@@ -65,12 +63,7 @@ export default function ProfileDashboardCard({
       {progress && (
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${progressPercent}%` },
-              ]}
-            />
+            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
           </View>
           <Text variant="caption" style={{ color: SEMANTIC_COLORS.textMuted }}>
             {progress.current}/{progress.total}

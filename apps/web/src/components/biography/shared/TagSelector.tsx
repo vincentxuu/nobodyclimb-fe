@@ -1,28 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
 import {
   ChevronDown,
   ChevronUp,
-  Plus,
-  Tag,
   Clock,
-  Lightbulb,
-  Sparkles,
-  HeartPulse,
-  Footprints,
-  Tent,
-  Music,
-  Target,
-  Users,
-  Hand,
   Dumbbell,
-  MapPin,
+  Footprints,
+  Hand,
+  HeartPulse,
+  Lightbulb,
   type LucideIcon,
+  MapPin,
+  Music,
+  Plus,
+  Sparkles,
+  Tag,
+  Target,
+  Tent,
+  Users,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import type { TagDimension } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 import { TagCard } from './TagChip'
 
 // Icon mapping for dynamic rendering
@@ -98,12 +98,7 @@ export function TagSelector({
   ).length
 
   return (
-    <div
-      className={cn(
-        'border border-[#DBD8D8] rounded-lg overflow-hidden',
-        className
-      )}
-    >
+    <div className={cn('border border-[#DBD8D8] rounded-lg overflow-hidden', className)}>
       {/* Header */}
       <button
         type="button"
@@ -132,10 +127,7 @@ export function TagSelector({
           )}
           <ChevronDown
             size={20}
-            className={cn(
-              'text-[#6D6C6C] transition-transform',
-              isExpanded && 'rotate-180'
-            )}
+            className={cn('text-[#6D6C6C] transition-transform', isExpanded && 'rotate-180')}
           />
         </div>
       </button>
@@ -214,15 +206,10 @@ export function TagSelectorGroup({
   const t = useTranslations('BiographyPage')
   const [showAll, setShowAll] = useState(false)
 
-  const visibleDimensions = showAll
-    ? dimensions
-    : dimensions.slice(0, visibleCount)
+  const visibleDimensions = showAll ? dimensions : dimensions.slice(0, visibleCount)
   const hiddenCount = dimensions.length - visibleCount
 
-  const totalSelected = Object.values(selections).reduce(
-    (sum, ids) => sum + ids.length,
-    0
-  )
+  const totalSelected = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -258,9 +245,7 @@ export function TagSelectorGroup({
             onSelectionChange={(ids) => onSelectionChange(dimension.id, ids)}
             defaultExpanded={dimensions.indexOf(dimension) < 2}
             showAddCustom={showAddCustom}
-            onAddCustom={
-              onAddCustomTag ? () => onAddCustomTag(dimension.id) : undefined
-            }
+            onAddCustom={onAddCustomTag ? () => onAddCustomTag(dimension.id) : undefined}
           />
         ))}
       </div>

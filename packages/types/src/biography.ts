@@ -156,7 +156,13 @@ export interface BiographyOneLiner {
 /**
  * 故事分類 ID (字串字面值類型，可用於 Record 索引)
  */
-export type StoryCategoryId = 'growth' | 'psychology' | 'community' | 'practical' | 'dreams' | 'life'
+export type StoryCategoryId =
+  | 'growth'
+  | 'psychology'
+  | 'community'
+  | 'practical'
+  | 'dreams'
+  | 'life'
 
 /**
  * 故事分類

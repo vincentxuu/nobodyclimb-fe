@@ -3,23 +3,20 @@
  *
  * 圓形圖標按鈕
  */
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import type { LucideIcon } from 'lucide-react-native'
 import React, { useCallback, useRef } from 'react'
 import {
+  Animated,
   Pressable,
+  type PressableProps,
   StyleSheet,
   View,
-  Animated,
-  type PressableProps,
   type ViewStyle,
 } from 'react-native'
-import {
-  SEMANTIC_COLORS,
-  BORDER_RADIUS,
-  WB_COLORS,
-} from '@nobodyclimb/constants'
-import { Icon, type IconSize, ICON_SIZES } from './Icon'
+import { ICON_SIZES, Icon, type IconSize } from './Icon'
 import { Text } from './Text'
-import type { LucideIcon } from 'lucide-react-native'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -176,9 +173,7 @@ export function IconButton({
       )}
       {badge !== undefined && badge > 0 && (
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>
-            {badge > 99 ? '99+' : badge}
-          </Text>
+          <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
         </View>
       )}
     </AnimatedPressable>

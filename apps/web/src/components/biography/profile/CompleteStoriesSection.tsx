@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Plus, Loader2 } from 'lucide-react'
-import { Biography } from '@/lib/types'
+import { Loader2, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
 import { biographyContentService, type Story } from '@/lib/api/services'
+import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
+import { Biography } from '@/lib/types'
 import { cn, normalizeNewlines } from '@/lib/utils'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { useTranslations } from 'next-intl'
-import { useBiographyQuestionText } from '@/lib/hooks/useBiographyQuestions'
 
 interface CompleteStoriesSectionProps {
   person: Biography
@@ -85,9 +85,7 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
     if (response.success && response.data) {
       setStories((prev) =>
         prev.map((item) =>
-          item.id === storyId
-            ? { ...item, comment_count: item.comment_count + 1 }
-            : item
+          item.id === storyId ? { ...item, comment_count: item.comment_count + 1 } : item
         )
       )
       return response.data
@@ -112,9 +110,7 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
   return (
     <section id="complete-stories" className="bg-gray-50 py-16">
       <div className="container mx-auto max-w-6xl px-4">
-        <h2 className="mb-2 text-2xl font-bold text-gray-900">
-          {t('storiesLabel')}
-        </h2>
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">{t('storiesLabel')}</h2>
         <p className="mb-10 text-gray-600">
           {stories.length > 0
             ? t('storiesShared', { count: stories.length })
@@ -135,19 +131,21 @@ export function CompleteStoriesSection({ person, isOwner }: CompleteStoriesSecti
             >
               {/* 分類標籤 */}
               {(story.category_id || story.category_name) && (
-                <div className={cn(
-                  'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
-                  STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg || 'bg-brand-accent/20',
-                  STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text || 'text-brand-dark'
-                )}>
+                <div
+                  className={cn(
+                    'mb-3 inline-block rounded px-2 py-1 text-xs self-start',
+                    STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.bg ||
+                      'bg-brand-accent/20',
+                    STORY_CATEGORY_COLORS[story.category_id || 'sys_cat_growth']?.text ||
+                      'text-brand-dark'
+                  )}
+                >
                   {getCategoryName(story.category_id, story.category_name || '')}
                 </div>
               )}
 
               {/* 標題 */}
-              <h3 className="mb-3 font-semibold text-gray-900">
-                {story.title}
-              </h3>
+              <h3 className="mb-3 font-semibold text-gray-900">{story.title}</h3>
 
               {/* 完整內容 */}
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600 flex-1">

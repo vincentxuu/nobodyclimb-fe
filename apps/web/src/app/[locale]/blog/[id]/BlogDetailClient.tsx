@@ -1,29 +1,29 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
-import { useState, useEffect, useCallback } from 'react'
+import { Bookmark, Eye, Loader2, Mountain } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Chip } from '@/components/ui/chip'
-import { Button } from '@/components/ui/button'
-import { Mountain, Eye, Loader2, Bookmark } from 'lucide-react'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { ShareButton } from '@/components/shared/share-button'
-import { CommentSection } from '@/components/blog/CommentSection'
-import { postService } from '@/lib/api/services'
-import { useToast } from '@/components/ui/use-toast'
-import { BackendPost } from '@/lib/types'
-import { useAuthStore } from '@/store/authStore'
-import { sanitizeHtml } from '@/lib/utils/sanitize'
-import { decodeHtmlEntities } from '@/lib/utils/article'
-import { normalizeNewlines } from '@/lib/utils'
-import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ContentInteractorsPanel,
   type InteractorUser,
 } from '@/components/biography/display/ContentInteractorsPanel'
+import { CommentSection } from '@/components/blog/CommentSection'
+import { ArticleCoverGenerator } from '@/components/shared/ArticleCoverGenerator'
+import { ShareButton } from '@/components/shared/share-button'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
+import { useToast } from '@/components/ui/use-toast'
+import { Link } from '@/i18n/navigation'
 import apiClient from '@/lib/api/client'
+import { postService } from '@/lib/api/services'
+import { BackendPost } from '@/lib/types'
+import { normalizeNewlines } from '@/lib/utils'
+import { decodeHtmlEntities } from '@/lib/utils/article'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
+import { useAuthStore } from '@/store/authStore'
 
 // 載入狀態元件
 const LoadingState = ({ label }: { label: string }) => (
@@ -147,7 +147,13 @@ export default function BlogDetailClient() {
     fetchBookmarkStatus()
     fetchPopularArticles()
     fetchRelatedArticles()
-  }, [fetchArticle, fetchLikeStatus, fetchBookmarkStatus, fetchPopularArticles, fetchRelatedArticles])
+  }, [
+    fetchArticle,
+    fetchLikeStatus,
+    fetchBookmarkStatus,
+    fetchPopularArticles,
+    fetchRelatedArticles,
+  ])
 
   // 通用的切換操作處理函數
   const createToggleHandler = useCallback(
@@ -157,26 +163,27 @@ export default function BlogDetailClient() {
       apiCall: () => Promise<{ success: boolean; data?: T }>,
       onSuccess: (_data: T) => void,
       successMessage: (_data: T) => string
-    ) => async () => {
-      if (isToggling) return
-      setToggling(true)
-      try {
-        const response = await apiCall()
-        if (response.success && response.data) {
-          onSuccess(response.data)
-          toast({ title: successMessage(response.data) })
+    ) =>
+      async () => {
+        if (isToggling) return
+        setToggling(true)
+        try {
+          const response = await apiCall()
+          if (response.success && response.data) {
+            onSuccess(response.data)
+            toast({ title: successMessage(response.data) })
+          }
+        } catch (err) {
+          console.error('Toggle action failed:', err)
+          toast({
+            title: t('actionFailed'),
+            description: t('tryAgainLater'),
+            variant: 'destructive',
+          })
+        } finally {
+          setToggling(false)
         }
-      } catch (err) {
-        console.error('Toggle action failed:', err)
-        toast({
-          title: t('actionFailed'),
-          description: t('tryAgainLater'),
-          variant: 'destructive',
-        })
-      } finally {
-        setToggling(false)
-      }
-    },
+      },
     [toast]
   )
 
@@ -237,10 +244,10 @@ export default function BlogDetailClient() {
   const dateToFormat = article.published_at || article.created_at
   const formattedDate = dateToFormat
     ? new Date(dateToFormat).toLocaleDateString('zh-TW', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : ''
 
   return (
@@ -263,7 +270,9 @@ export default function BlogDetailClient() {
             {/* Article Header */}
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-8 sm:flex-row">
               <div className="flex-1">
-                <h1 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl md:text-3xl">{article.title}</h1>
+                <h1 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl md:text-3xl">
+                  {article.title}
+                </h1>
                 {/* 作者資訊 */}
                 <div className="mb-3 flex items-center gap-3 sm:mb-4">
                   {article.author_avatar ? (
@@ -278,7 +287,9 @@ export default function BlogDetailClient() {
                     </div>
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-wb-20 text-sm font-medium text-wb-70">
-                      {(article.display_name || article.username || t('anonymous').charAt(0)).charAt(0).toUpperCase()}
+                      {(article.display_name || article.username || t('anonymous').charAt(0))
+                        .charAt(0)
+                        .toUpperCase()}
                     </div>
                   )}
                   <div>
@@ -289,9 +300,7 @@ export default function BlogDetailClient() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  {article.tags && article.tags.length > 0 && (
-                    <Chip>{article.tags[0]}</Chip>
-                  )}
+                  {article.tags && article.tags.length > 0 && <Chip>{article.tags[0]}</Chip>}
                 </div>
                 <div className="mt-2 flex items-center gap-3 text-xs text-wb-70 sm:gap-4 sm:text-sm">
                   <span className="flex items-center gap-1">
@@ -304,7 +313,10 @@ export default function BlogDetailClient() {
                       disabled={isLiking}
                       className={`flex items-center ${isLiked ? 'text-emerald-600' : 'text-wb-70 hover:text-wb-90'}`}
                     >
-                      <Mountain size={14} className={`sm:h-4 sm:w-4 ${isLiked ? 'fill-emerald-600' : ''}`} />
+                      <Mountain
+                        size={14}
+                        className={`sm:h-4 sm:w-4 ${isLiked ? 'fill-emerald-600' : ''}`}
+                      />
                     </button>
                     {likeCount > 0 && (
                       <button
@@ -320,7 +332,10 @@ export default function BlogDetailClient() {
                     disabled={isBookmarking}
                     className={`flex items-center gap-1 ${isBookmarked ? 'text-brand-accent-hover' : 'text-wb-70 hover:text-wb-90'}`}
                   >
-                    <Bookmark size={14} className={`sm:h-4 sm:w-4 ${isBookmarked ? 'fill-brand-accent-hover' : ''}`} />
+                    <Bookmark
+                      size={14}
+                      className={`sm:h-4 sm:w-4 ${isBookmarked ? 'fill-brand-accent-hover' : ''}`}
+                    />
                     {bookmarkCount > 0 && bookmarkCount}
                   </button>
                   <ShareButton
@@ -379,7 +394,9 @@ export default function BlogDetailClient() {
               )}
               <section
                 className="blog-content text-sm text-wb-100 sm:text-base [&>p]:mb-4 [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-4 sm:[&>h1]:text-2xl [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-3 sm:[&>h2]:text-xl [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-2 sm:[&>h3]:text-lg [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-wb-30 [&>blockquote]:pl-4 [&>blockquote]:italic [&>a]:text-blue-600 [&>a]:underline"
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(normalizeNewlines(article.content)) }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(normalizeNewlines(article.content)),
+                }}
               />
             </div>
 
@@ -394,7 +411,6 @@ export default function BlogDetailClient() {
               </div>
             )}
 
-
             {/* Comment Section */}
             <CommentSection postId={id} isLoggedIn={status === 'signIn'} />
           </div>
@@ -403,7 +419,9 @@ export default function BlogDetailClient() {
           <div className="hidden space-y-6 sm:space-y-8 lg:block">
             {/* Categories */}
             <div>
-              <h2 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl">{t('articleCategories')}</h2>
+              <h2 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl">
+                {t('articleCategories')}
+              </h2>
               <div className="overflow-hidden rounded-lg bg-wb-0">
                 <Link href="/blog">
                   <Button
@@ -450,7 +468,9 @@ export default function BlogDetailClient() {
 
             {/* Popular Articles */}
             <div>
-              <h2 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl">{t('popularArticles')}</h2>
+              <h2 className="mb-3 text-xl font-medium sm:mb-4 sm:text-2xl">
+                {t('popularArticles')}
+              </h2>
               <div className="space-y-3 sm:space-y-4">
                 {popularArticles.map((popularArticle) => (
                   <Link
@@ -458,7 +478,9 @@ export default function BlogDetailClient() {
                     href={`/blog/${popularArticle.id}`}
                     className="block rounded-lg border-b border-wb-20 bg-wb-0 p-4 transition-colors hover:bg-wb-10 sm:p-5"
                   >
-                    <h3 className="mb-2 text-sm font-medium sm:text-base">{popularArticle.title}</h3>
+                    <h3 className="mb-2 text-sm font-medium sm:text-base">
+                      {popularArticle.title}
+                    </h3>
                     <div className="flex items-center gap-2 sm:gap-3">
                       <Chip>{popularArticle.tags?.[0] || t('categoryTechnique')}</Chip>
                       <span className="text-xs text-wb-70 sm:text-sm">

@@ -3,22 +3,22 @@
  *
  * 攝影集精選區，對應 apps/web/src/components/home/gallery-section.tsx
  */
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Pressable, Dimensions, Image } from 'react-native'
-import { YStack, XStack } from 'tamagui'
+
+import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { MapPin } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-
-import { Text, Button, Skeleton } from '@/components/ui'
+import { XStack, YStack } from 'tamagui'
 import { FadeIn } from '@/components/animation'
-import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Button, Skeleton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const COLUMN_GAP = SPACING[3]
 const NUM_COLUMNS = 2
-const CARD_WIDTH = (SCREEN_WIDTH - SPACING[4] * 2 - COLUMN_GAP) / NUM_COLUMNS
+const _CARD_WIDTH = (SCREEN_WIDTH - SPACING[4] * 2 - COLUMN_GAP) / NUM_COLUMNS
 
 interface GalleryPhoto {
   id: string
@@ -66,9 +66,7 @@ function PhotoCard({ photo, index }: { photo: DisplayPhoto; index: number }) {
     router.push('/gallery')
   }
 
-  const locationText = [photo.location.city, photo.location.spot]
-    .filter(Boolean)
-    .join(' · ')
+  const locationText = [photo.location.city, photo.location.spot].filter(Boolean).join(' · ')
 
   return (
     <Animated.View
@@ -76,11 +74,7 @@ function PhotoCard({ photo, index }: { photo: DisplayPhoto; index: number }) {
       style={[styles.photoCard, { height: photo.height }]}
     >
       <Pressable onPress={handlePress} style={styles.photoCardPressable}>
-        <Image
-          source={{ uri: photo.image }}
-          style={styles.photoImage}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: photo.image }} style={styles.photoImage} resizeMode="cover" />
 
         {/* 漸層遮罩 */}
         <View style={styles.photoOverlay} />
@@ -119,8 +113,8 @@ export function GallerySection() {
         const result = response.data
         const photos = result?.data ?? result
         if (Array.isArray(photos)) {
-          const transformedPhotos = photos.map(
-            (photo: GalleryPhoto, index: number) => transformPhoto(photo, index)
+          const transformedPhotos = photos.map((photo: GalleryPhoto, index: number) =>
+            transformPhoto(photo, index)
           )
           setPhotos(transformedPhotos)
         }

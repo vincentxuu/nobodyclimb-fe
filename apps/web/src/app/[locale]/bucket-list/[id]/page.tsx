@@ -1,46 +1,40 @@
 'use client'
 
-import React, { use } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
+  Activity,
   ArrowLeft,
-  Target,
-  MapPin,
+  Award,
   Calendar,
   Check,
-  Tent,
-  Home,
-  Trophy,
   Dumbbell,
-  Plane,
-  Award,
-  Activity,
-  Youtube,
+  Home,
   Instagram,
+  MapPin,
+  Plane,
+  Target,
+  Tent,
+  Trophy,
+  Youtube,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import React, { use } from 'react'
+import { ContentActions } from '@/components/biography/display/ContentActions'
+import { ProgressBar, ProgressTracker } from '@/components/bucket-list'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { ContentActions } from '@/components/biography/display/ContentActions'
-import { ProgressTracker, ProgressBar } from '@/components/bucket-list'
-import {
-  bucketListService,
-  biographyService,
-  type ContentComment,
-} from '@/lib/api/services'
-import { cn } from '@/lib/utils'
+import { Link } from '@/i18n/navigation'
+import { biographyService, bucketListService, type ContentComment } from '@/lib/api/services'
 import type { BucketListCategory, BucketListComment } from '@/lib/types'
-import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 function renderFormattedText(text: string): React.ReactNode {
   const normalized = text.replace(/\\n/g, '\n')
   const segments = normalized.split(/(\*\*[^*]+\*\*)/)
   return segments.map((seg, i) =>
-    seg.startsWith('**') && seg.endsWith('**')
-      ? <strong key={i}>{seg.slice(2, -2)}</strong>
-      : seg
+    seg.startsWith('**') && seg.endsWith('**') ? <strong key={i}>{seg.slice(2, -2)}</strong> : seg
   )
 }
 
@@ -63,14 +57,46 @@ function getCategoryConfig(
   t: ReturnType<typeof useTranslations>
 ): Record<BucketListCategory, { icon: React.ElementType; label: string; color: string }> {
   return {
-    outdoor_route: { icon: Tent, label: t('categoryLabels.outdoor_route'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    indoor_grade: { icon: Home, label: t('categoryLabels.indoor_grade'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    competition: { icon: Trophy, label: t('categoryLabels.competition'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    training: { icon: Dumbbell, label: t('categoryLabels.training'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    adventure: { icon: Plane, label: t('categoryLabels.adventure'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    skill: { icon: Award, label: t('categoryLabels.skill'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    injury_recovery: { icon: Activity, label: t('categoryLabels.injury_recovery'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
-    other: { icon: Target, label: t('categoryLabels.other'), color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark' },
+    outdoor_route: {
+      icon: Tent,
+      label: t('categoryLabels.outdoor_route'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    indoor_grade: {
+      icon: Home,
+      label: t('categoryLabels.indoor_grade'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    competition: {
+      icon: Trophy,
+      label: t('categoryLabels.competition'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    training: {
+      icon: Dumbbell,
+      label: t('categoryLabels.training'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    adventure: {
+      icon: Plane,
+      label: t('categoryLabels.adventure'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    skill: {
+      icon: Award,
+      label: t('categoryLabels.skill'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    injury_recovery: {
+      icon: Activity,
+      label: t('categoryLabels.injury_recovery'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
+    other: {
+      icon: Target,
+      label: t('categoryLabels.other'),
+      color: 'border border-brand-accent/30 bg-brand-accent/10 text-brand-dark',
+    },
   }
 }
 
@@ -88,7 +114,11 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
   const [isLiked, setIsLiked] = React.useState(false)
   const [likeCount, setLikeCount] = React.useState(0)
 
-  const { data: itemData, isLoading: isItemLoading, error } = useQuery({
+  const {
+    data: itemData,
+    isLoading: isItemLoading,
+    error,
+  } = useQuery({
     queryKey: ['bucket-list-item', id],
     queryFn: () => bucketListService.getBucketListItem(id),
   })
@@ -109,22 +139,27 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
 
   const biography = biographyData?.data
 
-  const mapComment = React.useCallback((comment: BucketListComment & {
-    updated_at?: string
-    like_count?: number
-    parent_id?: string
-  }): ContentComment => ({
-    id: comment.id,
-    user_id: comment.user_id,
-    content: comment.content,
-    parent_id: comment.parent_id,
-    like_count: comment.like_count || 0,
-    username: comment.username || 'anonymous',
-    display_name: comment.display_name,
-    avatar_url: comment.avatar_url,
-    created_at: comment.created_at,
-    updated_at: comment.updated_at || comment.created_at,
-  }), [])
+  const mapComment = React.useCallback(
+    (
+      comment: BucketListComment & {
+        updated_at?: string
+        like_count?: number
+        parent_id?: string
+      }
+    ): ContentComment => ({
+      id: comment.id,
+      user_id: comment.user_id,
+      content: comment.content,
+      parent_id: comment.parent_id,
+      like_count: comment.like_count || 0,
+      username: comment.username || 'anonymous',
+      display_name: comment.display_name,
+      avatar_url: comment.avatar_url,
+      created_at: comment.created_at,
+      updated_at: comment.updated_at || comment.created_at,
+    }),
+    []
+  )
 
   const handleToggleLike = React.useCallback(async () => {
     const nextLiked = !isLiked
@@ -157,19 +192,25 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
     return (response.data || []).map(mapComment)
   }, [id, mapComment])
 
-  const handleAddComment = React.useCallback(async (content: string): Promise<ContentComment> => {
-    const response = await bucketListService.addComment(id, content.trim())
-    if (!response.data) {
-      throw new Error(t('addCommentFailed'))
-    }
-    queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
-    return mapComment(response.data)
-  }, [id, mapComment, queryClient])
+  const handleAddComment = React.useCallback(
+    async (content: string): Promise<ContentComment> => {
+      const response = await bucketListService.addComment(id, content.trim())
+      if (!response.data) {
+        throw new Error(t('addCommentFailed'))
+      }
+      queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
+      return mapComment(response.data)
+    },
+    [id, mapComment, queryClient]
+  )
 
-  const handleDeleteComment = React.useCallback(async (commentId: string): Promise<void> => {
-    await bucketListService.deleteComment(commentId)
-    queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
-  }, [id, queryClient])
+  const handleDeleteComment = React.useCallback(
+    async (commentId: string): Promise<void> => {
+      await bucketListService.deleteComment(commentId)
+      queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
+    },
+    [id, queryClient]
+  )
 
   if (isItemLoading) {
     return (
@@ -202,14 +243,12 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
   const displayProgress = item.enable_progress
     ? item.progress_mode === 'milestone' && item.milestones && item.milestones.length > 0
       ? Math.round(
-        (item.milestones.filter((m) => m.completed).length / item.milestones.length) * 100
-      )
+          (item.milestones.filter((m) => m.completed).length / item.milestones.length) * 100
+        )
       : item.progress
     : null
 
-  const backHref = biography
-    ? `/biography/profile/${biography.slug || biography.id}`
-    : '/biography'
+  const backHref = biography ? `/biography/profile/${biography.slug || biography.id}` : '/biography'
 
   return (
     <div className="min-h-screen bg-page-content-bg">
@@ -220,7 +259,12 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
               { label: '首頁', href: '/' },
               { label: '人物誌', href: '/biography' },
               ...(biography
-                ? [{ label: biography.name, href: `/biography/profile/${biography.slug || biography.id}` }]
+                ? [
+                    {
+                      label: biography.name,
+                      href: `/biography/profile/${biography.slug || biography.id}`,
+                    },
+                  ]
                 : []),
               { label: item.title },
             ]}
@@ -253,9 +297,7 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
           transition={{ duration: 0.4 }}
         >
           <div className="mb-8">
-            <h1
-              className="mb-4 text-3xl font-bold leading-tight text-brand-dark md:text-4xl"
-            >
+            <h1 className="mb-4 text-3xl font-bold leading-tight text-brand-dark md:text-4xl">
               {item.title}
             </h1>
 
@@ -305,7 +347,8 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
               {item.target_date && (
                 <span className="inline-flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {t('targetLabel')}{item.target_date}
+                  {t('targetLabel')}
+                  {item.target_date}
                 </span>
               )}
               {isCompleted && item.completed_at && (
@@ -353,87 +396,88 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
             </div>
           </div>
 
-          {isCompleted && (item.completion_story || item.psychological_insights || item.technical_insights) && (
-            <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm md:p-8">
-              <h2 className="text-lg font-semibold text-brand-dark">{t('completionStory')}</h2>
+          {isCompleted &&
+            (item.completion_story || item.psychological_insights || item.technical_insights) && (
+              <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm md:p-8">
+                <h2 className="text-lg font-semibold text-brand-dark">{t('completionStory')}</h2>
 
-              {item.completion_story && (
-                <p className="mt-4 whitespace-pre-line leading-relaxed text-brand-dark">
-                  {renderFormattedText(item.completion_story)}
-                </p>
-              )}
-
-              {item.psychological_insights && (
-                <div className="mt-6">
-                  <h3 className="font-medium text-brand-dark">{t('psychologicalInsights')}</h3>
-                  <p className="mt-2 whitespace-pre-line text-text-subtle">
-                    {renderFormattedText(item.psychological_insights)}
+                {item.completion_story && (
+                  <p className="mt-4 whitespace-pre-line leading-relaxed text-brand-dark">
+                    {renderFormattedText(item.completion_story)}
                   </p>
-                </div>
-              )}
+                )}
 
-              {item.technical_insights && (
-                <div className="mt-6">
-                  <h3 className="font-medium text-brand-dark">{t('technicalInsights')}</h3>
-                  <p className="mt-2 whitespace-pre-line text-text-subtle">
-                    {renderFormattedText(item.technical_insights)}
-                  </p>
-                </div>
-              )}
+                {item.psychological_insights && (
+                  <div className="mt-6">
+                    <h3 className="font-medium text-brand-dark">{t('psychologicalInsights')}</h3>
+                    <p className="mt-2 whitespace-pre-line text-text-subtle">
+                      {renderFormattedText(item.psychological_insights)}
+                    </p>
+                  </div>
+                )}
 
-              {item.completion_media && (
-                <div className="mt-6 space-y-4">
-                  {item.completion_media.youtube_videos &&
-                    item.completion_media.youtube_videos.length > 0 && (
-                      <div>
-                        <h3 className="flex items-center gap-2 font-medium text-brand-dark">
-                          <Youtube className="h-4 w-4 text-red-500" />
-                          {t('relatedVideos')}
-                        </h3>
-                        <div className="mt-2 grid gap-2">
-                          {item.completion_media.youtube_videos.map((videoId) => (
-                            <a
-                              key={videoId}
-                              href={`https://youtube.com/watch?v=${videoId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 rounded border border-brand-accent/20 bg-brand-light px-3 py-2 text-sm text-text-subtle hover:bg-brand-accent/10"
-                            >
-                              <Youtube className="h-4 w-4 text-red-500" />
-                              youtube.com/watch?v={videoId}
-                            </a>
-                          ))}
+                {item.technical_insights && (
+                  <div className="mt-6">
+                    <h3 className="font-medium text-brand-dark">{t('technicalInsights')}</h3>
+                    <p className="mt-2 whitespace-pre-line text-text-subtle">
+                      {renderFormattedText(item.technical_insights)}
+                    </p>
+                  </div>
+                )}
+
+                {item.completion_media && (
+                  <div className="mt-6 space-y-4">
+                    {item.completion_media.youtube_videos &&
+                      item.completion_media.youtube_videos.length > 0 && (
+                        <div>
+                          <h3 className="flex items-center gap-2 font-medium text-brand-dark">
+                            <Youtube className="h-4 w-4 text-red-500" />
+                            {t('relatedVideos')}
+                          </h3>
+                          <div className="mt-2 grid gap-2">
+                            {item.completion_media.youtube_videos.map((videoId) => (
+                              <a
+                                key={videoId}
+                                href={`https://youtube.com/watch?v=${videoId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 rounded border border-brand-accent/20 bg-brand-light px-3 py-2 text-sm text-text-subtle hover:bg-brand-accent/10"
+                              >
+                                <Youtube className="h-4 w-4 text-red-500" />
+                                youtube.com/watch?v={videoId}
+                              </a>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                  {item.completion_media.instagram_posts &&
-                    item.completion_media.instagram_posts.length > 0 && (
-                      <div>
-                        <h3 className="flex items-center gap-2 font-medium text-brand-dark">
-                          <Instagram className="h-4 w-4 text-pink-500" />
-                          {t('relatedPosts')}
-                        </h3>
-                        <div className="mt-2 grid gap-2">
-                          {item.completion_media.instagram_posts.map((shortcode) => (
-                            <a
-                              key={shortcode}
-                              href={`https://instagram.com/p/${shortcode}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 rounded border border-brand-accent/20 bg-brand-light px-3 py-2 text-sm text-text-subtle hover:bg-brand-accent/10"
-                            >
-                              <Instagram className="h-4 w-4 text-pink-500" />
-                              instagram.com/p/{shortcode}
-                            </a>
-                          ))}
+                    {item.completion_media.instagram_posts &&
+                      item.completion_media.instagram_posts.length > 0 && (
+                        <div>
+                          <h3 className="flex items-center gap-2 font-medium text-brand-dark">
+                            <Instagram className="h-4 w-4 text-pink-500" />
+                            {t('relatedPosts')}
+                          </h3>
+                          <div className="mt-2 grid gap-2">
+                            {item.completion_media.instagram_posts.map((shortcode) => (
+                              <a
+                                key={shortcode}
+                                href={`https://instagram.com/p/${shortcode}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 rounded border border-brand-accent/20 bg-brand-light px-3 py-2 text-sm text-text-subtle hover:bg-brand-accent/10"
+                              >
+                                <Instagram className="h-4 w-4 text-pink-500" />
+                                instagram.com/p/{shortcode}
+                              </a>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                </div>
-              )}
-            </div>
-          )}
+                      )}
+                  </div>
+                )}
+              </div>
+            )}
 
           <div className="mb-8 rounded-2xl bg-white p-5 shadow-sm md:p-6">
             <ContentActions

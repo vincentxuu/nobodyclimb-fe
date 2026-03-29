@@ -3,12 +3,11 @@
  *
  * 顯示網站 Logo，對應 apps/web/src/components/layout/navbar/Logo.tsx
  */
-import React from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { useRouter } from 'expo-router'
 
-import { Text } from '@/components/ui'
 import { BRAND_YELLOW, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Pressable, StyleSheet } from 'react-native'
+import { Text } from '@/components/ui'
 
 interface LogoProps {
   /** Logo 點擊回調（默認導航到首頁） */
@@ -19,11 +18,7 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-export function Logo({
-  onPress,
-  showBackground = true,
-  size = 'md',
-}: LogoProps) {
+export function Logo({ onPress, showBackground = true, size = 'md' }: LogoProps) {
   const router = useRouter()
 
   const handlePress = () => {
@@ -47,14 +42,7 @@ export function Logo({
       accessibilityRole="button"
       accessibilityLabel="前往首頁"
     >
-      <Text
-        style={[
-          styles.logoText,
-          { fontSize },
-        ]}
-      >
-        NobodyClimb
-      </Text>
+      <Text style={[styles.logoText, { fontSize }]}>NobodyClimb</Text>
     </Pressable>
   )
 }

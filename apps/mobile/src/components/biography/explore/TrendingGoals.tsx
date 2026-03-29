@@ -3,16 +3,16 @@
  *
  * 熱門目標排行，對應 apps/web/src/components/biography/explore/trending-goals.tsx
  */
-import React, { useEffect, useState, useCallback } from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
-import Animated, { FadeInDown } from 'react-native-reanimated'
-import { Flame, Users, Target, MapPin, Plus, Mountain, Home, Check } from 'lucide-react-native'
 
-import { Text, Card, Button, Avatar } from '@/components/ui'
+import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { Check, Flame, Home, MapPin, Mountain, Plus, Target, Users } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { Avatar, Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface TrendingItem {
@@ -247,10 +247,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                   {/* 加入按鈕 */}
                   <View style={styles.cardAction}>
                     <Pressable
-                      style={[
-                        styles.addButton,
-                        addedItems.has(item.id) && styles.addButtonAdded,
-                      ]}
+                      style={[styles.addButton, addedItems.has(item.id) && styles.addButtonAdded]}
                       onPress={() => handleAddToList(item.id)}
                       disabled={addingItems.has(item.id) || addedItems.has(item.id)}
                     >

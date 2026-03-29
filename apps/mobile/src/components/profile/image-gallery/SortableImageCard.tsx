@@ -1,16 +1,10 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
+import { COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import { Pressable, StyleSheet, View } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { Icon } from '../../ui/Icon'
 import { Text } from '../../ui/Text'
 import { ProfileImage } from '../types'
-import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 
 interface SortableImageCardProps {
   image: ProfileImage
@@ -48,11 +42,7 @@ export default function SortableImageCard({
         onPressOut={handlePressOut}
         style={styles.pressable}
       >
-        <Image
-          source={{ uri: image.url }}
-          style={styles.image}
-          contentFit="cover"
-        />
+        <Image source={{ uri: image.url }} style={styles.image} contentFit="cover" />
 
         {/* Drag Handle */}
         <View style={styles.dragHandle}>
@@ -61,11 +51,7 @@ export default function SortableImageCard({
 
         {/* Delete Button */}
         {onDelete && (
-          <Pressable
-            onPress={onDelete}
-            style={styles.deleteButton}
-            hitSlop={8}
-          >
+          <Pressable onPress={onDelete} style={styles.deleteButton} hitSlop={8}>
             <Icon name="X" size="xs" color={COLORS.white} />
           </Pressable>
         )}

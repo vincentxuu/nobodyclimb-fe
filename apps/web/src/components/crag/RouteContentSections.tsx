@@ -1,11 +1,10 @@
 'use client'
 
-import React from 'react'
-import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
-import { RoutePhotosSection } from '@/components/crag/RoutePhotosSection'
-import { RouteYouTubeSection } from '@/components/crag/RouteYouTubeSection'
-import { RouteInstagramSection } from '@/components/crag/RouteInstagramSection'
 import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
+import { RouteInstagramSection } from '@/components/crag/RouteInstagramSection'
+import { RoutePhotosSection } from '@/components/crag/RoutePhotosSection'
+import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
+import { RouteYouTubeSection } from '@/components/crag/RouteYouTubeSection'
 
 export interface RouteContentData {
   id: string
@@ -32,18 +31,10 @@ export function RouteContentSections({ route }: RouteContentSectionsProps) {
   return (
     <>
       {/* 路線故事 */}
-      <RouteStoriesSection
-        routeId={route.id}
-        routeName={route.name}
-        routeGrade={route.grade}
-      />
+      <RouteStoriesSection routeId={route.id} routeName={route.name} routeGrade={route.grade} />
 
       {/* 社群照片 */}
-      <RoutePhotosSection
-        routeId={route.id}
-        routeName={route.name}
-        staticPhotos={route.images}
-      />
+      <RoutePhotosSection routeId={route.id} routeName={route.name} staticPhotos={route.images} />
 
       {/* 攀登影片 (YouTube) */}
       <RouteYouTubeSection
@@ -60,11 +51,7 @@ export function RouteContentSections({ route }: RouteContentSectionsProps) {
       />
 
       {/* 攀爬記錄 */}
-      <RouteAscentsSection
-        routeId={route.id}
-        routeName={route.name}
-        routeGrade={route.grade}
-      />
+      <RouteAscentsSection routeId={route.id} routeName={route.name} routeGrade={route.grade} />
     </>
   )
 }

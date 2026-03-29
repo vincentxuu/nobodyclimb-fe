@@ -1,7 +1,7 @@
-import * as React from 'react'
 import * as ToastPrimitives from '@radix-ui/react-toast'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
+import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -27,11 +27,14 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-l-brand-yellow-100 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
+        default:
+          'border-l-brand-yellow-100 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
         destructive:
           'destructive group border-l-brand-red-100 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
-        success: 'border-l-brand-yellow-100 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
-        warning: 'warning group border-l-brand-yellow-200 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
+        success:
+          'border-l-brand-yellow-100 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
+        warning:
+          'warning group border-l-brand-yellow-200 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
         info: 'info group border-l-wb-50 border-t-wb-20 border-r-wb-20 border-b-wb-20 bg-white text-wb-100',
       },
     },
@@ -113,13 +116,13 @@ type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
 type ToastActionElement = React.ReactElement<typeof ToastAction>
 
 export {
-  type ToastProps,
-  type ToastActionElement,
-  ToastProvider,
-  ToastViewport,
   Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
   ToastAction,
+  type ToastActionElement,
+  ToastClose,
+  ToastDescription,
+  type ToastProps,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
 }

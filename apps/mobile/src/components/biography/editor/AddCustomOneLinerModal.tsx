@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import type { ContentSource, OneLinerQuestion } from '@nobodyclimb/types'
+import { Loader2, MessageCircle, X } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
 import {
-  View,
-  Pressable,
-  TextInput,
-  Modal,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
+  TextInput,
+  View,
 } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { X, Loader2, MessageCircle } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
-import type { OneLinerQuestion, ContentSource } from '@nobodyclimb/types'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface AddCustomOneLinerModalProps {
   /** 是否開啟 */
@@ -72,7 +72,13 @@ export function AddCustomOneLinerModal({
   if (!isOpen) return null
 
   return (
-    <Modal visible={isOpen} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,

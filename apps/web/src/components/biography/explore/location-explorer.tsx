@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { ChevronRight, Globe, Loader2, MapPin, Users } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { MapPin, Globe, Users, ChevronRight, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
 import { isSvgUrl } from '@/lib/utils/image'
@@ -96,9 +96,18 @@ export function LocationExplorer() {
                 >
                   {visitor.avatar_url ? (
                     isSvgUrl(visitor.avatar_url) ? (
-                      <img src={visitor.avatar_url} alt={visitor.name} className="h-full w-full object-cover" />
+                      <img
+                        src={visitor.avatar_url}
+                        alt={visitor.name}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
-                      <Image src={visitor.avatar_url} alt={visitor.name} fill className="object-cover" />
+                      <Image
+                        src={visitor.avatar_url}
+                        alt={visitor.name}
+                        fill
+                        className="object-cover"
+                      />
                     )
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">
@@ -140,7 +149,9 @@ export function LocationExplorer() {
             </div>
             <div className="flex items-center justify-between">
               <span>{t('completed')}</span>
-              <span className="font-medium text-green-600">{t('personCountUnit', { count: loc.completed_count })}</span>
+              <span className="font-medium text-green-600">
+                {t('personCountUnit', { count: loc.completed_count })}
+              </span>
             </div>
           </div>
         </CardContent>
@@ -158,8 +169,7 @@ export function LocationExplorer() {
 
   if (error) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center text-red-500">{error}
-      </div>
+      <div className="flex min-h-[200px] items-center justify-center text-red-500">{error}</div>
     )
   }
 
@@ -222,7 +232,9 @@ export function LocationExplorer() {
           {taiwanLocations.length > 0 ? (
             taiwanLocations.map((loc, index) => renderLocationCard(loc, index))
           ) : (
-            <div className="col-span-full py-8 text-center text-gray-500">{t('noTaiwanCragData')}</div>
+            <div className="col-span-full py-8 text-center text-gray-500">
+              {t('noTaiwanCragData')}
+            </div>
           )}
         </div>
       )}
@@ -232,7 +244,9 @@ export function LocationExplorer() {
           {overseasLocations.length > 0 ? (
             overseasLocations.map((loc, index) => renderLocationCard(loc, index))
           ) : (
-            <div className="col-span-full py-8 text-center text-gray-500">{t('noOverseasData')}</div>
+            <div className="col-span-full py-8 text-center text-gray-500">
+              {t('noOverseasData')}
+            </div>
           )}
         </div>
       )}
@@ -242,7 +256,9 @@ export function LocationExplorer() {
           {bucketListLocations.length > 0 ? (
             bucketListLocations.map((loc, index) => renderBucketListLocationCard(loc, index))
           ) : (
-            <div className="col-span-full py-8 text-center text-gray-500">{t('noGoalLocationData')}</div>
+            <div className="col-span-full py-8 text-center text-gray-500">
+              {t('noGoalLocationData')}
+            </div>
           )}
         </div>
       )}

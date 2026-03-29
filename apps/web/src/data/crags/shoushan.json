@@ -38,16 +38,8 @@
       "max": 13,
       "unit": "m"
     },
-    "seasons": [
-      "秋",
-      "冬",
-      "春"
-    ],
-    "seasonsEn": [
-      "Autumn",
-      "Winter",
-      "Spring"
-    ],
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
     "access": {
       "approach": "5-10分鐘徒步",
       "approachEn": "5-10 minutes hiking",
@@ -71,18 +63,8 @@
         }
       ]
     },
-    "amenities": [
-      "便利商店",
-      "餐廳",
-      "公廁",
-      "停車場"
-    ],
-    "amenitiesEn": [
-      "Convenience stores",
-      "Restaurants",
-      "Public restrooms",
-      "Parking"
-    ],
+    "amenities": ["便利商店", "餐廳", "公廁", "停車場"],
+    "amenitiesEn": ["Convenience stores", "Restaurants", "Public restrooms", "Parking"],
     "featured": true,
     "rating": 4.4,
     "status": "published",
@@ -233,9 +215,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=8HSyT57cfVc"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=8HSyT57cfVc"]
     },
     {
       "id": "SS-OUTSIDE-WALL-002",
@@ -251,9 +231,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=GL85f3j3Idw"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=GL85f3j3Idw"]
     },
     {
       "id": "SS-OUTSIDE-WALL-003",
@@ -302,9 +280,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=GIggBteFv-s"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=GIggBteFv-s"]
     },
     {
       "id": "SS-OUTSIDE-WALL-006",
@@ -698,9 +674,7 @@
       "sectorEn": "Upper Platform",
       "name": "阿雪路線",
       "nameEn": "A-Xue Route",
-      "alternativeNames": [
-        "北京猿人"
-      ],
+      "alternativeNames": ["北京猿人"],
       "grade": "5.11a",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -709,9 +683,7 @@
       "safetyRating": "●●●",
       "boltCount": 5,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=fF_StsICqsQ"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=fF_StsICqsQ"]
     },
     {
       "id": "SS-PLATFORM-UPPER-011",
@@ -794,9 +766,7 @@
       "safetyRating": "●●●",
       "boltCount": 5,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=4JFK7Fy5f3g"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=4JFK7Fy5f3g"]
     },
     {
       "id": "SS-PLATFORM-UPPER-015",
@@ -1046,9 +1016,7 @@
       "sectorEn": "Lower Platform",
       "name": "唬神",
       "nameEn": "Bluffing God",
-      "alternativeNames": [
-        "蒼蠅路線"
-      ],
+      "alternativeNames": ["蒼蠅路線"],
       "grade": "5.11d",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1088,9 +1056,7 @@
       "sectorEn": "South Face",
       "name": "練習一",
       "nameEn": "Practice 1",
-      "alternativeNames": [
-        "Slab 2"
-      ],
+      "alternativeNames": ["Slab 2"],
       "grade": "5.7",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1106,9 +1072,7 @@
       "sectorEn": "South Face",
       "name": "練習二",
       "nameEn": "Practice 2",
-      "alternativeNames": [
-        "Slab 1"
-      ],
+      "alternativeNames": ["Slab 1"],
       "grade": "5.6",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1125,9 +1089,7 @@
       "sectorEn": "South Face",
       "name": "練習三",
       "nameEn": "Practice 3",
-      "alternativeNames": [
-        "Little Over"
-      ],
+      "alternativeNames": ["Little Over"],
       "grade": "5.8",
       "type": "sport",
       "typeEn": "Sport Climbing",
@@ -1385,9 +1347,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=OMFzG4bLEw4"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=OMFzG4bLEw4"]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-006",
@@ -1404,9 +1364,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=jDwIchtmWH4"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=jDwIchtmWH4"]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-007",
@@ -1423,9 +1381,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=gkJT7_3UjwU"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=gkJT7_3UjwU"]
     },
     {
       "id": "SS-HEARTLESS-VALLEY-008",
@@ -1534,9 +1490,7 @@
       "sectorEn": "Heartless Valley",
       "name": "不是我愛劈腿",
       "nameEn": "Not That I Love Cheating",
-      "alternativeNames": [
-        "煙囪爬法"
-      ],
+      "alternativeNames": ["煙囪爬法"],
       "grade": "5.7",
       "type": "toprope",
       "typeEn": "Top Rope",
@@ -1653,9 +1607,7 @@
       "safetyRating": "●●●",
       "boltCount": 6,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=j34zCOTwkp8"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=j34zCOTwkp8"]
     },
     {
       "id": "SS-SKYLINE-007",
@@ -1878,9 +1830,7 @@
       "safetyRating": "●●●",
       "boltCount": 5,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=AefNDWtGcG0"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=AefNDWtGcG0"]
     },
     {
       "id": "SS-GRAND-CANYON-001",
@@ -1998,9 +1948,7 @@
       "safetyRating": "●●",
       "boltCount": 6,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=4YVbBJM1__0"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=4YVbBJM1__0"]
     },
     {
       "id": "SS-GRAND-CANYON-008",
@@ -2017,9 +1965,7 @@
       "safetyRating": "●●●",
       "boltCount": 6,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=w160Kbf96Lg"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=w160Kbf96Lg"]
     },
     {
       "id": "SS-GRAND-CANYON-009",
@@ -2074,9 +2020,7 @@
       "safetyRating": "●●●",
       "boltCount": 7,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=H0IjB-BePZk"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=H0IjB-BePZk"]
     },
     {
       "id": "SS-GRAND-CANYON-012",

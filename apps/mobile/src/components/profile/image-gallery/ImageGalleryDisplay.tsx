@@ -1,8 +1,6 @@
-import React from 'react'
-import { View, StyleSheet, useWindowDimensions } from 'react-native'
-import { ProfileImage, ImageLayout } from '../types'
+import { StyleSheet, useWindowDimensions, View } from 'react-native'
+import { ImageLayout, ProfileImage } from '../types'
 import ImagePreviewCard from './ImagePreviewCard'
-import { COLORS } from '@nobodyclimb/constants'
 
 interface ImageGalleryDisplayProps {
   images: ProfileImage[]
@@ -41,21 +39,14 @@ export default function ImageGalleryDisplay({
   const itemWidth = (screenWidth - padding - gap * (columns - 1)) / columns
 
   if (images.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        {/* Empty state */}
-      </View>
-    )
+    return <View style={styles.emptyContainer}>{/* Empty state */}</View>
   }
 
   return (
     <View style={styles.container}>
       <View style={[styles.grid, { gap }]}>
         {images.map((image) => (
-          <View
-            key={image.id}
-            style={{ width: itemWidth }}
-          >
+          <View key={image.id} style={{ width: itemWidth }}>
             <ImagePreviewCard
               image={image}
               onPress={() => onImagePress?.(image)}

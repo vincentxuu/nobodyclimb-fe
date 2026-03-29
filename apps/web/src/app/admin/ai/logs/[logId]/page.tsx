@@ -1,17 +1,17 @@
 'use client'
 
-import { use } from 'react'
-import { formatTaipei } from '@/lib/utils'
+import { ArrowLeft, Clock, Loader2, ThumbsUp, User } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, Loader2, Clock, ThumbsUp, User } from 'lucide-react'
-import { useAILogDetail } from '@/lib/api/admin-ai'
-import { MarkdownContent } from '@/components/ai/ChatMessage'
+import { use } from 'react'
+import { CostAnalysisCard } from '@/components/admin/ai-log-detail/cost-analysis'
+import { DecisionNarrative } from '@/components/admin/ai-log-detail/decision-narrative'
+import { LatencyBreakdown } from '@/components/admin/ai-log-detail/latency-breakdown'
 
 import { PipelineTimeline } from '@/components/admin/ai-log-detail/pipeline-timeline'
-import { LatencyBreakdown } from '@/components/admin/ai-log-detail/latency-breakdown'
 import { QualitySection } from '@/components/admin/ai-log-detail/quality-section'
-import { DecisionNarrative } from '@/components/admin/ai-log-detail/decision-narrative'
-import { CostAnalysisCard } from '@/components/admin/ai-log-detail/cost-analysis'
+import { MarkdownContent } from '@/components/ai/ChatMessage'
+import { useAILogDetail } from '@/lib/api/admin-ai'
+import { formatTaipei } from '@/lib/utils'
 
 export default function AdminAILogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
   const { logId } = use(params)
@@ -63,7 +63,10 @@ export default function AdminAILogDetailPage({ params }: { params: Promise<{ log
           <div className="min-w-0">
             <p className="text-xs text-wb-50">使用者</p>
             {log.user?.id ? (
-              <p className="font-medium text-wb-100 truncate" title={log.user.username ?? undefined}>
+              <p
+                className="font-medium text-wb-100 truncate"
+                title={log.user.username ?? undefined}
+              >
                 {log.user.display_name || log.user.username}
               </p>
             ) : (

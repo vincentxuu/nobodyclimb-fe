@@ -1,6 +1,5 @@
-import React from 'react'
-import { useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 export default function SearchResults() {
@@ -18,9 +17,7 @@ export default function SearchResults() {
       <div className="mb-6">
         <Search className="mx-auto h-12 w-12 text-muted-foreground" />
       </div>
-      <p className="text-xl font-medium text-muted-foreground">
-        {t('searchInProgress')}
-      </p>
+      <p className="text-xl font-medium text-muted-foreground">{t('searchInProgress')}</p>
       {query && (
         <p className="mt-2 text-sm text-muted-foreground">
           {t('searchKeyword', { query, type: type !== t('tabAll') ? ` (${type})` : '' })}

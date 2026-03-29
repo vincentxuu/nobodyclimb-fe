@@ -3,16 +3,17 @@
  *
  * 可滾動頁面佈局，支援 Pull-to-Refresh
  */
+
+import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import React, { useCallback, useState } from 'react'
 import {
-  ScrollView,
   RefreshControl,
+  ScrollView,
+  type ScrollViewProps,
   StyleSheet,
   type ViewStyle,
-  type ScrollViewProps,
 } from 'react-native'
-import { SafeAreaView, type Edge } from 'react-native-safe-area-context'
-import { SEMANTIC_COLORS, SPACING, BRAND_YELLOW } from '@nobodyclimb/constants'
+import { type Edge, SafeAreaView } from 'react-native-safe-area-context'
 
 export interface ScrollLayoutProps extends Omit<ScrollViewProps, 'style'> {
   /** 子元素 */
@@ -74,18 +75,11 @@ export function ScrollLayout({
   }, [onRefresh])
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor }, style]}
-      edges={edges}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor }, style]} edges={edges}>
       {header}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { padding },
-          contentStyle,
-        ]}
+        contentContainerStyle={[styles.scrollContent, { padding }, contentStyle]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           enableRefresh ? (

@@ -1,23 +1,29 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { todayTaipei } from '@/lib/utils'
 import {
-  Clock,
-  ThumbsUp,
-  MessageSquare,
-  CheckCircle,
   AlertCircle,
+  CheckCircle,
+  Clock,
   Loader2,
-  Zap,
+  MessageSquare,
   RefreshCw,
+  ThumbsUp,
+  Zap,
 } from 'lucide-react'
-import { useAIDashboard, useAIConfig, useAIStats, DEFAULT_COST_PROVIDERS, type CostProvider } from '@/lib/api/admin-ai'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  type CostProvider,
+  DEFAULT_COST_PROVIDERS,
+  useAIConfig,
+  useAIDashboard,
+  useAIStats,
+} from '@/lib/api/admin-ai'
+import { todayTaipei } from '@/lib/utils'
 
 // Cloudflare Workers AI 定價（gemma-3-12b-it）
 // 31,371 input + 50,560 output Neurons / 百萬 tokens
 // 假設 input:output ≈ 40:60
-const NEURONS_PER_TOKEN = (0.4 * 31.371 + 0.6 * 50.560) / 1000 // ≈ 0.0429
+const NEURONS_PER_TOKEN = (0.4 * 31.371 + 0.6 * 50.56) / 1000 // ≈ 0.0429
 const FREE_TIER_NEURONS = 10_000
 const COST_PER_1K_NEURONS = 0.011 // USD
 // 儀表板費用對照使用固定 40:60 比例（與 Neurons 估算一致）
@@ -115,7 +121,11 @@ function MiniChart({
   )
 }
 
-function calcProviderCost(inputTokens: number, outputTokens: number, provider: CostProvider): number {
+function calcProviderCost(
+  inputTokens: number,
+  outputTokens: number,
+  provider: CostProvider
+): number {
   return (inputTokens * provider.input_per_1m + outputTokens * provider.output_per_1m) / 1_000_000
 }
 
@@ -144,7 +154,9 @@ export default function AdminAIPage() {
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed) && parsed.length > 0) return parsed
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return DEFAULT_COST_PROVIDERS
   }, [aiConfig])
 
@@ -173,17 +185,9 @@ export default function AdminAIPage() {
   const isWarning = usageRatio >= 0.7
   const isDanger = usageRatio >= 0.9
 
-  const barColor = isDanger
-    ? 'bg-red-500'
-    : isWarning
-    ? 'bg-amber-400'
-    : 'bg-emerald-400'
+  const barColor = isDanger ? 'bg-red-500' : isWarning ? 'bg-amber-400' : 'bg-emerald-400'
 
-  const textColor = isDanger
-    ? 'text-red-600'
-    : isWarning
-    ? 'text-amber-600'
-    : 'text-emerald-600'
+  const textColor = isDanger ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-emerald-600'
 
   const queryBars = (data.queries_weekly ?? []).map((d) => ({
     label: d.day.slice(5),
@@ -222,8 +226,12 @@ export default function AdminAIPage() {
       <div className="rounded-xl border border-wb-20 bg-white p-5">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold text-wb-100">今日免費額度（10,000 Neurons / 天）</h2>
-            <p className="mt-0.5 text-xs text-wb-50">每日 UTC 00:00 重置・基於 gemma-3-12b-it 費率估算，以 AI Gateway 為準</p>
+            <h2 className="text-sm font-semibold text-wb-100">
+              今日免費額度（10,000 Neurons / 天）
+            </h2>
+            <p className="mt-0.5 text-xs text-wb-50">
+              每日 UTC 00:00 重置・基於 gemma-3-12b-it 費率估算，以 AI Gateway 為準
+            </p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-wb-50">
             <RefreshCw className="h-3 w-3" />
@@ -248,7 +256,8 @@ export default function AdminAIPage() {
             <span className="text-wb-50">（{(usageRatio * 100).toFixed(1)}%）</span>
           </div>
           <span className="text-wb-60">
-            剩餘 <span className="font-medium text-wb-100">{remaining.toLocaleString()}</span> Neurons
+            剩餘 <span className="font-medium text-wb-100">{remaining.toLocaleString()}</span>{' '}
+            Neurons
           </span>
         </div>
 
@@ -266,7 +275,9 @@ export default function AdminAIPage() {
           </span>
           <span>
             累計 Token：
-            <span className="font-medium text-wb-90 ml-1">{formatTokens(data.total_tokens ?? 0)}</span>
+            <span className="font-medium text-wb-90 ml-1">
+              {formatTokens(data.total_tokens ?? 0)}
+            </span>
           </span>
         </div>
 
@@ -310,9 +321,7 @@ export default function AdminAIPage() {
                     : '基於 40% input / 60% output 估算，詳細分拆請見費用估算頁'}
                 </p>
               </div>
-              <span className="text-xs text-wb-40">
-                今日 {todayTokens.toLocaleString()} tokens
-              </span>
+              <span className="text-xs text-wb-40">今日 {todayTokens.toLocaleString()} tokens</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-separate border-spacing-0">
@@ -331,7 +340,9 @@ export default function AdminAIPage() {
                         key={p.id}
                         className={`border-t border-wb-10 ${isCheapest ? 'bg-emerald-50/50' : 'hover:bg-wb-5'}`}
                       >
-                        <td className={`py-2 px-3 font-medium text-sm ${isCheapest ? 'text-emerald-700' : 'text-wb-70'}`}>
+                        <td
+                          className={`py-2 px-3 font-medium text-sm ${isCheapest ? 'text-emerald-700' : 'text-wb-70'}`}
+                        >
                           {p.name}
                           {isCheapest && (
                             <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
@@ -339,10 +350,14 @@ export default function AdminAIPage() {
                             </span>
                           )}
                         </td>
-                        <td className={`py-2 px-3 text-right font-mono text-sm ${isCheapest ? 'text-emerald-700 font-medium' : 'text-wb-70'}`}>
+                        <td
+                          className={`py-2 px-3 text-right font-mono text-sm ${isCheapest ? 'text-emerald-700 font-medium' : 'text-wb-70'}`}
+                        >
                           {formatUSD(usd)}
                         </td>
-                        <td className={`py-2 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}>
+                        <td
+                          className={`py-2 px-3 text-right font-mono text-xs ${isCheapest ? 'text-emerald-600' : 'text-wb-50'}`}
+                        >
                           {formatNTD(usd)}
                         </td>
                       </tr>

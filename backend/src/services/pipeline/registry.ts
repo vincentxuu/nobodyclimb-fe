@@ -1,10 +1,22 @@
-import { PipelineStepMeta, StepId, SkipCondition } from './types';
+import { PipelineStepMeta, SkipCondition, StepId } from './types'
 
 // 跳過 sql/hybrid/clarification-needed/general-knowledge（用於 hyde 至 popularity-rerank 共 8 個 step）
-const NON_RAG_SKIP: SkipCondition[] = [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'] }];
+const NON_RAG_SKIP: SkipCondition[] = [
+  {
+    field: 'queryType',
+    operator: 'in',
+    value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'],
+  },
+]
 
 // 跳過 sql/clarification-needed/general-knowledge（不含 hybrid，用於 judge 和 self-reflection）
-const GK_SQL_SKIP: SkipCondition[] = [{ field: 'queryType', operator: 'in', value: ['general-knowledge', 'sql', 'clarification-needed'] }];
+const GK_SQL_SKIP: SkipCondition[] = [
+  {
+    field: 'queryType',
+    operator: 'in',
+    value: ['general-knowledge', 'sql', 'clarification-needed'],
+  },
+]
 
 export const STEP_REGISTRY: PipelineStepMeta[] = [
   {
@@ -20,12 +32,23 @@ export const STEP_REGISTRY: PipelineStepMeta[] = [
   {
     id: 'tool-selection',
     name: 'Tool Calling (LLM A)',
-    description: '解析查詢意圖、分類 queryType（simple/complex/general-knowledge/sql/hybrid/clarification-needed），提取搜尋參數',
+    description:
+      '解析查詢意圖、分類 queryType（simple/complex/general-knowledge/sql/hybrid/clarification-needed），提取搜尋參數',
     phase: 'pre-retrieval',
     defaultEnabled: true,
     defaultOrder: 1,
     requires: [],
-    provides: ['queryType', 'parsedQuery', 'effectiveLlmModel', 'preloadedCrags', 'preloadedAreas', 'sqlTemplate', 'sqlParams', 'clarificationType', 'strategyHint'],
+    provides: [
+      'queryType',
+      'parsedQuery',
+      'effectiveLlmModel',
+      'preloadedCrags',
+      'preloadedAreas',
+      'sqlTemplate',
+      'sqlParams',
+      'clarificationType',
+      'strategyHint',
+    ],
   },
   {
     id: 'text-to-sql',
@@ -36,7 +59,9 @@ export const STEP_REGISTRY: PipelineStepMeta[] = [
     defaultOrder: 2,
     requires: ['queryType', 'parsedQuery'],
     provides: ['earlyReturn', 'sqlCandidates', 'sqlContext'],
-    skipWhen: [{ field: 'queryType', operator: 'in', value: ['simple', 'complex', 'general-knowledge'] }],
+    skipWhen: [
+      { field: 'queryType', operator: 'in', value: ['simple', 'complex', 'general-knowledge'] },
+    ],
   },
   {
     id: 'hyde',
@@ -158,10 +183,10 @@ export const STEP_REGISTRY: PipelineStepMeta[] = [
     provides: [],
     skipWhen: GK_SQL_SKIP,
   },
-];
+]
 
 export function getStepById(id: StepId): PipelineStepMeta | undefined {
-  return STEP_REGISTRY.find((s) => s.id === id);
+  return STEP_REGISTRY.find((s) => s.id === id)
 }
 
 export function getDefaultStepConfigs(): Array<{ id: StepId; enabled: boolean; order: number }> {
@@ -169,5 +194,5 @@ export function getDefaultStepConfigs(): Array<{ id: StepId; enabled: boolean; o
     id: s.id,
     enabled: s.defaultEnabled,
     order: s.defaultOrder,
-  }));
+  }))
 }

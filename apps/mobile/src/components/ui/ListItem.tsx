@@ -3,26 +3,17 @@
  *
  * 列表項目組件
  */
-import React, { useCallback } from 'react'
-import {
-  Pressable,
-  View,
-  StyleSheet,
-  type ViewStyle,
-  type PressableProps,
-} from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated'
-import { ChevronRight } from 'lucide-react-native'
+
 import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { Text } from './Text'
-import { Icon } from './Icon'
-import { Divider } from './Divider'
-import { DURATION, EASING } from '@/theme/animations'
 import type { LucideIcon } from 'lucide-react-native'
+import { ChevronRight } from 'lucide-react-native'
+import React, { useCallback } from 'react'
+import { Pressable, type PressableProps, StyleSheet, View, type ViewStyle } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import { DURATION, EASING } from '@/theme/animations'
+import { Divider } from './Divider'
+import { Icon } from './Icon'
+import { Text } from './Text'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
@@ -81,10 +72,7 @@ export function ListItem({
   const backgroundColor = useSharedValue(0)
 
   const animatedStyle = useAnimatedStyle(() => ({
-    backgroundColor:
-      backgroundColor.value === 1
-        ? WB_COLORS[10]
-        : 'transparent',
+    backgroundColor: backgroundColor.value === 1 ? WB_COLORS[10] : 'transparent',
   }))
 
   const handlePressIn = useCallback(
@@ -134,10 +122,7 @@ export function ListItem({
           </View>
         )}
         <View style={styles.content}>
-          <Text
-            variant="body"
-            color={disabled ? 'disabled' : 'main'}
-          >
+          <Text variant="body" color={disabled ? 'disabled' : 'main'}>
             {title}
           </Text>
           {description && (
@@ -150,9 +135,7 @@ export function ListItem({
             </Text>
           )}
         </View>
-        {rightContent && (
-          <View style={styles.rightContent}>{rightContent}</View>
-        )}
+        {rightContent && <View style={styles.rightContent}>{rightContent}</View>}
         {showChevron && (
           <Icon
             icon={ChevronRight}

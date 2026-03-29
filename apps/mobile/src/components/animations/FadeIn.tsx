@@ -1,14 +1,14 @@
 /**
  * FadeIn 動畫包裝組件
  */
-import React, { ReactNode } from 'react'
+import { ReactNode } from 'react'
 import { type ViewStyle } from 'react-native'
 import Animated, {
-  FadeIn as ReanimatedFadeIn,
   FadeInDown,
-  FadeInUp,
   FadeInLeft,
   FadeInRight,
+  FadeInUp,
+  FadeIn as ReanimatedFadeIn,
 } from 'react-native-reanimated'
 
 type FadeDirection = 'none' | 'up' | 'down' | 'left' | 'right'

@@ -1,12 +1,11 @@
 'use client'
 
-import React from 'react'
 import { ImagePlus } from 'lucide-react'
-import ImageUploader from './ImageUploader'
-import SortableImageGrid from './SortableImageGrid'
-import LayoutSelector from './LayoutSelector'
+import { ImageLayout, ProfileImage } from '../types'
 import ImageGalleryDisplay from './ImageGalleryDisplay'
-import { ProfileImage, ImageLayout } from '../types'
+import ImageUploader from './ImageUploader'
+import LayoutSelector from './LayoutSelector'
+import SortableImageGrid from './SortableImageGrid'
 
 interface ProfileImageSectionProps {
   images: ProfileImage[]
@@ -44,9 +43,7 @@ export default function ProfileImageSection({
       return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <ImagePlus className="mb-2 h-10 w-10 text-gray-400" />
-          <p className="text-sm text-gray-500">
-            點擊右上角「編輯資料」按鈕來上傳您的攀岩照片
-          </p>
+          <p className="text-sm text-gray-500">點擊右上角「編輯資料」按鈕來上傳您的攀岩照片</p>
         </div>
       )
     }
@@ -79,11 +76,7 @@ export default function ProfileImageSection({
       )}
 
       {/* 上傳區域 */}
-      <ImageUploader
-        onUpload={onImageUpload}
-        currentCount={images.length}
-        enableCrop={true}
-      />
+      <ImageUploader onUpload={onImageUpload} currentCount={images.length} enableCrop={true} />
     </div>
   )
 }

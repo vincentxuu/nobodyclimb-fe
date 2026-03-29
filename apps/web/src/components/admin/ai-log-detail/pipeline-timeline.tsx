@@ -1,11 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useAIConfig, DEFAULT_COST_PROVIDERS, type AILogDetail, type CostProvider } from '@/lib/api/admin-ai'
-import { StatusBadge, StageIcon, STAGE_LABELS } from './shared'
-import { StageTraceDetail } from './traces'
+import { useMemo, useState } from 'react'
+import {
+  type AILogDetail,
+  type CostProvider,
+  DEFAULT_COST_PROVIDERS,
+  useAIConfig,
+} from '@/lib/api/admin-ai'
 import { calcCost } from './cost-analysis'
+import { STAGE_LABELS, StageIcon, StatusBadge } from './shared'
+import { StageTraceDetail } from './traces'
 import type { PipelineKey } from './types'
 
 export function PipelineTimeline({
@@ -31,7 +36,9 @@ export function PipelineTimeline({
         const parsed = JSON.parse(raw) as CostProvider[]
         if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
       }
-    } catch { /* fallback */ }
+    } catch {
+      /* fallback */
+    }
     return DEFAULT_COST_PROVIDERS[0] ?? null
   }, [aiConfig])
 
@@ -103,7 +110,7 @@ export function PipelineTimeline({
         return !ps?.skipped
       })
       .map(({ key }) => key)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stages, pipeline])
 
   const toggleAll = () => {
@@ -135,39 +142,58 @@ export function PipelineTimeline({
       </div>
       <p className="mb-4 text-[11px] text-wb-40">點擊各階段展開 Input → Decision → Output 詳情</p>
 
-      {pipelineTrace?.degraded && pipelineTrace.degraded_stages && pipelineTrace.degraded_stages.length > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
-          <p className="text-xs font-medium text-amber-700">降級階段</p>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
-            {pipelineTrace.degraded_stages.map((stage) => (
-              <span key={stage} className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
-                {STAGE_LABELS[stage] ?? stage}
-              </span>
-            ))}
+      {pipelineTrace?.degraded &&
+        pipelineTrace.degraded_stages &&
+        pipelineTrace.degraded_stages.length > 0 && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
+            <p className="text-xs font-medium text-amber-700">降級階段</p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {pipelineTrace.degraded_stages.map((stage) => (
+                <span
+                  key={stage}
+                  className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700"
+                >
+                  {STAGE_LABELS[stage] ?? stage}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {pipelineTrace?.circuit_breaker && (
         <div className="mb-4 rounded-lg border border-wb-20 bg-wb-05 px-4 py-3 flex flex-wrap items-center gap-3 text-xs">
           <span className="font-medium text-wb-70">Circuit Breaker:</span>
-          <span className={`rounded border px-1.5 py-0.5 font-medium ${
-            pipelineTrace.circuit_breaker.state === 'closed'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+          <span
+            className={`rounded border px-1.5 py-0.5 font-medium ${
+              pipelineTrace.circuit_breaker.state === 'closed'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : pipelineTrace.circuit_breaker.state === 'half-open'
+                  ? 'border-amber-200 bg-amber-50 text-amber-700'
+                  : 'border-red-200 bg-red-50 text-red-700'
+            }`}
+          >
+            {pipelineTrace.circuit_breaker.state === 'closed'
+              ? 'Closed'
               : pipelineTrace.circuit_breaker.state === 'half-open'
-                ? 'border-amber-200 bg-amber-50 text-amber-700'
-                : 'border-red-200 bg-red-50 text-red-700'
-          }`}>
-            {pipelineTrace.circuit_breaker.state === 'closed' ? 'Closed' : pipelineTrace.circuit_breaker.state === 'half-open' ? 'Half-Open' : 'Open'}
+                ? 'Half-Open'
+                : 'Open'}
           </span>
-          <span className="text-wb-50">Failures: <span className="font-mono text-wb-80">{pipelineTrace.circuit_breaker.failures}</span></span>
-          <span className="text-wb-50">Action: <span className="font-mono text-wb-80">{pipelineTrace.circuit_breaker.action}</span></span>
+          <span className="text-wb-50">
+            Failures:{' '}
+            <span className="font-mono text-wb-80">{pipelineTrace.circuit_breaker.failures}</span>
+          </span>
+          <span className="text-wb-50">
+            Action:{' '}
+            <span className="font-mono text-wb-80">{pipelineTrace.circuit_breaker.action}</span>
+          </span>
         </div>
       )}
 
       <div className="space-y-0">
         {stages.map(({ key, isTraceOnly }, idx) => {
-          const pipelineStage = isTraceOnly ? null : (pipeline[key as PipelineKey] as unknown as Record<string, unknown>)
+          const pipelineStage = isTraceOnly
+            ? null
+            : (pipeline[key as PipelineKey] as unknown as Record<string, unknown>)
           const skipped = isTraceOnly ? false : Boolean(pipelineStage?.skipped)
           const isLast = idx === stages.length - 1
           const isExpanded = expandedStages.has(key)
@@ -176,11 +202,23 @@ export function PipelineTimeline({
           const execStep = pipelineTrace?.pipeline_execution?.find((s) => s.step === key)
           const isTimeout = Boolean(execStep?.timeout)
 
-          let status: 'ran' | 'skipped' | 'hit' | 'triggered' | 'not-triggered' | 'timeout' | 'degraded' = 'ran'
+          let status:
+            | 'ran'
+            | 'skipped'
+            | 'hit'
+            | 'triggered'
+            | 'not-triggered'
+            | 'timeout'
+            | 'degraded' = 'ran'
           if (isTimeout) status = 'timeout'
           else if (skipped) status = 'skipped'
-          else if (key === 'cache' && pipelineStage && 'hit' in pipelineStage) status = pipelineStage.hit ? 'hit' : 'ran'
-          else if ((key === 'hyde' || key === 'self_reflection') && pipelineStage && 'triggered' in pipelineStage)
+          else if (key === 'cache' && pipelineStage && 'hit' in pipelineStage)
+            status = pipelineStage.hit ? 'hit' : 'ran'
+          else if (
+            (key === 'hyde' || key === 'self_reflection') &&
+            pipelineStage &&
+            'triggered' in pipelineStage
+          )
             status = pipelineStage.triggered ? 'triggered' : 'not-triggered'
           else if (isTraceOnly && key === 'crag_fallback')
             status = pipelineTrace?.retrieval?.crag_fallback ? 'triggered' : 'not-triggered'
@@ -188,81 +226,158 @@ export function PipelineTimeline({
             status = pipelineTrace?.retrieval?.reranker_used === false ? 'skipped' : 'ran'
           else if (isTraceOnly) status = 'ran'
 
-          const metrics: { label: string; value: string; highlight?: boolean; estimated?: boolean }[] = []
+          const metrics: {
+            label: string
+            value: string
+            highlight?: boolean
+            estimated?: boolean
+          }[] = []
           if (isTimeout) metrics.push({ label: '降級', value: '超時降級', highlight: true })
           const tb = pipelineTrace?.token_breakdown
 
           if (!skipped && pipelineStage) {
             if (key === 'query_parsing' && pipelineStage.query_type) {
-              const qmap: Record<string, string> = { simple: '簡單', complex: '複雜', 'general-knowledge': '通識', sql: 'SQL', 'multi-tool': '多工具' }
-              metrics.push({ label: '類型', value: qmap[pipelineStage.query_type as string] ?? String(pipelineStage.query_type) })
+              const qmap: Record<string, string> = {
+                simple: '簡單',
+                complex: '複雜',
+                'general-knowledge': '通識',
+                sql: 'SQL',
+                'multi-tool': '多工具',
+              }
+              metrics.push({
+                label: '類型',
+                value: qmap[pipelineStage.query_type as string] ?? String(pipelineStage.query_type),
+              })
               const tsConf = pipelineTrace?.tool_selection?.confidence
-              if (tsConf != null && tsConf < 1) metrics.push({ label: '信心', value: `${(tsConf * 100).toFixed(0)}%` })
+              if (tsConf != null && tsConf < 1)
+                metrics.push({ label: '信心', value: `${(tsConf * 100).toFixed(0)}%` })
               const rm = pipelineTrace?.query_parsing?.retrieval_method
-              if (rm && rm !== 'hybrid') metrics.push({ label: '檢索', value: rm === 'bm25' ? 'BM25' : 'Vector' })
+              if (rm && rm !== 'hybrid')
+                metrics.push({ label: '檢索', value: rm === 'bm25' ? 'BM25' : 'Vector' })
             }
-            if ((key === 'embedding' || key === 'retrieval' || key === 'generation') && pipelineStage.duration_ms != null) {
+            if (
+              (key === 'embedding' || key === 'retrieval' || key === 'generation') &&
+              pipelineStage.duration_ms != null
+            ) {
               metrics.push({ label: '耗時', value: `${pipelineStage.duration_ms} ms` })
             }
             if (key === 'retrieval') {
-              if (pipelineStage.top_score != null) metrics.push({ label: '最高分', value: `${((pipelineStage.top_score as number) * 100).toFixed(1)}%` })
-              if (pipelineStage.doc_count != null) metrics.push({ label: '文件', value: `${pipelineStage.doc_count} 筆` })
+              if (pipelineStage.top_score != null)
+                metrics.push({
+                  label: '最高分',
+                  value: `${((pipelineStage.top_score as number) * 100).toFixed(1)}%`,
+                })
+              if (pipelineStage.doc_count != null)
+                metrics.push({ label: '文件', value: `${pipelineStage.doc_count} 筆` })
             }
             if (key === 'text_to_sql') {
-              if (pipelineStage.candidate_count != null) metrics.push({ label: '候選', value: `${pipelineStage.candidate_count} 筆` })
-              if (pipelineStage.path) metrics.push({ label: '路徑', value: String(pipelineStage.path) })
+              if (pipelineStage.candidate_count != null)
+                metrics.push({ label: '候選', value: `${pipelineStage.candidate_count} 筆` })
+              if (pipelineStage.path)
+                metrics.push({ label: '路徑', value: String(pipelineStage.path) })
             }
             if (key === 'generation') {
-              if (pipelineStage.model) metrics.push({ label: '模型', value: String(pipelineStage.model).split('/').pop() ?? '' })
+              if (pipelineStage.model)
+                metrics.push({
+                  label: '模型',
+                  value: String(pipelineStage.model).split('/').pop() ?? '',
+                })
               const mg = tb?.main_generation
               if (mg) {
-                metrics.push({ label: 'in', value: mg.prompt_tokens.toLocaleString(), estimated: mg.estimated })
-                metrics.push({ label: 'out', value: mg.completion_tokens.toLocaleString(), estimated: mg.estimated })
+                metrics.push({
+                  label: 'in',
+                  value: mg.prompt_tokens.toLocaleString(),
+                  estimated: mg.estimated,
+                })
+                metrics.push({
+                  label: 'out',
+                  value: mg.completion_tokens.toLocaleString(),
+                  estimated: mg.estimated,
+                })
                 if (primaryProvider) {
                   const usd = calcCost(mg.prompt_tokens, mg.completion_tokens, primaryProvider)
                   metrics.push({ label: '$', value: usd.toFixed(6), estimated: mg.estimated })
-                  metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: mg.estimated })
+                  metrics.push({
+                    label: 'NT$',
+                    value: (usd * 32).toFixed(4),
+                    estimated: mg.estimated,
+                  })
                 }
               } else if (pipelineStage.token_count != null) {
                 metrics.push({ label: 'Tokens', value: String(pipelineStage.token_count) })
               }
-              if (pipelineStage.is_high_consumption) metrics.push({ label: '高消耗', value: '!', highlight: true })
+              if (pipelineStage.is_high_consumption)
+                metrics.push({ label: '高消耗', value: '!', highlight: true })
             }
             if (key === 'judge') {
               if (pipelineStage.groundedness_score != null)
-                metrics.push({ label: 'Groundedness', value: `${((pipelineStage.groundedness_score as number) * 100).toFixed(0)}%` })
+                metrics.push({
+                  label: 'Groundedness',
+                  value: `${((pipelineStage.groundedness_score as number) * 100).toFixed(0)}%`,
+                })
               if (pipelineStage.auto_score != null)
                 metrics.push({ label: 'Auto', value: `${pipelineStage.auto_score} / 4` })
             }
           }
 
           if (tb) {
-            const singleStageTokenMap: Partial<Record<string, { prompt_tokens: number; completion_tokens: number; total_tokens: number; estimated: boolean } | undefined>> = {
+            const singleStageTokenMap: Partial<
+              Record<
+                string,
+                | {
+                    prompt_tokens: number
+                    completion_tokens: number
+                    total_tokens: number
+                    estimated: boolean
+                  }
+                | undefined
+              >
+            > = {
               query_parsing: tb.tool_selection,
-              hyde:          tb.hyde,
+              hyde: tb.hyde,
               self_reflection: tb.self_reflection_regen,
-              judge:         tb.judge,
+              judge: tb.judge,
             }
             const stageUsage = singleStageTokenMap[key]
             if (stageUsage) {
-              metrics.push({ label: 'in', value: stageUsage.prompt_tokens.toLocaleString(), estimated: stageUsage.estimated })
-              metrics.push({ label: 'out', value: stageUsage.completion_tokens.toLocaleString(), estimated: stageUsage.estimated })
+              metrics.push({
+                label: 'in',
+                value: stageUsage.prompt_tokens.toLocaleString(),
+                estimated: stageUsage.estimated,
+              })
+              metrics.push({
+                label: 'out',
+                value: stageUsage.completion_tokens.toLocaleString(),
+                estimated: stageUsage.estimated,
+              })
               if (primaryProvider) {
-                const usd = calcCost(stageUsage.prompt_tokens, stageUsage.completion_tokens, primaryProvider)
+                const usd = calcCost(
+                  stageUsage.prompt_tokens,
+                  stageUsage.completion_tokens,
+                  primaryProvider
+                )
                 metrics.push({ label: '$', value: usd.toFixed(6), estimated: stageUsage.estimated })
-                metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: stageUsage.estimated })
+                metrics.push({
+                  label: 'NT$',
+                  value: (usd * 32).toFixed(4),
+                  estimated: stageUsage.estimated,
+                })
               }
             }
           }
 
           if (isTraceOnly && key === 'agentic' && pipelineTrace?.agentic) {
-            const a = pipelineTrace.agentic as { steps: unknown[]; final_doc_count: number; total_paths: number }
+            const a = pipelineTrace.agentic as {
+              steps: unknown[]
+              final_doc_count: number
+              total_paths: number
+            }
             metrics.push({ label: '步驟', value: `${a.steps.length + 1}` })
             metrics.push({ label: '最終文件', value: `${a.final_doc_count} 筆` })
             if (tb?.agentic_decisions?.length) {
               const totalIn = tb.agentic_decisions.reduce((s, d) => s + d.prompt_tokens, 0)
               const totalOut = tb.agentic_decisions.reduce((s, d) => s + d.completion_tokens, 0)
-              const anyEst = tb.agentic_decisions.some(d => d.estimated)
+              const anyEst = tb.agentic_decisions.some((d) => d.estimated)
               metrics.push({ label: 'in', value: totalIn.toLocaleString(), estimated: anyEst })
               metrics.push({ label: 'out', value: totalOut.toLocaleString(), estimated: anyEst })
               if (primaryProvider) {
@@ -273,15 +388,30 @@ export function PipelineTimeline({
             }
           }
           if (isTraceOnly && key === 'multi_query' && pipelineTrace?.multi_query) {
-            metrics.push({ label: '子查詢', value: `${pipelineTrace.multi_query.queries.length} 條` })
+            metrics.push({
+              label: '子查詢',
+              value: `${pipelineTrace.multi_query.queries.length} 條`,
+            })
             if (tb?.multi_query) {
               const mq = tb.multi_query
-              metrics.push({ label: 'in', value: mq.prompt_tokens.toLocaleString(), estimated: mq.estimated })
-              metrics.push({ label: 'out', value: mq.completion_tokens.toLocaleString(), estimated: mq.estimated })
+              metrics.push({
+                label: 'in',
+                value: mq.prompt_tokens.toLocaleString(),
+                estimated: mq.estimated,
+              })
+              metrics.push({
+                label: 'out',
+                value: mq.completion_tokens.toLocaleString(),
+                estimated: mq.estimated,
+              })
               if (primaryProvider) {
                 const usd = calcCost(mq.prompt_tokens, mq.completion_tokens, primaryProvider)
                 metrics.push({ label: '$', value: usd.toFixed(6), estimated: mq.estimated })
-                metrics.push({ label: 'NT$', value: (usd * 32).toFixed(4), estimated: mq.estimated })
+                metrics.push({
+                  label: 'NT$',
+                  value: (usd * 32).toFixed(4),
+                  estimated: mq.estimated,
+                })
               }
             }
           }
@@ -290,13 +420,22 @@ export function PipelineTimeline({
             metrics.push({ label: '路徑', value: `${rrf.paths_count} 條` })
             metrics.push({ label: '通過門檻', value: `${rrf.after_threshold_count} 筆` })
           }
-          if (isTraceOnly && key === 'crag_fallback' && pipelineTrace?.retrieval?.crag_fallback_detail) {
-            metrics.push({ label: '重試', value: `${pipelineTrace.retrieval.crag_fallback_detail.retries.length} 次` })
+          if (
+            isTraceOnly &&
+            key === 'crag_fallback' &&
+            pipelineTrace?.retrieval?.crag_fallback_detail
+          ) {
+            metrics.push({
+              label: '重試',
+              value: `${pipelineTrace.retrieval.crag_fallback_detail.retries.length} 次`,
+            })
           }
           if (isTraceOnly && key === 'reranking' && pipelineTrace?.retrieval?.reranker) {
             const re = pipelineTrace.retrieval.reranker
-            if (re.input_count != null) metrics.push({ label: '輸入', value: `${re.input_count} 筆` })
-            if (re.top_scores?.length) metrics.push({ label: '最高', value: re.top_scores[0].score.toFixed(3) })
+            if (re.input_count != null)
+              metrics.push({ label: '輸入', value: `${re.input_count} 筆` })
+            if (re.top_scores?.length)
+              metrics.push({ label: '最高', value: re.top_scores[0].score.toFixed(3) })
           }
           if (isTraceOnly && key === 'mmr_selection' && pipelineTrace?.mmr_selection) {
             const mmr = pipelineTrace.mmr_selection
@@ -314,20 +453,45 @@ export function PipelineTimeline({
               metrics.push({ label: '目標', value: pe.plan_fallback.target })
             } else {
               metrics.push({ label: '步驟', value: `${pe.steps?.length ?? 0} 步` })
-              if (pe.sources_count != null) metrics.push({ label: '來源', value: `${pe.sources_count} 筆` })
+              if (pe.sources_count != null)
+                metrics.push({ label: '來源', value: `${pe.sources_count} 筆` })
             }
             metrics.push({ label: '耗時', value: `${pe.total_duration_ms} ms` })
             if (tb?.planning) {
-              metrics.push({ label: 'plan in', value: tb.planning.prompt_tokens.toLocaleString(), estimated: tb.planning.estimated })
-              metrics.push({ label: 'plan out', value: tb.planning.completion_tokens.toLocaleString(), estimated: tb.planning.estimated })
+              metrics.push({
+                label: 'plan in',
+                value: tb.planning.prompt_tokens.toLocaleString(),
+                estimated: tb.planning.estimated,
+              })
+              metrics.push({
+                label: 'plan out',
+                value: tb.planning.completion_tokens.toLocaleString(),
+                estimated: tb.planning.estimated,
+              })
               if (primaryProvider) {
-                const usd = calcCost(tb.planning.prompt_tokens, tb.planning.completion_tokens, primaryProvider)
-                metrics.push({ label: '$', value: usd.toFixed(6), estimated: tb.planning.estimated })
+                const usd = calcCost(
+                  tb.planning.prompt_tokens,
+                  tb.planning.completion_tokens,
+                  primaryProvider
+                )
+                metrics.push({
+                  label: '$',
+                  value: usd.toFixed(6),
+                  estimated: tb.planning.estimated,
+                })
               }
             }
             if (tb?.synthesis) {
-              metrics.push({ label: 'synth in', value: tb.synthesis.prompt_tokens.toLocaleString(), estimated: tb.synthesis.estimated })
-              metrics.push({ label: 'synth out', value: tb.synthesis.completion_tokens.toLocaleString(), estimated: tb.synthesis.estimated })
+              metrics.push({
+                label: 'synth in',
+                value: tb.synthesis.prompt_tokens.toLocaleString(),
+                estimated: tb.synthesis.estimated,
+              })
+              metrics.push({
+                label: 'synth out',
+                value: tb.synthesis.completion_tokens.toLocaleString(),
+                estimated: tb.synthesis.estimated,
+              })
             }
           }
           if (isTraceOnly && key === 'multi_tool' && pipelineTrace?.multi_tool) {
@@ -336,25 +500,32 @@ export function PipelineTimeline({
               metrics.push({ label: '狀態', value: '降級', highlight: true })
             } else {
               metrics.push({ label: '步驟', value: `${mt.steps?.length ?? 0} 步` })
-              if (mt.sources_count != null) metrics.push({ label: '來源', value: `${mt.sources_count} 筆` })
+              if (mt.sources_count != null)
+                metrics.push({ label: '來源', value: `${mt.sources_count} 筆` })
             }
-            if (mt.total_duration_ms != null) metrics.push({ label: '耗時', value: `${mt.total_duration_ms} ms` })
+            if (mt.total_duration_ms != null)
+              metrics.push({ label: '耗時', value: `${mt.total_duration_ms} ms` })
           }
 
           return (
             <div key={`${key}-${idx}`} className="flex gap-3">
               <div className="flex flex-col items-center">
-                <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 mt-2 ${
-                  skipped
-                    ? 'border-wb-15 bg-wb-5'
-                    : key === 'cache' && pipelineStage?.hit
-                      ? 'border-sky-300 bg-sky-50'
-                      : 'border-wb-30 bg-white'
-                }`}>
+                <div
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 mt-2 ${
+                    skipped
+                      ? 'border-wb-15 bg-wb-5'
+                      : key === 'cache' && pipelineStage?.hit
+                        ? 'border-sky-300 bg-sky-50'
+                        : 'border-wb-30 bg-white'
+                  }`}
+                >
                   <StageIcon name={key} skipped={skipped} />
                 </div>
                 {!isLast && (
-                  <div className={`w-px flex-1 my-1 ${skipped ? 'bg-wb-10' : 'bg-wb-20'}`} style={{ minHeight: 16 }} />
+                  <div
+                    className={`w-px flex-1 my-1 ${skipped ? 'bg-wb-10' : 'bg-wb-20'}`}
+                    style={{ minHeight: 16 }}
+                  />
                 )}
               </div>
 
@@ -378,20 +549,24 @@ export function PipelineTimeline({
                             : 'border-wb-15 bg-wb-5 text-wb-60'
                       }`}
                     >
-                      {m.label}: {m.estimated ? '~' : ''}{m.value}
+                      {m.label}: {m.estimated ? '~' : ''}
+                      {m.value}
                     </span>
                   ))}
                   {canExpand && (
                     <span className="ml-auto text-wb-40">
-                      {isExpanded
-                        ? <ChevronDown className="h-3.5 w-3.5" />
-                        : <ChevronRight className="h-3.5 w-3.5" />
-                      }
+                      {isExpanded ? (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      )}
                     </span>
                   )}
                 </div>
                 {!isTraceOnly && !!pipelineStage?.service && (
-                  <p className={`mt-0.5 text-[11px] font-mono ${skipped ? 'text-wb-30' : 'text-wb-50'}`}>
+                  <p
+                    className={`mt-0.5 text-[11px] font-mono ${skipped ? 'text-wb-30' : 'text-wb-50'}`}
+                  >
                     {pipelineStage.service as string}
                   </p>
                 )}

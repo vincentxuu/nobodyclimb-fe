@@ -7,11 +7,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 import type {
-  CragListItem,
   CragDetailData,
-  RouteSidebarItem,
+  CragListItem,
   RouteDetailData,
-  CragArea,
+  RouteSidebarItem,
 } from '@/lib/crag-data'
 
 const STALE_TIME = 5 * 60 * 1000 // 5 分鐘
@@ -69,21 +68,25 @@ function adaptCragToDetail(apiCrag: any, apiAreas: any[]): CragDetailData {
     type: apiCrag.type || '',
     rockType: apiCrag.rock_type || apiCrag.rockType || '',
     routes: apiCrag.routes_count || apiCrag.routesCount || 0,
-    difficulty: typeof difficulty === 'object'
-      ? `${difficulty.min || ''} - ${difficulty.max || ''}`
-      : difficulty || '',
-    height: typeof height === 'object'
-      ? `${height.min || ''}-${height.max || ''}${height.unit || 'm'}`
-      : height || '',
+    difficulty:
+      typeof difficulty === 'object'
+        ? `${difficulty.min || ''} - ${difficulty.max || ''}`
+        : difficulty || '',
+    height:
+      typeof height === 'object'
+        ? `${height.min || ''}-${height.max || ''}${height.unit || 'm'}`
+        : height || '',
     approach: access.approach || apiCrag.approach || '',
     seasons: apiCrag.seasons || [],
     transportation: access.transportation || apiCrag.transportation || [],
     parking: access.parking || apiCrag.parking || '',
     amenities: apiCrag.amenities || [],
-    googleMapsUrl: location.googleMapsUrl || location.google_maps_url || apiCrag.googleMapsUrl || '',
-    geoCoordinates: (apiCrag.latitude && apiCrag.longitude)
-      ? { latitude: apiCrag.latitude, longitude: apiCrag.longitude }
-      : apiCrag.geoCoordinates || apiCrag.geo_coordinates || null,
+    googleMapsUrl:
+      location.googleMapsUrl || location.google_maps_url || apiCrag.googleMapsUrl || '',
+    geoCoordinates:
+      apiCrag.latitude && apiCrag.longitude
+        ? { latitude: apiCrag.latitude, longitude: apiCrag.longitude }
+        : apiCrag.geoCoordinates || apiCrag.geo_coordinates || null,
     weatherLocation: apiCrag.weather_location || apiCrag.weatherLocation || '',
     areas: apiAreas.map((area: any) => ({
       id: area.id,
@@ -190,7 +193,15 @@ export function useCragRoutes(cragId: string) {
 export function useCragAreas(cragId: string) {
   return useQuery({
     queryKey: ['crag', cragId, 'areas'],
-    queryFn: async (): Promise<Array<{ id: string; name: string; description?: string; difficulty?: string; routes?: number }>> => {
+    queryFn: async (): Promise<
+      Array<{
+        id: string
+        name: string
+        description?: string
+        difficulty?: string
+        routes?: number
+      }>
+    > => {
       const response = await apiClient.get(`/crags/${cragId}/areas`)
       const apiAreas = extractData<any[]>(response) || []
       return apiAreas.map((area: any) => ({
@@ -236,9 +247,7 @@ export function useRouteDetail(cragId: string, routeId: string) {
       if (!apiCrag) return null
 
       const apiAreas = extractData<any[]>(areasResponse) || []
-      const area = apiRoute.area_id
-        ? apiAreas.find((a: any) => a.id === apiRoute.area_id)
-        : null
+      const area = apiRoute.area_id ? apiAreas.find((a: any) => a.id === apiRoute.area_id) : null
 
       // 找同區域的其他路線作為相關路線
       const apiRoutes = extractData<any[]>(routesResponse) || []
@@ -256,7 +265,11 @@ export function useRouteDetail(cragId: string, routeId: string) {
       const parseJsonField = (field: any): any[] => {
         if (Array.isArray(field)) return field
         if (typeof field === 'string') {
-          try { return JSON.parse(field) } catch { return [] }
+          try {
+            return JSON.parse(field)
+          } catch {
+            return []
+          }
         }
         return []
       }
@@ -289,7 +302,9 @@ export function useRouteDetail(cragId: string, routeId: string) {
           name: apiCrag.name,
           nameEn: apiCrag.name_en || apiCrag.nameEn || '',
           slug: apiCrag.slug || apiCrag.id,
-          location: apiCrag.location?.address || (typeof apiCrag.location === 'string' ? apiCrag.location : ''),
+          location:
+            apiCrag.location?.address ||
+            (typeof apiCrag.location === 'string' ? apiCrag.location : ''),
         },
         area: area
           ? {

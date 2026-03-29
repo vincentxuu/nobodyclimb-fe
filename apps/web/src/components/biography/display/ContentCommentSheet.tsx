@@ -1,20 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { Loader2, MessageCircle, Send, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
-import { useToast } from '@/components/ui/use-toast'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import type { RankId } from '@nobodyclimb/types'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
-import type { ContentComment } from '@/lib/api/services'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronDown, ChevronUp, Loader2, MessageCircle, Send, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { RankBadge } from '@/components/rank/RankBadge'
-import type { RankId } from '@nobodyclimb/types'
 import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useState } from 'react'
+import { RankBadge } from '@/components/rank/RankBadge'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import type { ContentComment } from '@/lib/api/services'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface ContentCommentSheetProps {
   /** 留言數量 */
@@ -63,11 +63,7 @@ function CommentItem({
       <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
         {comment.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={comment.avatar_url}
-            alt={displayName}
-            className="h-full w-full object-cover"
-          />
+          <img src={comment.avatar_url} alt={displayName} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">
             {displayName.charAt(0).toUpperCase()}
@@ -122,8 +118,8 @@ function CommentForm({
       <p className="text-sm text-gray-500">
         <Link href="/auth/login" className="text-brand-600 hover:underline">
           {t('login')}
-        </Link>
-        {' '}{t('commentLoginPrompt')}
+        </Link>{' '}
+        {t('commentLoginPrompt')}
       </p>
     )
   }
@@ -143,11 +139,7 @@ function CommentForm({
         disabled={!content.trim() || isSubmitting}
         className="self-end"
       >
-        {isSubmitting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Send className="h-4 w-4" />
-        )}
+        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
       </Button>
     </form>
   )
@@ -299,9 +291,7 @@ export function ContentCommentSheet({
                   ))}
                 </div>
               ) : (
-                <p className="py-4 text-center text-sm text-gray-500">
-                  {t('noComments')}
-                </p>
+                <p className="py-4 text-center text-sm text-gray-500">{t('noComments')}</p>
               )}
             </div>
           </motion.div>

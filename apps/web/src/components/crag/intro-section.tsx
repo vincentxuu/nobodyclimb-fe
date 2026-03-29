@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
-import { Car, MapPin, Info } from 'lucide-react'
+import { Car, Info, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import React from 'react'
 
 interface Transportation {
   type: string
@@ -40,7 +40,9 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('cragIntro')}</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+          {t('cragIntro')}
+        </h2>
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <p className="mb-1 text-sm text-gray-500">{t('introRockType')}</p>
@@ -71,7 +73,9 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
 
       {/* YouTube 影片介紹 */}
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('videoIntroTitle')}</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+          {t('videoIntroTitle')}
+        </h2>
         <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg bg-gray-100">
           <iframe
             src={cragData.videoUrl}
@@ -85,7 +89,9 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
       </div>
 
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('bestSeasonTitle')}</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+          {t('bestSeasonTitle')}
+        </h2>
         <div className="mb-6 grid grid-cols-4 gap-2">
           {seasons.map(({ key, label, suffix }) => (
             <div
@@ -96,14 +102,17 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
                   : 'border-gray-200 bg-gray-50 text-gray-400'
               }`}
             >
-              {label}{suffix}
+              {label}
+              {suffix}
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('transportInfoTitle')}</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+          {t('transportInfoTitle')}
+        </h2>
         <div className="mb-6 space-y-4">
           {cragData.transportation.map((transport, index) => (
             <div key={index} className="rounded-lg bg-gray-50 p-4">
@@ -130,7 +139,9 @@ export const CragIntroSection: React.FC<CragIntroSectionProps> = ({ cragData }) 
       </div>
 
       <div>
-        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">{t('nearbyFacilitiesTitle')}</h2>
+        <h2 className="mb-6 border-l-4 border-[#FFE70C] pl-4 text-2xl font-bold">
+          {t('nearbyFacilitiesTitle')}
+        </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cragData.amenities.map((amenity, index) => (
             <div key={index} className="flex items-center rounded-lg bg-gray-50 p-4">

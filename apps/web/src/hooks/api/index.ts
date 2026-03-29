@@ -4,22 +4,22 @@
 
 // Crag hooks
 export {
-  useCrags,
-  useFeaturedCrags,
+  useCragAreas,
   useCragDetail,
   useCragDetailBySlug,
   useCragRoutes,
-  useCragAreas,
+  useCrags,
+  useFeaturedCrags,
   useRouteDetail,
 } from './useCrags'
 
 // Gym hooks
 export {
-  useGyms,
+  useAdjacentGyms,
   useFeaturedGyms,
   useGymDetail,
   useGymDetailBySlug,
+  useGyms,
   useRelatedGyms,
-  useAdjacentGyms,
   useSearchGyms,
 } from './useGyms'

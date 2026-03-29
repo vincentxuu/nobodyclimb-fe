@@ -3,33 +3,16 @@
  *
  * 對應 apps/web/src/app/games/rope-system/learn/[categoryId]/page.tsx
  */
-import React, { useState, useEffect, useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  Alert,
-  Vibration,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter, useLocalSearchParams } from 'expo-router'
-import {
-  ChevronLeft,
-  X,
-  CheckCircle,
-  XCircle,
-  ArrowRight,
-} from 'lucide-react-native'
-import Animated, {
-  FadeIn,
-  FadeOut,
-  SlideInRight,
-  SlideOutLeft,
-} from 'react-native-reanimated'
 
-import { Text, IconButton, Button } from '@/components/ui'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { ArrowRight, CheckCircle, X, XCircle } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { Alert, Pressable, StyleSheet, Vibration, View } from 'react-native'
+import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, IconButton, Text } from '@/components/ui'
 import { useRopeGameStore } from '@/store/ropeGameStore'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
 
 interface Question {
   id: string
@@ -143,12 +126,7 @@ interface QuestionCardProps {
   onSelectAnswer: (index: number) => void
 }
 
-function QuestionCard({
-  question,
-  selectedAnswer,
-  showResult,
-  onSelectAnswer,
-}: QuestionCardProps) {
+function QuestionCard({ question, selectedAnswer, showResult, onSelectAnswer }: QuestionCardProps) {
   const getOptionStyle = (index: number) => {
     if (!showResult) {
       return selectedAnswer === index ? styles.optionSelected : styles.option
@@ -188,7 +166,10 @@ function QuestionCard({
               style={[
                 styles.optionText,
                 showResult && index === question.correctAnswer && styles.optionTextCorrect,
-                showResult && selectedAnswer === index && index !== question.correctAnswer && styles.optionTextWrong,
+                showResult &&
+                  selectedAnswer === index &&
+                  index !== question.correctAnswer &&
+                  styles.optionTextWrong,
               ]}
             >
               {option}
@@ -465,12 +446,7 @@ export default function LearnScreen() {
             </Text>
           </Button>
         ) : (
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={handleNext}
-            style={styles.actionButton}
-          >
+          <Button variant="primary" size="lg" onPress={handleNext} style={styles.actionButton}>
             <Text fontWeight="600" style={{ color: '#FFFFFF' }}>
               {currentSession?.currentIndex === (currentSession?.questions.length || 0) - 1
                 ? '查看結果'

@@ -1,10 +1,10 @@
 'use client'
 
+import { Eye, Loader2, Save } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
-import { Eye, Loader2, Save } from 'lucide-react'
 import type { SaveStatus } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 
 interface FixedBottomBarProps {
   /** 儲存狀態 */
@@ -96,7 +96,9 @@ export function FixedBottomBar({
         )}
       >
         {/* Left: Save Status */}
-        <div className={cn('text-sm', compactOnMobile && 'hidden md:block')}>{getSaveStatusText()}</div>
+        <div className={cn('text-sm', compactOnMobile && 'hidden md:block')}>
+          {getSaveStatusText()}
+        </div>
 
         {/* Right: Actions */}
         <div

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useAuthStore } from '@/store/authStore'
+import { useCallback, useEffect, useState } from 'react'
 import apiClient from '@/lib/api/client'
+import { useAuthStore } from '@/store/authStore'
 
 const GUEST_SESSION_ID_KEY = 'guest_session_id'
 
@@ -44,9 +44,8 @@ export function useContentClaim(): ContentClaimApi {
   const checkForUnclaimedContent = useCallback(async () => {
     if (status !== 'signIn' || hasDismissed) return
 
-    const sessionId = typeof window !== 'undefined'
-      ? localStorage.getItem(GUEST_SESSION_ID_KEY)
-      : null
+    const sessionId =
+      typeof window !== 'undefined' ? localStorage.getItem(GUEST_SESSION_ID_KEY) : null
 
     if (!sessionId && !user?.email) return
 
@@ -77,48 +76,48 @@ export function useContentClaim(): ContentClaimApi {
   }, [status, user?.email, hasDismissed])
 
   // 認領人物誌
-  const claimBiography = useCallback(async (
-    biographyId: string,
-    keepAnonymous: boolean = false
-  ): Promise<ClaimResult> => {
-    try {
-      const response = await apiClient.post(`/guest/claim/biography/${biographyId}`, {
-        keep_anonymous: keepAnonymous,
-      })
+  const claimBiography = useCallback(
+    async (biographyId: string, keepAnonymous: boolean = false): Promise<ClaimResult> => {
+      try {
+        const response = await apiClient.post(`/guest/claim/biography/${biographyId}`, {
+          keep_anonymous: keepAnonymous,
+        })
 
-      if (response.data.success) {
-        // 清除 localStorage 中的 guest session
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(GUEST_SESSION_ID_KEY)
-          localStorage.removeItem('guest_session_data')
+        if (response.data.success) {
+          // 清除 localStorage 中的 guest session
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(GUEST_SESSION_ID_KEY)
+            localStorage.removeItem('guest_session_data')
+          }
+
+          // 從列表中移除已認領的內容
+          setUnclaimedContent((prev) => prev.filter((item) => item.id !== biographyId))
+
+          return {
+            success: true,
+            biographyId: response.data.biography_id,
+            isAnonymous: response.data.is_anonymous,
+          }
         }
 
-        // 從列表中移除已認領的內容
-        setUnclaimedContent(prev => prev.filter(item => item.id !== biographyId))
-
-        return {
-          success: true,
-          biographyId: response.data.biography_id,
-          isAnonymous: response.data.is_anonymous,
+        return { success: false, error: '認領失敗' }
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          // 用戶已有人物誌
+          return {
+            success: false,
+            error: error.response.data.error,
+            biographyId: error.response.data.existing_biography_id,
+          }
         }
-      }
-
-      return { success: false, error: '認領失敗' }
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        // 用戶已有人物誌
         return {
           success: false,
-          error: error.response.data.error,
-          biographyId: error.response.data.existing_biography_id,
+          error: error.response?.data?.error || '認領失敗',
         }
       }
-      return {
-        success: false,
-        error: error.response?.data?.error || '認領失敗',
-      }
-    }
-  }, [])
+    },
+    []
+  )
 
   // 合併到現有人物誌
   const mergeBiography = useCallback(async (sourceId: string): Promise<ClaimResult> => {
@@ -133,7 +132,7 @@ export function useContentClaim(): ContentClaimApi {
         }
 
         // 從列表中移除
-        setUnclaimedContent(prev => prev.filter(item => item.id !== sourceId))
+        setUnclaimedContent((prev) => prev.filter((item) => item.id !== sourceId))
 
         return {
           success: true,

@@ -277,7 +277,12 @@
       "category": "complex",
       "expected_tool": "hybrid",
       "expected_answer_keywords": ["壽山", "5.10"],
-      "expected_filters": { "location": "壽山", "grade_gte": "5.10a", "grade_lte": "5.11d", "type": "sport" }
+      "expected_filters": {
+        "location": "壽山",
+        "grade_gte": "5.10a",
+        "grade_lte": "5.11d",
+        "type": "sport"
+      }
     },
     {
       "id": "GT-038",

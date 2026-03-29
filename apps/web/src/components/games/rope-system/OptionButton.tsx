@@ -1,8 +1,8 @@
 'use client'
 
-import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Check, X } from 'lucide-react'
+import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 export type OptionState = 'default' | 'selected' | 'correct' | 'wrong' | 'disabled'
@@ -77,9 +77,7 @@ export function OptionButton({
           <div
             className={cn(
               'h-4 w-4 rounded-full border-2',
-              state === 'selected'
-                ? 'border-[#FFE70C] bg-[#FFE70C]'
-                : 'border-[#E5E5E5] bg-white'
+              state === 'selected' ? 'border-[#FFE70C] bg-[#FFE70C]' : 'border-[#E5E5E5] bg-white'
             )}
           >
             {state === 'selected' && (
@@ -96,9 +94,7 @@ export function OptionButton({
 
       {/* 鍵盤快捷鍵提示 */}
       {index !== undefined && (
-        <span className="hidden text-xs text-[#535353] sm:block">
-          {index + 1}
-        </span>
+        <span className="hidden text-xs text-[#535353] sm:block">{index + 1}</span>
       )}
     </motion.button>
   )

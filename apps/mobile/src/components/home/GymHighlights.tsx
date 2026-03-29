@@ -3,23 +3,16 @@
  *
  * 熱門攀岩館區塊，對應 apps/web/src/components/home/gym-highlights.tsx
  */
-import React, { useState, useEffect } from 'react'
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  FlatList,
-  Dimensions,
-  Image,
-} from 'react-native'
-import { YStack, XStack } from 'tamagui'
-import { useRouter } from 'expo-router'
-import { MapPin, Star, ArrowRight } from 'lucide-react-native'
-import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated'
 
-import { Text, Button, Skeleton } from '@/components/ui'
-import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ArrowRight, MapPin, Star } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import { XStack, YStack } from 'tamagui'
+import { FadeIn, SlideUp } from '@/components/animation'
+import { Button, Skeleton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -77,34 +70,21 @@ function GymCard({ gym, index }: { gym: Gym; index: number }) {
     >
       <Pressable
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.card,
-          pressed && styles.cardPressed,
-        ]}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
         {/* 封面圖片 */}
         <View style={styles.coverContainer}>
           {gym.coverImage ? (
-            <Image
-              source={{ uri: gym.coverImage }}
-              style={styles.coverImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: gym.coverImage }} style={styles.coverImage} resizeMode="cover" />
           ) : (
             <View style={[styles.coverImage, styles.coverPlaceholder]}>
-              <Text style={styles.placeholderText}>
-                {gym.name.charAt(0)}
-              </Text>
+              <Text style={styles.placeholderText}>{gym.name.charAt(0)}</Text>
             </View>
           )}
 
           {/* 評分標籤 */}
           <View style={styles.ratingBadge}>
-            <Star
-              size={12}
-              color="#FACC15"
-              fill="#FACC15"
-            />
+            <Star size={12} color="#FACC15" fill="#FACC15" />
             <Text style={styles.ratingText}>{gym.rating.toFixed(1)}</Text>
             <Text style={styles.reviewsText}>({gym.reviews})</Text>
           </View>
@@ -139,9 +119,7 @@ function GymCard({ gym, index }: { gym: Gym; index: number }) {
               ))}
               {gym.facilities.length > 2 && (
                 <View style={styles.facilityBadge}>
-                  <Text style={styles.facilityText}>
-                    +{gym.facilities.length - 2}
-                  </Text>
+                  <Text style={styles.facilityText}>+{gym.facilities.length - 2}</Text>
                 </View>
               )}
             </XStack>

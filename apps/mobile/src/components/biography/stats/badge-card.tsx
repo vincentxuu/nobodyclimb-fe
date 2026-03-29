@@ -3,18 +3,14 @@
  *
  * 對應 apps/web/src/components/biography/stats/badge-card.tsx
  */
-import React from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import { Check } from 'lucide-react-native'
-import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
-import { Text } from '../../ui/Text'
-import { ProgressBar } from '../../ui/ProgressBar'
-import {
-  type BadgeDefinition,
-  getBadgeById,
-  BADGE_COLORS,
-} from '../../../lib/constants/badges'
+
+import { WB_COLORS } from '@nobodyclimb/constants'
 import type { BadgeProgress } from '@nobodyclimb/types'
+import { Check } from 'lucide-react-native'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
+import { BADGE_COLORS, type BadgeDefinition, getBadgeById } from '../../../lib/constants/badges'
+import { ProgressBar } from '../../ui/ProgressBar'
+import { Text } from '../../ui/Text'
 
 // ============================================
 // BadgeCard 組件

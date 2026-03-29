@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useMemo } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, MapPin, Mountain, Route as RouteIcon, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { ArrowLeft, Loader2, MapPin, Mountain, Route as RouteIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
+import { useMemo } from 'react'
+import { GradeDistributionChart } from '@/components/crag/grade-distribution-chart'
+import { CragRouteSection } from '@/components/crag/route-section'
 import BackToTop from '@/components/ui/back-to-top'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { CragRouteSection } from '@/components/crag/route-section'
-import { GradeDistributionChart } from '@/components/crag/grade-distribution-chart'
+import { Button } from '@/components/ui/button'
 import PlaceholderImage from '@/components/ui/placeholder-image'
 import { useCragDetail, useCragFullAreas, useCragFullRoutes } from '@/hooks/api/useCrags'
+import { Link } from '@/i18n/navigation'
 
 interface AreaDetailClientProps {
   cragId: string
@@ -31,10 +31,10 @@ export default function AreaDetailClient({ cragId, areaId }: AreaDetailClientPro
   const areaData = useMemo(() => {
     if (!cragDetail || fullAreas.length === 0) return null
 
-    const area = fullAreas.find(a => a.id === areaId)
+    const area = fullAreas.find((a) => a.id === areaId)
     if (!area) return null
 
-    const areaRoutes = allRoutes.filter(route => route.areaId === areaId)
+    const areaRoutes = allRoutes.filter((route) => route.areaId === areaId)
 
     // 計算難度範圍分組
     // 難度範圍對照表：prefix → 分組名稱
@@ -51,24 +51,24 @@ export default function AreaDetailClient({ cragId, areaId }: AreaDetailClientPro
       gradeRangeMapping.map(({ label }) => [label, 0])
     )
 
-    areaRoutes.forEach(route => {
+    areaRoutes.forEach((route) => {
       const match = gradeRangeMapping.find(({ prefixes }) =>
-        prefixes.some(p => route.grade.startsWith(p))
+        prefixes.some((p) => route.grade.startsWith(p))
       )
       if (match) gradeRanges[match.label]++
     })
 
     // 計算路線類型分佈
     const typeDistribution: Record<string, number> = {}
-    areaRoutes.forEach(route => {
+    areaRoutes.forEach((route) => {
       const type = route.type
       typeDistribution[type] = (typeDistribution[type] || 0) + 1
     })
 
     // 獲取同一岩場的其他區域
     const otherAreas = fullAreas
-      .filter(a => a.id !== areaId)
-      .map(a => ({
+      .filter((a) => a.id !== areaId)
+      .map((a) => ({
         id: a.id,
         name: a.name,
         nameEn: a.nameEn,
@@ -89,11 +89,9 @@ export default function AreaDetailClient({ cragId, areaId }: AreaDetailClientPro
         nameEn: area.nameEn,
         description: area.description || '',
         descriptionEn: area.descriptionEn || '',
-        difficulty: area.difficulty
-          ? `${area.difficulty.min} - ${area.difficulty.max}`
-          : '',
+        difficulty: area.difficulty ? `${area.difficulty.min} - ${area.difficulty.max}` : '',
       },
-      routes: areaRoutes.map(route => ({
+      routes: areaRoutes.map((route) => ({
         id: route.id,
         name: route.name,
         englishName: route.nameEn,
@@ -187,7 +185,9 @@ export default function AreaDetailClient({ cragId, areaId }: AreaDetailClientPro
                 className="flex items-center gap-2 bg-white shadow-sm hover:bg-gray-200"
               >
                 <ArrowLeft size={16} />
-                <span>{t('backToCragButton')} {crag.name}</span>
+                <span>
+                  {t('backToCragButton')} {crag.name}
+                </span>
               </Button>
             </Link>
           </motion.div>
@@ -253,9 +253,7 @@ export default function AreaDetailClient({ cragId, areaId }: AreaDetailClientPro
               {area.description || t('noAreaDescription')}
             </p>
             {area.descriptionEn && (
-              <p className="mt-3 leading-relaxed text-gray-500">
-                {area.descriptionEn}
-              </p>
+              <p className="mt-3 leading-relaxed text-gray-500">{area.descriptionEn}</p>
             )}
           </div>
 

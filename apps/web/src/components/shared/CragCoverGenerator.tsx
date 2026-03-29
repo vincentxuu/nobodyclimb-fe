@@ -169,12 +169,7 @@ function PatternOverlay({ pattern }: { pattern: PatternType }) {
     waves: (
       <svg className="absolute inset-0 h-full w-full opacity-[0.15]" preserveAspectRatio="none">
         <pattern id="crag-waves" width="60" height="12" patternUnits="userSpaceOnUse">
-          <path
-            d="M0 6 Q 15 0, 30 6 T 60 6"
-            fill="none"
-            stroke="white"
-            strokeWidth="1.5"
-          />
+          <path d="M0 6 Q 15 0, 30 6 T 60 6" fill="none" stroke="white" strokeWidth="1.5" />
         </pattern>
         <rect width="100%" height="100%" fill="url(#crag-waves)" />
       </svg>

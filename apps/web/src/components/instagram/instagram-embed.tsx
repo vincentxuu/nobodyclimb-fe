@@ -42,7 +42,7 @@ export default function InstagramEmbed({
   height = 700,
   // eslint-disable-next-line no-unused-vars
   captioned: _captioned = true,
-  className = ''
+  className = '',
 }: InstagramEmbedProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -144,7 +144,7 @@ export default function InstagramEmbed({
           maxWidth: '540px',
           width: '100%',
           margin: '0 auto',
-          display: isLoading || hasError ? 'none' : 'block'
+          display: isLoading || hasError ? 'none' : 'block',
         }}
         title={`Instagram post ${shortcode}`}
       />

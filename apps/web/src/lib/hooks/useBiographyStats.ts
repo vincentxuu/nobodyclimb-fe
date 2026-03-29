@@ -3,16 +3,16 @@
  * Phase 8: 統計與徽章
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/lib/api/client'
 import { BIOGRAPHY_ENDPOINTS } from '@/lib/api/endpoints'
 import type {
   ApiResponse,
   BiographyStats,
   CommunityStats,
-  UserBadgesResponse,
   LeaderboardItem,
   LeaderboardType,
+  UserBadgesResponse,
 } from '@/lib/types'
 
 // ═══════════════════════════════════════════════════════════

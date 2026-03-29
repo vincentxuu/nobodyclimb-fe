@@ -1,12 +1,12 @@
 'use client'
 
-import { Suspense, useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import { RouteSidebar } from '@/components/crag/route-sidebar'
+import { Suspense, useMemo } from 'react'
 import { RouteMobileDrawer } from '@/components/crag/route-mobile-drawer'
+import { RouteSidebar } from '@/components/crag/route-sidebar'
+import { useCragAreas, useCragDetail, useCragRoutes } from '@/hooks/api/useCrags'
 import type { RouteSidebarItem } from '@/lib/crag-data'
 import { useRouteFilterParams } from '@/lib/hooks/useRouteFilterParams'
-import { useCragRoutes, useCragAreas, useCragDetail } from '@/hooks/api/useCrags'
 
 interface RouteLayoutClientProps {
   children: React.ReactNode
@@ -52,9 +52,9 @@ function RouteLayoutContent({
     if (filterState.selectedArea === 'all') return []
     const sectorsSet = new Set<string>()
     routes
-      .filter(route => route.areaId === filterState.selectedArea && route.sector)
-      .forEach(route => sectorsSet.add(route.sector!))
-    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+      .filter((route) => route.areaId === filterState.selectedArea && route.sector)
+      .forEach((route) => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map((sector) => ({ id: sector, name: sector }))
   }, [routes, filterState.selectedArea])
 
   return (
@@ -77,9 +77,7 @@ function RouteLayoutContent({
       />
 
       {/* 主要內容區 */}
-      <div className="lg:flex-1 lg:overflow-y-auto">
-        {children}
-      </div>
+      <div className="lg:flex-1 lg:overflow-y-auto">{children}</div>
 
       {/* 手機版抽屜 */}
       <RouteMobileDrawer
@@ -104,20 +102,20 @@ function RouteLayoutContent({
 // 主元件，用 Suspense 包裹以支援 useSearchParams
 export function RouteLayoutClient(props: RouteLayoutClientProps) {
   return (
-    <Suspense fallback={
-      <div className="lg:flex lg:h-[calc(100vh-70px)] lg:overflow-hidden">
-        <aside className="hidden lg:flex lg:w-80 lg:flex-shrink-0 lg:flex-col border-r border-gray-200 bg-white">
-          <div className="animate-pulse p-4">
-            <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
-            <div className="h-6 bg-gray-200 rounded w-32 mb-2" />
-            <div className="h-4 bg-gray-200 rounded w-20" />
-          </div>
-        </aside>
-        <div className="lg:flex-1 lg:overflow-y-auto">
-          {props.children}
+    <Suspense
+      fallback={
+        <div className="lg:flex lg:h-[calc(100vh-70px)] lg:overflow-hidden">
+          <aside className="hidden lg:flex lg:w-80 lg:flex-shrink-0 lg:flex-col border-r border-gray-200 bg-white">
+            <div className="animate-pulse p-4">
+              <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
+              <div className="h-6 bg-gray-200 rounded w-32 mb-2" />
+              <div className="h-4 bg-gray-200 rounded w-20" />
+            </div>
+          </aside>
+          <div className="lg:flex-1 lg:overflow-y-auto">{props.children}</div>
         </div>
-      </div>
-    }>
+      }
+    >
       <RouteLayoutContent {...props} />
     </Suspense>
   )

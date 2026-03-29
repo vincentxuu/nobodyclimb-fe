@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { UserPlus, UserMinus, Loader2 } from 'lucide-react'
+import { Loader2, UserMinus, UserPlus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { biographyService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
-import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
+import { useAuthStore } from '@/store/authStore'
 
 interface FollowButtonProps {
   biographyId: string

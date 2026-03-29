@@ -3,20 +3,13 @@
  *
  * 對應 apps/web/src/components/editor/TagSelector.tsx
  */
-import React, { useState, useCallback, useMemo } from 'react'
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  ScrollView,
-  Pressable,
-  FlatList,
-} from 'react-native'
-import { X, Search, Plus, Check } from 'lucide-react-native'
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 
-import { Text, IconButton } from '@/components/ui'
 import { BRAND_YELLOW, RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Check, Plus, Search, X } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { IconButton, Text } from '@/components/ui'
 
 interface Tag {
   id: string
@@ -51,9 +44,7 @@ function TagChip({ tag, selected, onPress }: TagChipProps) {
       ]}
       onPress={onPress}
     >
-      {selected && (
-        <Check size={14} color={WB_COLORS[0]} />
-      )}
+      {selected && <Check size={14} color={WB_COLORS[0]} />}
       <Text
         variant="small"
         fontWeight={selected ? '600' : '400'}
@@ -184,11 +175,7 @@ export function TagSelector({
             contentContainerStyle={styles.selectedTagsList}
           >
             {selectedTagsData.map((tag) => (
-              <SelectedTagChip
-                key={tag.id}
-                tag={tag}
-                onRemove={() => handleRemoveTag(tag.id)}
-              />
+              <SelectedTagChip key={tag.id} tag={tag} onRemove={() => handleRemoveTag(tag.id)} />
             ))}
           </ScrollView>
           <Text variant="small" color="textMuted" style={styles.tagCount}>
@@ -225,16 +212,10 @@ export function TagSelector({
           style={styles.categoriesContainer}
         >
           <Pressable
-            style={[
-              styles.categoryChip,
-              !activeCategory && styles.categoryChipActive,
-            ]}
+            style={[styles.categoryChip, !activeCategory && styles.categoryChipActive]}
             onPress={() => setActiveCategory(null)}
           >
-            <Text
-              variant="small"
-              fontWeight={!activeCategory ? '600' : '400'}
-            >
+            <Text variant="small" fontWeight={!activeCategory ? '600' : '400'}>
               全部
             </Text>
           </Pressable>
@@ -247,10 +228,7 @@ export function TagSelector({
               ]}
               onPress={() => setActiveCategory(category)}
             >
-              <Text
-                variant="small"
-                fontWeight={activeCategory === category ? '600' : '400'}
-              >
+              <Text variant="small" fontWeight={activeCategory === category ? '600' : '400'}>
                 {category}
               </Text>
             </Pressable>
@@ -270,10 +248,7 @@ export function TagSelector({
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               {canCreateCustomTag ? (
-                <Pressable
-                  style={styles.createTagButton}
-                  onPress={handleCreateCustomTag}
-                >
+                <Pressable style={styles.createTagButton} onPress={handleCreateCustomTag}>
                   <Plus size={16} color={SEMANTIC_COLORS.textMain} />
                   <Text variant="body" fontWeight="500">
                     建立「{searchQuery}」標籤

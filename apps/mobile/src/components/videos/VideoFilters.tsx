@@ -4,9 +4,9 @@
  * 影片分類過濾器，對應 apps/web/src/components/videos/video-filters.tsx
  * 使用按鈕群組顯示分類選項
  */
-import React from 'react'
-import { StyleSheet, View, ScrollView } from 'react-native'
+
 import { SPACING } from '@nobodyclimb/constants'
+import { ScrollView, StyleSheet } from 'react-native'
 import { Button } from '@/components/ui/Button'
 import type { VideoCategory } from './types'
 
@@ -40,10 +40,7 @@ export interface VideoFiltersProps {
  * />
  * ```
  */
-export function VideoFilters({
-  selectedCategory,
-  onCategoryChange,
-}: VideoFiltersProps) {
+export function VideoFilters({ selectedCategory, onCategoryChange }: VideoFiltersProps) {
   return (
     <ScrollView
       horizontal

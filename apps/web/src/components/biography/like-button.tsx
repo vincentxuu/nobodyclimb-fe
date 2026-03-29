@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { Mountain, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { bucketListService } from '@/lib/api/services'
-import { useAuthStore } from '@/store/authStore'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { useToast } from '@/components/ui/use-toast'
 import { AxiosError } from 'axios'
+import { Loader2, Mountain } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { bucketListService } from '@/lib/api/services'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 interface LikeButtonProps {
   itemId: string
@@ -90,9 +90,7 @@ export function LikeButton({
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Mountain
-            className={cn('h-4 w-4', isLiked && 'fill-current')}
-          />
+          <Mountain className={cn('h-4 w-4', isLiked && 'fill-current')} />
         )}
         {showCount && <span>{count}</span>}
       </button>

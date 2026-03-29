@@ -4,15 +4,15 @@
  * 分享按鈕，對應 apps/web/src/components/shared/share-button.tsx
  * 使用 expo-sharing 和 React Native Share API
  */
-import React, { useCallback, useRef, useState } from 'react'
-import { Share, StyleSheet, View, Linking } from 'react-native'
-import * as Clipboard from 'expo-clipboard'
-import { Share as ShareIcon, Link2, Check } from 'lucide-react-native'
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
 
-import { IconButton, Text, Button } from '@/components/ui'
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import * as Clipboard from 'expo-clipboard'
+import { Check, Link2, Share as ShareIcon } from 'lucide-react-native'
+import { useCallback, useRef, useState } from 'react'
+import { Linking, Share, StyleSheet, View } from 'react-native'
+import { Button, IconButton, Text } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 interface ShareButtonProps {
   /** 分享的 URL */
@@ -25,12 +25,7 @@ interface ShareButtonProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-export function ShareButton({
-  url,
-  title = '',
-  description = '',
-  size = 'md',
-}: ShareButtonProps) {
+export function ShareButton({ url, title = '', description = '', size = 'md' }: ShareButtonProps) {
   const bottomSheetRef = useRef<BottomSheet>(null)
   const [copied, setCopied] = useState(false)
   const { show } = useToast()
@@ -47,7 +42,9 @@ export function ShareButton({
   const handleNativeShare = useCallback(async () => {
     try {
       await Share.share({
-        message: description ? `${title}\n\n${description}\n\n${shareUrl}` : `${title}\n\n${shareUrl}`,
+        message: description
+          ? `${title}\n\n${description}\n\n${shareUrl}`
+          : `${title}\n\n${shareUrl}`,
         url: shareUrl,
         title,
       })
@@ -94,13 +91,7 @@ export function ShareButton({
   }, [shareUrl])
 
   const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-      />
-    ),
+    (props: any) => <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />,
     []
   )
 
@@ -129,11 +120,7 @@ export function ShareButton({
           </Text>
 
           {/* 原生分享 */}
-          <Button
-            variant="ghost"
-            onPress={handleNativeShare}
-            style={styles.shareOption}
-          >
+          <Button variant="ghost" onPress={handleNativeShare} style={styles.shareOption}>
             <View style={styles.shareOptionContent}>
               <ShareIcon size={20} color={SEMANTIC_COLORS.textMain} />
               <Text>分享...</Text>
@@ -141,11 +128,7 @@ export function ShareButton({
           </Button>
 
           {/* 複製連結 */}
-          <Button
-            variant="ghost"
-            onPress={handleCopyLink}
-            style={styles.shareOption}
-          >
+          <Button variant="ghost" onPress={handleCopyLink} style={styles.shareOption}>
             <View style={styles.shareOptionContent}>
               {copied ? (
                 <>
@@ -164,11 +147,7 @@ export function ShareButton({
           <View style={styles.divider} />
 
           {/* Facebook */}
-          <Button
-            variant="ghost"
-            onPress={handleShareFacebook}
-            style={styles.shareOption}
-          >
+          <Button variant="ghost" onPress={handleShareFacebook} style={styles.shareOption}>
             <View style={styles.shareOptionContent}>
               <ShareIcon size={20} color="#1877F2" />
               <Text>分享到 Facebook</Text>
@@ -176,11 +155,7 @@ export function ShareButton({
           </Button>
 
           {/* LINE */}
-          <Button
-            variant="ghost"
-            onPress={handleShareLine}
-            style={styles.shareOption}
-          >
+          <Button variant="ghost" onPress={handleShareLine} style={styles.shareOption}>
             <View style={styles.shareOptionContent}>
               <ShareIcon size={20} color="#00B900" />
               <Text>分享到 LINE</Text>

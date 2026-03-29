@@ -4,34 +4,28 @@
  * 對應 apps/web/src/app/profile/photos/page.tsx
  * 使用 GET /galleries/photos/me 取得用戶照片
  */
-import React, { useState, useCallback } from 'react'
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, ImageIcon, Plus, Trash2, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
 import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  Modal,
+  Pressable,
   StyleSheet,
   View,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-  Dimensions,
-  Modal,
-  Alert,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import {
-  ChevronLeft,
-  X,
-  Trash2,
-  Plus,
-  ImageIcon,
-} from 'lucide-react-native'
-import * as ImagePicker from 'expo-image-picker'
 import Animated, { FadeIn } from 'react-native-reanimated'
-
-import { Text, IconButton, Button } from '@/components/ui'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
-import { useMyPhotos, useDeletePhoto, type GalleryPhoto } from '@/lib/hooks'
+import { Button, IconButton, Text } from '@/components/ui'
+import { type GalleryPhoto, useDeletePhoto, useMyPhotos } from '@/lib/hooks'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const NUM_COLUMNS = 3
@@ -76,20 +70,11 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
   }
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalContainer}>
         {/* 頂部操作列 */}
         <SafeAreaView style={styles.modalHeader} edges={['top']}>
-          <IconButton
-            icon={<X size={24} color="#FFFFFF" />}
-            onPress={onClose}
-            variant="ghost"
-          />
+          <IconButton icon={<X size={24} color="#FFFFFF" />} onPress={onClose} variant="ghost" />
           <IconButton
             icon={<Trash2 size={24} color="#EF4444" />}
             onPress={handleDelete}
@@ -99,19 +84,13 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
 
         {/* 圖片 */}
         <Pressable style={styles.modalImageContainer} onPress={onClose}>
-          <Image
-            source={{ uri: photo.image_url }}
-            style={styles.modalImage}
-            contentFit="contain"
-          />
+          <Image source={{ uri: photo.image_url }} style={styles.modalImage} contentFit="contain" />
         </Pressable>
 
         {/* 底部資訊 */}
         <SafeAreaView style={styles.modalFooter} edges={['bottom']}>
           <View style={styles.modalFooterContent}>
-            {photo.caption && (
-              <Text style={styles.modalCaption}>{photo.caption}</Text>
-            )}
+            {photo.caption && <Text style={styles.modalCaption}>{photo.caption}</Text>}
             <Text style={styles.modalDate}>
               {new Date(photo.created_at).toLocaleDateString('zh-TW')}
             </Text>
@@ -175,11 +154,7 @@ export default function PhotosScreen() {
   }
 
   const renderItem = ({ item, index }: { item: GalleryPhoto; index: number }) => (
-    <PhotoItem
-      photo={item}
-      onPress={() => handlePhotoPress(item)}
-      index={index}
-    />
+    <PhotoItem photo={item} onPress={() => handlePhotoPress(item)} index={index} />
   )
 
   return (

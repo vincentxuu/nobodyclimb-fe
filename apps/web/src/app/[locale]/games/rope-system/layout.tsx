@@ -11,9 +11,5 @@ interface RopeSystemLayoutProps {
 }
 
 export default function RopeSystemLayout({ children }: RopeSystemLayoutProps) {
-  return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      {children}
-    </div>
-  )
+  return <div className="min-h-screen bg-[#F5F5F5]">{children}</div>
 }

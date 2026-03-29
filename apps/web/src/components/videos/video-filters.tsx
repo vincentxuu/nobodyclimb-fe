@@ -8,10 +8,7 @@ interface VideoFiltersProps {
   onCategoryChange: (_category: VideoCategory | 'all') => void
 }
 
-const VideoFilters: React.FC<VideoFiltersProps> = ({ 
-  selectedCategory, 
-  onCategoryChange 
-}) => {
+const VideoFilters: React.FC<VideoFiltersProps> = ({ selectedCategory, onCategoryChange }) => {
   const categories: Array<{ value: VideoCategory | 'all'; label: string }> = [
     { value: 'all', label: '全部' },
     // 攀岩類型

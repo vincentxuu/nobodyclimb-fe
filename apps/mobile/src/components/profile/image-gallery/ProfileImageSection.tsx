@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
-import { View, StyleSheet, Alert } from 'react-native'
+import { SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { useState } from 'react'
+import { Alert, StyleSheet, View } from 'react-native'
 import { Text } from '../../ui/Text'
-import { ProfileImage, ImageLayout } from '../types'
-import SortableImageGrid from './SortableImageGrid'
+import { ImageLayout, ProfileImage } from '../types'
+import ImageCropDialog from './ImageCropDialog'
 import ImageGalleryDisplay from './ImageGalleryDisplay'
 import LayoutSelector from './LayoutSelector'
-import ImageCropDialog from './ImageCropDialog'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import SortableImageGrid from './SortableImageGrid'
 
 interface ProfileImageSectionProps {
   images: ProfileImage[]
@@ -23,7 +23,7 @@ export default function ProfileImageSection({
 }: ProfileImageSectionProps) {
   const [layout, setLayout] = useState<ImageLayout>('double')
   const [cropImage, setCropImage] = useState<string | null>(null)
-  const [selectedImage, setSelectedImage] = useState<ProfileImage | null>(null)
+  const [_selectedImage, setSelectedImage] = useState<ProfileImage | null>(null)
 
   const handleReorder = (newImages: ProfileImage[]) => {
     // Update order values
@@ -35,23 +35,19 @@ export default function ProfileImageSection({
   }
 
   const handleDelete = (image: ProfileImage) => {
-    Alert.alert(
-      '確認刪除',
-      '確定要刪除這張圖片嗎？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '刪除',
-          style: 'destructive',
-          onPress: () => {
-            const newImages = images
-              .filter((img) => img.id !== image.id)
-              .map((img, index) => ({ ...img, order: index }))
-            onImagesChange(newImages)
-          },
+    Alert.alert('確認刪除', '確定要刪除這張圖片嗎？', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '刪除',
+        style: 'destructive',
+        onPress: () => {
+          const newImages = images
+            .filter((img) => img.id !== image.id)
+            .map((img, index) => ({ ...img, order: index }))
+          onImagesChange(newImages)
         },
-      ]
-    )
+      },
+    ])
   }
 
   const handleUpload = async (uri: string) => {
@@ -81,9 +77,7 @@ export default function ProfileImageSection({
         上傳你的攀岩照片（最多 5 張）
       </Text>
 
-      {!isEditing && images.length > 0 && (
-        <LayoutSelector value={layout} onChange={setLayout} />
-      )}
+      {!isEditing && images.length > 0 && <LayoutSelector value={layout} onChange={setLayout} />}
 
       {isEditing ? (
         <SortableImageGrid
@@ -94,11 +88,7 @@ export default function ProfileImageSection({
           onImagePress={handleImagePress}
         />
       ) : (
-        <ImageGalleryDisplay
-          images={images}
-          layout={layout}
-          onImagePress={handleImagePress}
-        />
+        <ImageGalleryDisplay images={images} layout={layout} onImagePress={handleImagePress} />
       )}
 
       <ImageCropDialog

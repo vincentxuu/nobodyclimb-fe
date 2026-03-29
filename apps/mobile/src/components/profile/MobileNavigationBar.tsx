@@ -1,10 +1,10 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ArrowLeft } from 'lucide-react-native'
-import { Text } from '../ui/Text'
+import React from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { Icon } from '../ui/Icon'
-import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { Text } from '../ui/Text'
 
 interface MobileNavigationBarProps {
   title: string
@@ -23,11 +23,7 @@ export default function MobileNavigationBar({
     <View style={styles.container}>
       <View style={styles.leftSection}>
         {showBackButton && (
-          <Pressable
-            onPress={() => router.back()}
-            style={styles.backButton}
-            hitSlop={8}
-          >
+          <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={8}>
             <Icon icon={ArrowLeft} size="md" color={SEMANTIC_COLORS.textMain} />
           </Pressable>
         )}

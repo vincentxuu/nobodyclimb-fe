@@ -3,25 +3,17 @@
  *
  * 多行輸入框
  */
-import React, { useState, useCallback, forwardRef } from 'react'
+
 import {
-  TextInput,
-  StyleSheet,
-  type TextInputProps,
-  type TextStyle,
-} from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated'
-import {
-  SEMANTIC_COLORS,
-  INPUT_SPECS,
   FONT_WEIGHT,
+  INPUT_SPECS,
+  SEMANTIC_COLORS,
   SPACING,
   WB_COLORS,
 } from '@nobodyclimb/constants'
+import { forwardRef, useCallback, useState } from 'react'
+import { StyleSheet, TextInput, type TextInputProps, type TextStyle } from 'react-native'
+import Animated, { useSharedValue, withTiming } from 'react-native-reanimated'
 import { DURATION, EASING } from '@/theme/animations'
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
@@ -67,16 +59,7 @@ function getBorderColor(state: TextAreaState): string {
  * ```
  */
 export const TextArea = forwardRef<TextInput, TextAreaProps>(function TextArea(
-  {
-    error = false,
-    disabled = false,
-    minRows = 3,
-    maxRows = 10,
-    style,
-    onFocus,
-    onBlur,
-    ...props
-  },
+  { error = false, disabled = false, minRows = 3, maxRows = 10, style, onFocus, onBlur, ...props },
   ref
 ) {
   const [isFocused, setIsFocused] = useState(false)

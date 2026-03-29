@@ -1,7 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
-export type MemoryKey = 'climbing_level' | 'preferred_region' | 'preferred_style' | 'preferred_crag' | 'goals'
+export type MemoryKey =
+  | 'climbing_level'
+  | 'preferred_region'
+  | 'preferred_style'
+  | 'preferred_crag'
+  | 'goals'
 export type MemoryType = 'preference' | 'behavior' | 'fact'
 
 export interface UserMemory {

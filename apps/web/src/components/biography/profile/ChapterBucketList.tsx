@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Loader2, Lock } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { BiographyBucketList } from '@/components/bucket-list'
+import { bucketListService } from '@/lib/api/services'
 import { BucketListItem } from '@/lib/types'
 import { BiographyV2 } from '@/lib/types/biography-v2'
-import { bucketListService } from '@/lib/api/services'
-import { BiographyBucketList } from '@/components/bucket-list'
-import { useTranslations } from 'next-intl'
 
 interface ChapterBucketListProps {
   person: BiographyV2 | null
@@ -25,7 +25,7 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
   // 從 stories 陣列中取得 bucket_list_story 的描述文字
   const bucketListStory = useMemo(() => {
     if (!person?.stories) return null
-    const story = person.stories.find(s => s.question_id === 'bucket_list_story')
+    const story = person.stories.find((s) => s.question_id === 'bucket_list_story')
     return story?.content || null
   }, [person?.stories])
 
@@ -74,18 +74,14 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
           <span className="text-sm font-medium uppercase tracking-wider bg-brand-accent">
             {t('chapter3')}
           </span>
-          <h2 className="mt-2 text-2xl font-bold text-gray-900">
-            {t('chapter3Title')}
-          </h2>
+          <h2 className="mt-2 text-2xl font-bold text-gray-900">{t('chapter3Title')}</h2>
         </div>
 
         {hasContent ? (
           <>
             {/* 人生清單故事描述 */}
             {bucketListStory && (
-              <p className="mb-8 text-lg leading-relaxed text-gray-700">
-                {bucketListStory}
-              </p>
+              <p className="mb-8 text-lg leading-relaxed text-gray-700">{bucketListStory}</p>
             )}
             {/* 結構化人生清單 */}
             <div className="mt-8">
@@ -94,14 +90,15 @@ export function ChapterBucketList({ person, isOwner: _isOwner }: ChapterBucketLi
           </>
         ) : (
           /* 沒有資料時的預設內容 */
-          <div className="flex flex-col items-center justify-center py-12 text-center" data-placeholder="true">
+          <div
+            className="flex flex-col items-center justify-center py-12 text-center"
+            data-placeholder="true"
+          >
             <div className="flex items-center gap-2 text-lg text-gray-400">
               <Lock size={18} />
               <span>{t('chapter3Placeholder', { name: person.name })}</span>
             </div>
-            <p className="mt-2 text-sm text-gray-400">
-              {t('chapter3SubPlaceholder')}
-            </p>
+            <p className="mt-2 text-sm text-gray-400">{t('chapter3SubPlaceholder')}</p>
           </div>
         )}
       </div>

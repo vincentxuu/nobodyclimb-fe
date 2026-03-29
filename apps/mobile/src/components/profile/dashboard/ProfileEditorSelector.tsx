@@ -1,7 +1,6 @@
-import React from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
-import { Text } from '../../ui/Text'
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '../../ui/Text'
 
 export type EditorVersion = 'A' | 'B' | 'C'
 
@@ -35,19 +34,11 @@ export default function ProfileEditorSelector({
               style={[styles.option, isSelected && styles.optionSelected]}
             >
               <View style={styles.optionContent}>
-                <View
-                  style={[
-                    styles.radio,
-                    isSelected && styles.radioSelected,
-                  ]}
-                >
+                <View style={[styles.radio, isSelected && styles.radioSelected]}>
                   {isSelected && <View style={styles.radioInner} />}
                 </View>
                 <View style={styles.optionText}>
-                  <Text
-                    variant="body"
-                    style={{ color: SEMANTIC_COLORS.textMain }}
-                  >
+                  <Text variant="body" style={{ color: SEMANTIC_COLORS.textMain }}>
                     {version.label}
                   </Text>
                   <Text

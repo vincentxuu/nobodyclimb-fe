@@ -5,16 +5,16 @@
  * 串接 GET /crags API 取得真實資料
  * 串接 GET /crags/routes/featured API 取得熱門路線
  */
-import React, { useState, useEffect, useRef } from 'react'
-import { StyleSheet, View, Pressable, FlatList, Image } from 'react-native'
-import { YStack, XStack } from 'tamagui'
-import { useRouter } from 'expo-router'
-import { MapPin, Mountain, ChevronRight } from 'lucide-react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 
-import { Text, Button, Skeleton } from '@/components/ui'
-import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ChevronRight, MapPin, Mountain } from 'lucide-react-native'
+import { useEffect, useRef, useState } from 'react'
+import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import { XStack, YStack } from 'tamagui'
+import { FadeIn, SlideUp } from '@/components/animation'
+import { Button, Skeleton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 
 const CARD_WIDTH = 200
@@ -91,19 +91,12 @@ function CragCard({ crag, index }: { crag: CragDisplayItem; index: number }) {
     >
       <Pressable
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.card,
-          pressed && styles.cardPressed,
-        ]}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
         {/* 岩場封面 */}
         <View style={styles.coverContainer}>
           {crag.coverImage ? (
-            <Image
-              source={{ uri: crag.coverImage }}
-              style={styles.coverImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: crag.coverImage }} style={styles.coverImage} resizeMode="cover" />
           ) : (
             <View style={[styles.coverImage, styles.coverPlaceholder]}>
               <Mountain size={32} color={SEMANTIC_COLORS.textMuted} />
@@ -131,11 +124,8 @@ function CragCard({ crag, index }: { crag: CragDisplayItem; index: number }) {
               <Mountain size={14} color={SEMANTIC_COLORS.textSubtle} />
               <Text style={styles.infoText}>{crag.routes} 條路線</Text>
             </XStack>
-            {crag.difficulty ? (
-              <Text style={styles.difficultyText}>{crag.difficulty}</Text>
-            ) : null}
+            {crag.difficulty ? <Text style={styles.difficultyText}>{crag.difficulty}</Text> : null}
           </XStack>
-
         </View>
       </Pressable>
     </Animated.View>
@@ -172,10 +162,7 @@ function RouteCard({ route, index }: { route: FeaturedRouteItem; index: number }
     >
       <Pressable
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.card,
-          pressed && styles.cardPressed,
-        ]}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
         {/* YouTube 縮圖 */}
         {route.youtubeThumbnail ? (
@@ -259,22 +246,13 @@ function RouteSkeleton() {
 }
 
 // 子標題列（含「查看全部」連結）
-function SubsectionHeader({
-  title,
-  onViewAll,
-}: {
-  title: string
-  onViewAll: () => void
-}) {
+function SubsectionHeader({ title, onViewAll }: { title: string; onViewAll: () => void }) {
   return (
     <View style={styles.subsectionHeader}>
       <Text style={styles.subsectionTitle}>{title}</Text>
       <Pressable
         onPress={onViewAll}
-        style={({ pressed }) => [
-          styles.viewAllButton,
-          pressed && { opacity: 0.7 },
-        ]}
+        style={({ pressed }) => [styles.viewAllButton, pressed && { opacity: 0.7 }]}
       >
         <Text style={styles.viewAllText}>查看全部</Text>
         <ChevronRight size={16} color={SEMANTIC_COLORS.textSubtle} />
@@ -356,11 +334,7 @@ export function ExploreCragSection() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           renderItem={({ item, index }) =>
-            typeof item === 'number' ? (
-              <CragSkeleton />
-            ) : (
-              <CragCard crag={item} index={index} />
-            )
+            typeof item === 'number' ? <CragSkeleton /> : <CragCard crag={item} index={index} />
           }
           ItemSeparatorComponent={() => <View style={{ width: SPACING[4] }} />}
         />
@@ -373,9 +347,7 @@ export function ExploreCragSection() {
             <FlatList<number | FeaturedRouteItem>
               data={isLoading ? [1, 2, 3] : featuredRoutes}
               keyExtractor={(item) =>
-                typeof item === 'number'
-                  ? `route-skeleton-${item}`
-                  : `${item.cragId}-${item.id}`
+                typeof item === 'number' ? `route-skeleton-${item}` : `${item.cragId}-${item.id}`
               }
               horizontal
               showsHorizontalScrollIndicator={false}

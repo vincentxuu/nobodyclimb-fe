@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { getRouteName } from '@/lib/route-utils'
-import { routeLoadingManager } from '@/lib/route-loading-manager'
 import { useToast } from '@/components/ui/use-toast'
 import { RATE_LIMIT_TOAST } from '@/lib/constants'
 import type { RouteSidebarItem } from '@/lib/crag-data'
+import { routeLoadingManager } from '@/lib/route-loading-manager'
+import { getRouteName } from '@/lib/route-utils'
+import { cn } from '@/lib/utils'
 
 interface RouteListItemProps {
   route: RouteSidebarItem

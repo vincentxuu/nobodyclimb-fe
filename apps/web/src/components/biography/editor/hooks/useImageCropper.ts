@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { biographyService } from '@/lib/api/services'
+import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
+import { biographyService } from '@/lib/api/services'
 
 interface UseImageCropperOptions {
   avatarUrl?: string | null
@@ -98,7 +98,16 @@ export function useImageCropper({
         }
       }
     },
-    [cropType, avatarUrl, coverUrl, onAvatarChange, onCoverChange, toast, cropperImageSrc, onFlushSave]
+    [
+      cropType,
+      avatarUrl,
+      coverUrl,
+      onAvatarChange,
+      onCoverChange,
+      toast,
+      cropperImageSrc,
+      onFlushSave,
+    ]
   )
 
   return {

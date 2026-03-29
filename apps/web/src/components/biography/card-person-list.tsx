@@ -1,10 +1,9 @@
 'use client'
 
-import React from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRightCircle } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 
 // 相關文章資料

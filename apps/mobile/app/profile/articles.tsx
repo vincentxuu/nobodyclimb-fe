@@ -3,32 +3,18 @@
  *
  * 對應 apps/web/src/app/profile/articles/page.tsx
  */
-import React, { useCallback } from 'react'
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { Image } from 'expo-image'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  FileText,
-  Eye,
-  Heart,
-  MessageCircle,
-} from 'lucide-react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
 
-import { Text, IconButton } from '@/components/ui'
+import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, ChevronRight, Eye, FileText, Plus } from 'lucide-react-native'
+import { useCallback } from 'react'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
-import { useMyPosts, type Post } from '@/lib/hooks'
-import { SEMANTIC_COLORS, SPACING, RADIUS } from '@nobodyclimb/constants'
+import { IconButton, Text } from '@/components/ui'
+import { type Post, useMyPosts } from '@/lib/hooks'
 
 interface ArticleCardProps {
   article: Post
@@ -45,10 +31,7 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
       <Pressable
-        style={({ pressed }) => [
-          styles.articleCard,
-          pressed && styles.articleCardPressed,
-        ]}
+        style={({ pressed }) => [styles.articleCard, pressed && styles.articleCardPressed]}
         onPress={onPress}
       >
         {article.cover_image ? (
@@ -64,12 +47,7 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
         )}
         <View style={styles.articleContent}>
           <View style={styles.articleHeader}>
-            <Text
-              variant="body"
-              fontWeight="600"
-              numberOfLines={2}
-              style={styles.articleTitle}
-            >
+            <Text variant="body" fontWeight="600" numberOfLines={2} style={styles.articleTitle}>
               {article.title}
             </Text>
             {isDraft && (
@@ -81,12 +59,7 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
             )}
           </View>
           {article.excerpt ? (
-            <Text
-              variant="small"
-              color="textMuted"
-              numberOfLines={1}
-              style={styles.articleExcerpt}
-            >
+            <Text variant="small" color="textMuted" numberOfLines={1} style={styles.articleExcerpt}>
               {article.excerpt}
             </Text>
           ) : null}
@@ -139,11 +112,7 @@ export default function ArticlesScreen() {
   )
 
   const renderItem = ({ item, index }: { item: Post; index: number }) => (
-    <ArticleCard
-      article={item}
-      onPress={() => handleArticlePress(item)}
-      index={index}
-    />
+    <ArticleCard article={item} onPress={() => handleArticlePress(item)} index={index} />
   )
 
   const publishedCount = articles.filter((a) => a.status === 'published').length

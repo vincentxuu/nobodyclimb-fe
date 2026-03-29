@@ -4,45 +4,37 @@
  * 引導問題組件，用於新手引導流程中的多步驟問題收集
  * 對應 apps/web/src/components/onboarding/GuidedQuestions.tsx
  */
-import React, { useState, useCallback } from 'react'
+
 import {
-  View,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  ScrollView,
+  BORDER_RADIUS,
+  FONT_SIZE,
+  FONT_WEIGHT,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import { Check, ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react-native'
+import { useCallback, useState } from 'react'
+import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native'
 import Animated, {
   FadeIn,
   FadeInDown,
-  FadeInRight,
   FadeOut,
-  FadeOutLeft,
   SlideInRight,
   SlideOutLeft,
 } from 'react-native-reanimated'
-import {
-  ChevronRight,
-  ChevronLeft,
-  X,
-  Sparkles,
-  Check,
-} from 'lucide-react-native'
-import {
-  SEMANTIC_COLORS,
-  SPACING,
-  BORDER_RADIUS,
-  FONT_SIZE,
-  FONT_WEIGHT,
-  WB_COLORS,
-  BRAND_YELLOW,
-} from '@nobodyclimb/constants'
-import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { Text } from '@/components/ui/Text'
 
 // ═══════════════════════════════════════════
 // 類型定義
@@ -123,8 +115,7 @@ export function GuidedQuestions({
 
     // 顯示鼓勵文字
     if (answers[currentQuestion.id]?.trim()) {
-      const randomEncouragement =
-        ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
+      const randomEncouragement = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
       setEncouragementText(randomEncouragement)
       setShowEncouragement(true)
       setTimeout(() => {
@@ -181,10 +172,7 @@ export function GuidedQuestions({
         </Animated.View>
 
         {/* 進度條 */}
-        <Animated.View
-          entering={FadeIn.delay(100).duration(300)}
-          style={styles.progressContainer}
-        >
+        <Animated.View entering={FadeIn.delay(100).duration(300)} style={styles.progressContainer}>
           <View style={styles.progressInfo}>
             <Text style={styles.progressText}>
               第 {currentIndex + 1} 題，共 {questions.length} 題
@@ -223,9 +211,7 @@ export function GuidedQuestions({
             <View style={styles.questionContent}>
               <Text style={styles.questionTitle}>{currentQuestion.question}</Text>
               {currentQuestion.subtitle && (
-                <Text style={styles.questionSubtitle}>
-                  {currentQuestion.subtitle}
-                </Text>
+                <Text style={styles.questionSubtitle}>{currentQuestion.subtitle}</Text>
               )}
             </View>
 
@@ -256,28 +242,17 @@ export function GuidedQuestions({
 
         {/* 按鈕區 */}
         {!showEncouragement && (
-          <Animated.View
-            entering={FadeIn.delay(200).duration(300)}
-            style={styles.buttonsContainer}
-          >
+          <Animated.View entering={FadeIn.delay(200).duration(300)} style={styles.buttonsContainer}>
             <View style={styles.leftButtons}>
               {currentIndex > 0 && (
-                <Button
-                  variant="ghost"
-                  leftIcon={ChevronLeft}
-                  onPress={handlePrev}
-                >
+                <Button variant="ghost" leftIcon={ChevronLeft} onPress={handlePrev}>
                   上一題
                 </Button>
               )}
             </View>
 
             <View style={styles.rightButtons}>
-              <Button
-                variant="ghost"
-                onPress={handleSkipQuestion}
-                style={styles.skipButton}
-              >
+              <Button variant="ghost" onPress={handleSkipQuestion} style={styles.skipButton}>
                 <Text style={styles.skipButtonText}>跳過此題</Text>
               </Button>
               <Button
@@ -292,10 +267,7 @@ export function GuidedQuestions({
         )}
 
         {/* 稍後再填提示 */}
-        <Animated.View
-          entering={FadeIn.delay(400).duration(300)}
-          style={styles.skipContainer}
-        >
+        <Animated.View entering={FadeIn.delay(400).duration(300)} style={styles.skipContainer}>
           <Pressable onPress={onSkip}>
             <Text style={styles.skipText}>稍後再填，先去逛逛</Text>
           </Pressable>

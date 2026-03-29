@@ -1,15 +1,19 @@
 'use client'
 
-import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Users, ChevronRight, X, Sparkles, MessageCircle } from 'lucide-react'
+import { Check, ChevronRight, MessageCircle, Sparkles, Users, X } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import type { ChoiceOption, ChoiceQuestion as ChoiceQuestionType } from '@/lib/hooks/useQuestions'
 import { cn } from '@/lib/utils'
-import type { ChoiceQuestion as ChoiceQuestionType, ChoiceOption } from '@/lib/hooks/useQuestions'
 
 interface ChoiceQuestionProps {
   question: ChoiceQuestionType
-  onSubmit: (_optionId: string, _customText?: string, _followUpText?: string) => Promise<{
+  onSubmit: (
+    _optionId: string,
+    _customText?: string,
+    _followUpText?: string
+  ) => Promise<{
     responseMessage: string
     communityCount: number
   }>
@@ -19,12 +23,7 @@ interface ChoiceQuestionProps {
 
 type Phase = 'selecting' | 'response' | 'followup' | 'complete'
 
-export function ChoiceQuestion({
-  question,
-  onSubmit,
-  onSkip,
-  onComplete,
-}: ChoiceQuestionProps) {
+export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: ChoiceQuestionProps) {
   const [phase, setPhase] = useState<Phase>('selecting')
   const [selectedOption, setSelectedOption] = useState<ChoiceOption | null>(null)
   const [customText, setCustomText] = useState('')
@@ -36,26 +35,29 @@ export function ChoiceQuestion({
   // 計算總人數
   const totalCount = question.options.reduce((sum, opt) => sum + opt.count, 0)
 
-  const handleOptionSelect = useCallback(async (option: ChoiceOption) => {
-    setSelectedOption(option)
+  const handleOptionSelect = useCallback(
+    async (option: ChoiceOption) => {
+      setSelectedOption(option)
 
-    // 如果是「其他」選項，先不提交，等用戶輸入
-    if (option.isOther) {
-      return
-    }
+      // 如果是「其他」選項，先不提交，等用戶輸入
+      if (option.isOther) {
+        return
+      }
 
-    setIsSubmitting(true)
-    try {
-      const result = await onSubmit(option.id)
-      setResponseMessage(result.responseMessage)
-      setCommunityCount(result.communityCount)
-      setPhase('response')
-    } catch (error) {
-      console.error('Failed to submit answer:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [onSubmit])
+      setIsSubmitting(true)
+      try {
+        const result = await onSubmit(option.id)
+        setResponseMessage(result.responseMessage)
+        setCommunityCount(result.communityCount)
+        setPhase('response')
+      } catch (error) {
+        console.error('Failed to submit answer:', error)
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+    [onSubmit]
+  )
 
   const handleOtherSubmit = useCallback(async () => {
     if (!selectedOption || !customText.trim()) return
@@ -125,9 +127,7 @@ export function ChoiceQuestion({
             <span>快速認識你</span>
           </div>
           <h2 className="text-2xl font-bold text-[#1B1A1A]">{question.question}</h2>
-          {question.hint && (
-            <p className="mt-2 text-[#6D6C6C]">{question.hint}</p>
-          )}
+          {question.hint && <p className="mt-2 text-[#6D6C6C]">{question.hint}</p>}
         </div>
 
         {/* 社群驗證 */}
@@ -218,18 +218,13 @@ export function ChoiceQuestion({
             <Check className="h-8 w-8 text-green-600" />
           </div>
 
-          <h3 className="mb-2 text-xl font-medium text-[#1B1A1A]">
-            {responseMessage}
-          </h3>
+          <h3 className="mb-2 text-xl font-medium text-[#1B1A1A]">{responseMessage}</h3>
 
           <p className="mb-6 text-[#6D6C6C]">
             已有 <span className="font-medium text-primary">{communityCount}</span> 人和你一樣
           </p>
 
-          <Button
-            onClick={handleContinueToFollowUp}
-            className="gap-2"
-          >
+          <Button onClick={handleContinueToFollowUp} className="gap-2">
             {question.followUpPrompt ? '繼續' : '完成'}
             <ChevronRight size={18} />
           </Button>
@@ -253,12 +248,8 @@ export function ChoiceQuestion({
               <MessageCircle size={14} />
               <span>一句話就好</span>
             </div>
-            <h2 className="text-xl font-bold text-[#1B1A1A]">
-              {question.followUpPrompt}
-            </h2>
-            <p className="mt-2 text-sm text-[#8E8C8C]">
-              可選填，讓其他人更了解你的故事
-            </p>
+            <h2 className="text-xl font-bold text-[#1B1A1A]">{question.followUpPrompt}</h2>
+            <p className="mt-2 text-sm text-[#8E8C8C]">可選填，讓其他人更了解你的故事</p>
           </div>
 
           {/* 輸入框 */}
@@ -273,18 +264,10 @@ export function ChoiceQuestion({
 
           {/* 按鈕 */}
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={handleSkipFollowUp}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={handleSkipFollowUp} className="flex-1">
               跳過
             </Button>
-            <Button
-              onClick={handleFollowUpSubmit}
-              disabled={isSubmitting}
-              className="flex-1"
-            >
+            <Button onClick={handleFollowUpSubmit} disabled={isSubmitting} className="flex-1">
               {isSubmitting ? '送出中...' : '送出'}
             </Button>
           </div>

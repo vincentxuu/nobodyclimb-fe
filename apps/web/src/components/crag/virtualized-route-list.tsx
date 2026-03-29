@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { getRouteName } from '@/lib/route-utils'
-import type { RouteSidebarItem } from '@/lib/crag-data'
 import { useTranslations } from 'next-intl'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { RouteSidebarItem } from '@/lib/crag-data'
+import { getRouteName } from '@/lib/route-utils'
 
 interface VirtualizedRouteListProps {
   routes: RouteSidebarItem[]

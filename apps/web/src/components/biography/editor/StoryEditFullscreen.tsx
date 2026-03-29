@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { Check, Lightbulb, Loader2, Trash2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useEffect, useRef, useState } from 'react'
+import type { Story, StoryQuestion } from '@/lib/types/biography-v2'
 import { cn } from '@/lib/utils'
-import { X, Check, Lightbulb, Loader2, Trash2 } from 'lucide-react'
-import type { StoryQuestion, Story } from '@/lib/types/biography-v2'
 
 interface StoryEditFullscreenProps {
   /** 是否開啟 */
@@ -89,12 +89,7 @@ export function StoryEditFullscreen({
   const canSave = content.trim().length > 0 && hasChanges
 
   // 寫作提示
-  const writingTips = [
-    t('writingTip1'),
-    t('writingTip2'),
-    t('writingTip3'),
-    t('writingTip4'),
-  ]
+  const writingTips = [t('writingTip1'), t('writingTip2'), t('writingTip3'), t('writingTip4')]
   const randomTip = writingTips[Math.floor(Math.random() * writingTips.length)]
 
   return (
@@ -127,16 +122,10 @@ export function StoryEditFullscreen({
           disabled={!canSave || isSaving}
           className={cn(
             'flex items-center gap-1 transition-colors',
-            canSave
-              ? 'text-brand-dark font-medium'
-              : 'text-[#B6B3B3] cursor-not-allowed'
+            canSave ? 'text-brand-dark font-medium' : 'text-[#B6B3B3] cursor-not-allowed'
           )}
         >
-          {isSaving ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Check size={18} />
-          )}
+          {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
           <span className="text-sm">{isSaving ? t('savingStatus') : t('saveStoryButton')}</span>
         </button>
       </div>
@@ -172,9 +161,7 @@ export function StoryEditFullscreen({
         <div className="px-4 py-3 border-t border-[#EBEAEA] space-y-3 safe-area-inset-bottom">
           {/* Character Count & Delete */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-[#8E8C8C]">
-              {content.length}/5000
-            </span>
+            <span className="text-xs text-[#8E8C8C]">{content.length}/5000</span>
             {hasContent && onDelete && (
               <>
                 {showDeleteConfirm ? (

@@ -3,17 +3,17 @@
  *
  * 對應 apps/web/src/app/crag/page.tsx
  */
-import React, { useState, useCallback, useMemo } from 'react'
-import { StyleSheet, View, FlatList, RefreshControl, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { ChevronLeft, MapPin, Mountain } from 'lucide-react-native'
 
-import { Text, SearchInput, IconButton, EmptyState } from '@/components/ui'
-import { CragCard } from '@/components/crag'
-import { useCrags } from '@/lib/hooks/useCrags'
-import type { CragListItem } from '@/lib/crag-data'
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, Mountain } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { CragCard } from '@/components/crag'
+import { EmptyState, IconButton, SearchInput, Text } from '@/components/ui'
+import type { CragListItem } from '@/lib/crag-data'
+import { useCrags } from '@/lib/hooks/useCrags'
 
 export default function CragListScreen() {
   const router = useRouter()
@@ -144,9 +144,7 @@ export default function CragListScreen() {
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>

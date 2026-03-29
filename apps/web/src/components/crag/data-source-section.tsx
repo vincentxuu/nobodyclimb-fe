@@ -1,6 +1,6 @@
 'use client'
 
-import { Database, Clock, User, MessageSquare } from 'lucide-react'
+import { Clock, Database, MessageSquare, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export interface DataSourceInfo {

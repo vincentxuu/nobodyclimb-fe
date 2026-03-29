@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react-native'
-import StoryDetailScreen from '../index'
 import { useStoryDetail } from '@/lib/hooks/useStoryDetail'
+import StoryDetailScreen from '../index'
 
 jest.mock('@/lib/hooks/useStoryDetail', () => ({
   ...jest.requireActual('@/lib/hooks/useStoryDetail'),
@@ -18,22 +18,34 @@ jest.mock('@/components/biography/display/ContentInteractionBar', () => ({
 const { useLocalSearchParams } = require('expo-router')
 
 const MOCK_CORE_STORY = {
-  id: '1', title: '核心故事標題', content: '## 內容\n\n這是一個故事。',
+  id: '1',
+  title: '核心故事標題',
+  content: '## 內容\n\n這是一個故事。',
   author: { id: 'u1', name: '小明', biography_id: 'b1' },
-  is_liked: false, like_count: 5, comment_count: 2,
+  is_liked: false,
+  like_count: 5,
+  comment_count: 2,
 }
 
 const MOCK_ONE_LINER = {
-  id: '2', question: '你為什麼爬山？', answer: '因為山在那裡。',
+  id: '2',
+  question: '你為什麼爬山？',
+  answer: '因為山在那裡。',
   author: { id: 'u1', name: '小明', biography_id: 'b1' },
-  is_liked: false, like_count: 3, comment_count: 1,
+  is_liked: false,
+  like_count: 3,
+  comment_count: 1,
 }
 
 const MOCK_STORY = {
-  id: '3', title: '我的攀岩故事', content: '一個小小的故事。',
+  id: '3',
+  title: '我的攀岩故事',
+  content: '一個小小的故事。',
   category_name: '岩場故事',
   author: { id: 'u1', name: '小明', biography_id: 'b1' },
-  is_liked: false, like_count: 1, comment_count: 0,
+  is_liked: false,
+  like_count: 1,
+  comment_count: 0,
 }
 
 describe('StoryDetailScreen', () => {

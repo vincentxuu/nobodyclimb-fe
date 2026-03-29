@@ -1,6 +1,6 @@
 import React from 'react'
-import VideoCard from './video-card'
 import type { Video } from '@/lib/types'
+import VideoCard from './video-card'
 
 interface VideoGridProps {
   videos: Video[]
@@ -16,11 +16,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({ videos, onVideoClick }) => {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {videos.map((video) => (
-        <VideoCard
-          key={video.id}
-          video={video}
-          onClick={onVideoClick}
-        />
+        <VideoCard key={video.id} video={video} onClick={onVideoClick} />
       ))}
     </div>
   )

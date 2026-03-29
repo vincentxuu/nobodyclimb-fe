@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native'
-import { Cloud, Droplets, ThermometerSun } from 'lucide-react-native'
-import { apiClient } from '@/lib/api'
-import { Text } from '@/components/ui'
 import { BORDER_RADIUS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { Cloud, Droplets, ThermometerSun } from 'lucide-react-native'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui'
+import { apiClient } from '@/lib/api'
 
 interface WeatherDisplayProps {
   location: string
@@ -163,9 +163,7 @@ export function WeatherDisplay({ location, latitude, longitude }: WeatherDisplay
           ) : null}
         </View>
 
-        {weather.comfort ? (
-          <Text style={styles.comfortText}>{weather.comfort}</Text>
-        ) : null}
+        {weather.comfort ? <Text style={styles.comfortText}>{weather.comfort}</Text> : null}
       </View>
 
       {/* Forecast */}
@@ -181,9 +179,7 @@ export function WeatherDisplay({ location, latitude, longitude }: WeatherDisplay
               const forecastIconColor = getWeatherIconColor(item.condition)
               return (
                 <View key={`${item.date}-${index}`} style={styles.forecastItem}>
-                  <Text style={styles.forecastLabel}>
-                    {formatForecastLabel(item.date, index)}
-                  </Text>
+                  <Text style={styles.forecastLabel}>{formatForecastLabel(item.date, index)}</Text>
                   <Cloud size={18} color={forecastIconColor} />
                   <Text style={styles.forecastTemp}>
                     {item.minTemp !== null ? `${Math.round(item.minTemp)}°` : '--'}

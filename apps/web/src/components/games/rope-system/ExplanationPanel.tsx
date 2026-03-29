@@ -1,10 +1,9 @@
 'use client'
 
-import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, XCircle, Lightbulb, BookOpen } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from 'framer-motion'
+import { BookOpen, CheckCircle, Lightbulb, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface ExplanationPanelProps {
   isVisible: boolean
@@ -46,9 +45,7 @@ export function ExplanationPanel({
             {isCorrect ? (
               <>
                 <CheckCircle className="h-8 w-8 text-[#22C55E]" />
-                <span className="text-xl font-bold text-[#22C55E]">
-                  答對了！
-                </span>
+                <span className="text-xl font-bold text-[#22C55E]">答對了！</span>
               </>
             ) : (
               <>
@@ -61,9 +58,7 @@ export function ExplanationPanel({
           {/* 正確答案 */}
           {!isCorrect && (
             <div className="mb-4">
-              <div className="mb-1 text-sm font-medium text-[#535353]">
-                正確答案
-              </div>
+              <div className="mb-1 text-sm font-medium text-[#535353]">正確答案</div>
               <div className="text-[#1B1A1A]">{correctAnswer}</div>
             </div>
           )}
@@ -93,9 +88,7 @@ export function ExplanationPanel({
           {/* 參考資料 */}
           {referenceSources && referenceSources.length > 0 && (
             <div className="mb-4">
-              <div className="mb-1 text-sm font-medium text-[#535353]">
-                參考資料
-              </div>
+              <div className="mb-1 text-sm font-medium text-[#535353]">參考資料</div>
               <ul className="list-inside list-disc text-sm text-[#535353]">
                 {referenceSources.map((source, index) => (
                   <li key={index}>{source}</li>

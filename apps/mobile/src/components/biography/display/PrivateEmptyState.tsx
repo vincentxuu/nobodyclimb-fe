@@ -3,12 +3,11 @@
  *
  * 私人空狀態顯示，對應 apps/web/src/components/biography/display/PrivateEmptyState.tsx
  */
-import React from 'react'
-import { StyleSheet, View } from 'react-native'
-import { Lock, EyeOff } from 'lucide-react-native'
 
-import { Text } from '@/components/ui'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { EyeOff, Lock } from 'lucide-react-native'
+import { StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui'
 
 interface PrivateEmptyStateProps {
   /** 標題 */

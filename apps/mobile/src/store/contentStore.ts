@@ -96,9 +96,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
   addBookmark: (item) => {
     set((state) => {
       // 檢查是否已收藏
-      const exists = state.bookmarks.some(
-        (b) => b.id === item.id && b.type === item.type
-      )
+      const exists = state.bookmarks.some((b) => b.id === item.id && b.type === item.type)
       if (exists) return state
 
       const newBookmark: BookmarkItem = {
@@ -114,9 +112,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
 
   removeBookmark: (id, type) => {
     set((state) => ({
-      bookmarks: state.bookmarks.filter(
-        (b) => !(b.id === id && b.type === type)
-      ),
+      bookmarks: state.bookmarks.filter((b) => !(b.id === id && b.type === type)),
     }))
   },
 
@@ -133,9 +129,7 @@ export const useContentStore = create<ContentState>((set, get) => ({
 
   addLike: (item) => {
     set((state) => {
-      const exists = state.likes.some(
-        (l) => l.id === item.id && l.type === item.type
-      )
+      const exists = state.likes.some((l) => l.id === item.id && l.type === item.type)
       if (exists) return state
 
       const newLike: LikeItem = {

@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import { View, Pressable } from 'react-native'
-import { YStack, XStack, Text } from 'tamagui'
-import { ChevronDown, Check, Globe, Users, Lock, Glasses } from 'lucide-react-native'
-import { SEMANTIC_COLORS, COLORS } from '@nobodyclimb/constants'
+import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
 import type { VisibilityLevel } from '@nobodyclimb/types'
 import type { LucideIcon } from 'lucide-react-native'
+import { Check, ChevronDown, Glasses, Globe, Lock, Users } from 'lucide-react-native'
+import { useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { Text, XStack, YStack } from 'tamagui'
 
 interface PrivacyBannerProps {
   /** 當前可見性設定 */

@@ -384,10 +384,7 @@ export function isDefined<T>(value: T | null | undefined | false): value is T {
 /**
  * 渲染動態標籤
  */
-export function renderDynamicTag(
-  tag: TagOption,
-  biography: BiographyV2
-): string | string[] {
+export function renderDynamicTag(tag: TagOption, biography: BiographyV2): string | string[] {
   if (!tag.is_dynamic || !tag.template || !tag.source_field) {
     return tag.label
   }
@@ -412,9 +409,7 @@ export function getRandomQuestion(
 ): StoryQuestion | null {
   if (!allQuestions.length) return null
 
-  const answeredQuestionIds = new Set(
-    stories.map((s) => s.question_id)
-  )
+  const answeredQuestionIds = new Set(stories.map((s) => s.question_id))
 
   // 優先推薦：尚未填寫的 easy 問題
   const unfilledEasy = allQuestions.filter(
@@ -581,10 +576,11 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
   })
 
   // 解析 one_liners_data - 後端格式為 Record<string, { answer, visibility }>
-  const oneLinersRaw = safeJsonParse<Record<string, { answer: string; visibility: string }>>(
-    backend.one_liners_data,
-    {}
-  ) || {}
+  const oneLinersRaw =
+    safeJsonParse<Record<string, { answer: string; visibility: string }>>(
+      backend.one_liners_data,
+      {}
+    ) || {}
   const oneLinersFromJson: OneLinerItem[] = Object.entries(oneLinersRaw)
     .filter(([, data]) => data?.answer)
     .map(([question_id, data]) => ({
@@ -594,11 +590,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     }))
 
   // 從舊版欄位中提取一句話問題（直接存在資料庫欄位中的資料）
-  const legacyOneLinerFields = [
-    'climbing_origin',
-    'climbing_meaning',
-    'advice_to_self',
-  ] as const
+  const legacyOneLinerFields = ['climbing_origin', 'climbing_meaning', 'advice_to_self'] as const
 
   const oneLinersFromLegacy: OneLinerItem[] = legacyOneLinerFields
     .filter((field) => {
@@ -619,20 +611,22 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
   ]
 
   // 解析 stories_data - 後端格式為 Record<category, Record<field, { answer, visibility, updated_at }>>
-  const storiesRaw = safeJsonParse<Record<string, Record<string, { answer: string; visibility: string; updated_at: string } | null>>>(
-    backend.stories_data,
-    {}
-  ) || {}
-  const storiesFromJson: StoryItem[] = Object.values(storiesRaw)
-    .flatMap((category) =>
-      Object.entries(category || {})
-        .filter(([, data]) => data?.answer)
-        .map(([question_id, data]) => ({
-          question_id,
-          content: data!.answer,
-          source: 'system' as ContentSource,
-        }))
-    )
+  const storiesRaw =
+    safeJsonParse<
+      Record<
+        string,
+        Record<string, { answer: string; visibility: string; updated_at: string } | null>
+      >
+    >(backend.stories_data, {}) || {}
+  const storiesFromJson: StoryItem[] = Object.values(storiesRaw).flatMap((category) =>
+    Object.entries(category || {})
+      .filter(([, data]) => data?.answer)
+      .map(([question_id, data]) => ({
+        question_id,
+        content: data!.answer,
+        source: 'system' as ContentSource,
+      }))
+  )
 
   // 從舊版欄位中提取故事資料（直接存在資料庫欄位中的資料）
   // 注意：climbing_origin, climbing_meaning, advice_to_self 是一句話問題，不在此列表
@@ -749,20 +743,25 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
   const gallery_images = safeJsonParse<GalleryImage[] | null>(backend.gallery_images, null)
 
   // 解析 social_links，並處理舊版欄位名稱兼容（youtube_channel -> youtube）
-  const rawSocialLinks = safeJsonParse<Record<string, string | undefined> | null>(backend.social_links, null)
-  const social_links: SocialLinks | null = rawSocialLinks ? {
-    instagram: rawSocialLinks.instagram,
-    youtube: rawSocialLinks.youtube || rawSocialLinks.youtube_channel, // 兼容舊版欄位名稱
-    facebook: rawSocialLinks.facebook,
-    threads: rawSocialLinks.threads,
-    website: rawSocialLinks.website,
-  } : null
+  const rawSocialLinks = safeJsonParse<Record<string, string | undefined> | null>(
+    backend.social_links,
+    null
+  )
+  const social_links: SocialLinks | null = rawSocialLinks
+    ? {
+        instagram: rawSocialLinks.instagram,
+        youtube: rawSocialLinks.youtube || rawSocialLinks.youtube_channel, // 兼容舊版欄位名稱
+        facebook: rawSocialLinks.facebook,
+        threads: rawSocialLinks.threads,
+        website: rawSocialLinks.website,
+      }
+    : null
 
   // climbing_start_year - 從 basic_info_data 中讀取
   const startYear = basicInfo?.climbing_start_year
-    ? (typeof basicInfo.climbing_start_year === 'string'
-        ? parseInt(basicInfo.climbing_start_year, 10)
-        : basicInfo.climbing_start_year)
+    ? typeof basicInfo.climbing_start_year === 'string'
+      ? parseInt(basicInfo.climbing_start_year, 10)
+      : basicInfo.climbing_start_year
     : null
 
   return {
@@ -775,8 +774,7 @@ export function transformBackendToBiographyV2(backend: BiographyBackend): Biogra
     avatar_url: backend.avatar_url,
     cover_url: backend.cover_image,
     climbing_start_year: startYear && !isNaN(startYear) ? startYear : null,
-    climbing_years:
-      startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
+    climbing_years: startYear && !isNaN(startYear) ? new Date().getFullYear() - startYear : null,
     frequent_locations,
     favorite_route_types,
     home_gym: basicInfo?.home_gym || null,
@@ -833,7 +831,10 @@ export function transformBiographyV2ToBackend(bio: BiographyV2): {
   // 將 stories 陣列轉為後端格式（按 category 分組）
   // 注意：這裡需要知道每個 question 屬於哪個 category
   // 暫時使用扁平結構
-  const storiesObj: Record<string, Record<string, { answer: string; visibility: string; updated_at: string }>> = {}
+  const storiesObj: Record<
+    string,
+    Record<string, { answer: string; visibility: string; updated_at: string }>
+  > = {}
   bio.stories.forEach((item) => {
     // 暫時放入 'uncategorized' 類別，實際使用時應根據 question_id 查找對應類別
     if (!storiesObj['uncategorized']) {

@@ -1,12 +1,12 @@
 /**
  * SlideUp 動畫包裝組件
  */
-import React, { ReactNode } from 'react'
+import { ReactNode } from 'react'
 import Animated, {
-  SlideInUp,
   SlideInDown,
   SlideInLeft,
   SlideInRight,
+  SlideInUp,
 } from 'react-native-reanimated'
 
 type SlideDirection = 'up' | 'down' | 'left' | 'right'
@@ -18,12 +18,7 @@ interface SlideUpProps {
   delay?: number
 }
 
-export function SlideUp({
-  children,
-  direction = 'up',
-  duration = 300,
-  delay = 0,
-}: SlideUpProps) {
+export function SlideUp({ children, direction = 'up', duration = 300, delay = 0 }: SlideUpProps) {
   const getEnteringAnimation = () => {
     const baseAnimation = (() => {
       switch (direction) {
@@ -43,9 +38,5 @@ export function SlideUp({
     return baseAnimation.duration(duration).delay(delay)
   }
 
-  return (
-    <Animated.View entering={getEnteringAnimation()}>
-      {children}
-    </Animated.View>
-  )
+  return <Animated.View entering={getEnteringAnimation()}>{children}</Animated.View>
 }

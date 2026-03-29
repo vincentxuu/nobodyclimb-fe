@@ -4,25 +4,25 @@
  * 對應 apps/web/src/app/gallery/page.tsx
  * 使用 apps/mobile/src/components/gallery/ 組件
  */
-import React, { useState, useCallback, useMemo } from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
-import { ChevronLeft, Plus, ImageIcon } from 'lucide-react-native'
 
-import { Text, IconButton, EmptyState } from '@/components/ui'
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import type { GalleryPhoto } from '@nobodyclimb/types'
+import { useRouter } from 'expo-router'
+import { ChevronLeft, ImageIcon, Plus } from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   GalleryGrid,
-  PhotoPopup,
-  PhotoEditDialog,
-  UploadPhotoDialog,
   type GalleryGridPhoto,
+  PhotoEditDialog,
+  PhotoPopup,
   type PhotoPopupPhoto,
+  UploadPhotoDialog,
 } from '@/components/gallery'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
-import { useAuthStore } from '@/store/authStore'
+import { EmptyState, IconButton, Text } from '@/components/ui'
 import { useGallery, useRefreshGallery } from '@/lib/hooks'
-import type { GalleryPhoto } from '@nobodyclimb/types'
+import { useAuthStore } from '@/store/authStore'
 
 export default function GalleryScreen() {
   const router = useRouter()
@@ -99,7 +99,6 @@ export default function GalleryScreen() {
   // 上傳成功
   const handleUploadSuccess = useCallback(
     (photo: GalleryPhoto) => {
-      console.log('Photo uploaded:', photo)
       refreshGallery()
     },
     [refreshGallery]
@@ -108,7 +107,6 @@ export default function GalleryScreen() {
   // 編輯成功
   const handleEditSuccess = useCallback(
     (photo: GalleryPhoto) => {
-      console.log('Photo edited:', photo)
       refreshGallery()
     },
     [refreshGallery]

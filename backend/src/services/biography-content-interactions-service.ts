@@ -1,17 +1,20 @@
-import { D1Database } from '@cloudflare/workers-types';
-import { ContentInteractionsRepository } from '../repositories/content-interactions-repository';
-import { BiographyContentCrudRepository } from '../repositories/biography-content-crud-repository';
-import { createNotification, NotificationType } from '../routes/notifications';
+import { D1Database } from '@cloudflare/workers-types'
+import { BiographyContentCrudRepository } from '../repositories/biography-content-crud-repository'
+import { ContentInteractionsRepository } from '../repositories/content-interactions-repository'
+import { createNotification, NotificationType } from '../routes/notifications'
 
 /**
  * 內容類型
  */
-type ContentType = 'core_story' | 'one_liner' | 'story';
+type ContentType = 'core_story' | 'one_liner' | 'story'
 
 /**
  * 通知類型對應
  */
-const NOTIFICATION_TYPE_MAP: Record<ContentType, { liked: NotificationType; commented: NotificationType }> = {
+const NOTIFICATION_TYPE_MAP: Record<
+  ContentType,
+  { liked: NotificationType; commented: NotificationType }
+> = {
   core_story: {
     liked: 'core_story_liked',
     commented: 'core_story_commented',
@@ -24,7 +27,7 @@ const NOTIFICATION_TYPE_MAP: Record<ContentType, { liked: NotificationType; comm
     liked: 'story_liked',
     commented: 'story_commented',
   },
-};
+}
 
 /**
  * 通知訊息對應
@@ -48,27 +51,27 @@ const NOTIFICATION_MESSAGE_MAP: Record<
     contentLabel: '故事',
     commentedTitle: '故事有新留言',
   },
-};
+}
 
 /**
  * 按讚回應
  */
 export interface LikeResponse {
-  liked: boolean;
-  like_count: number;
+  liked: boolean
+  like_count: number
 }
 
 /**
  * 快速反應類型
  */
-export type ReactionType = 'me_too' | 'plus_one' | 'well_said';
+export type ReactionType = 'me_too' | 'plus_one' | 'well_said'
 
 /**
  * 快速反應回應
  */
 export interface ReactionResponse {
-  reacted: boolean;
-  reaction_counts: Record<ReactionType, number>;
+  reacted: boolean
+  reaction_counts: Record<ReactionType, number>
 }
 
 /**
@@ -79,18 +82,18 @@ export const REACTION_DISPLAY = {
   me_too: { label: '我也是', icon: 'HandMetal' },
   plus_one: { label: '+1', icon: 'ThumbsUp' },
   well_said: { label: '說得好', icon: 'MessageSquareHeart' },
-} as const;
+} as const
 
 /**
  * 人物誌內容互動服務
  */
 export class BiographyContentInteractionsService {
-  private interactionsRepo: ContentInteractionsRepository;
-  private contentRepo: BiographyContentCrudRepository;
+  private interactionsRepo: ContentInteractionsRepository
+  private contentRepo: BiographyContentCrudRepository
 
   constructor(private db: D1Database) {
-    this.interactionsRepo = new ContentInteractionsRepository(db);
-    this.contentRepo = new BiographyContentCrudRepository(db);
+    this.interactionsRepo = new ContentInteractionsRepository(db)
+    this.contentRepo = new BiographyContentCrudRepository(db)
   }
 
   // ═══════════════════════════════════════════
@@ -106,35 +109,35 @@ export class BiographyContentInteractionsService {
     userId: string
   ): Promise<LikeResponse> {
     // 取得內容及擁有者資訊
-    const content = await this.getContentWithOwner(contentType, contentId);
+    const content = await this.getContentWithOwner(contentType, contentId)
     if (!content) {
-      throw new Error('找不到此內容');
+      throw new Error('找不到此內容')
     }
 
     // 檢查是否已按讚
-    const hasLiked = await this.interactionsRepo.hasLiked(contentType, contentId, userId);
+    const hasLiked = await this.interactionsRepo.hasLiked(contentType, contentId, userId)
 
     if (hasLiked) {
       // 取消按讚
-      await this.interactionsRepo.removeLike(contentType, contentId, userId);
+      await this.interactionsRepo.removeLike(contentType, contentId, userId)
     } else {
       // 新增按讚
-      await this.interactionsRepo.addLike(contentType, contentId, userId);
+      await this.interactionsRepo.addLike(contentType, contentId, userId)
 
       // 發送通知（不通知自己）
       if (content.owner_id !== userId) {
-        await this.sendLikeNotification(contentType, contentId, content.owner_id, userId);
+        await this.sendLikeNotification(contentType, contentId, content.owner_id, userId)
       }
     }
 
     // 更新按讚數
-    const likeCount = await this.interactionsRepo.getLikeCount(contentType, contentId);
-    await this.interactionsRepo.updateLikeCount(contentType, contentId, likeCount);
+    const likeCount = await this.interactionsRepo.getLikeCount(contentType, contentId)
+    await this.interactionsRepo.updateLikeCount(contentType, contentId, likeCount)
 
     return {
       liked: !hasLiked,
       like_count: likeCount,
-    };
+    }
   }
 
   /**
@@ -146,16 +149,16 @@ export class BiographyContentInteractionsService {
     userId: string | null
   ): Promise<Array<T & { is_liked?: boolean }>> {
     if (!userId || contents.length === 0) {
-      return contents;
+      return contents
     }
 
-    const contentIds = contents.map((c) => c.id);
-    const likedIds = await this.interactionsRepo.batchCheckLikes(contentType, contentIds, userId);
+    const contentIds = contents.map((c) => c.id)
+    const likedIds = await this.interactionsRepo.batchCheckLikes(contentType, contentIds, userId)
 
     return contents.map((content) => ({
       ...content,
       is_liked: likedIds.has(content.id),
-    }));
+    }))
   }
 
   // ═══════════════════════════════════════════
@@ -166,7 +169,7 @@ export class BiographyContentInteractionsService {
    * 取得留言列表
    */
   async getComments(contentType: ContentType, contentId: string) {
-    return this.interactionsRepo.getComments(contentType, contentId);
+    return this.interactionsRepo.getComments(contentType, contentId)
   }
 
   /**
@@ -180,14 +183,14 @@ export class BiographyContentInteractionsService {
     parentId: string | null = null
   ) {
     // 驗證內容存在
-    const targetContent = await this.getContentWithOwner(contentType, contentId);
+    const targetContent = await this.getContentWithOwner(contentType, contentId)
     if (!targetContent) {
-      throw new Error('找不到此內容');
+      throw new Error('找不到此內容')
     }
 
     // 驗證留言內容
     if (!content?.trim()) {
-      throw new Error('留言內容不能為空');
+      throw new Error('留言內容不能為空')
     }
 
     // 新增留言
@@ -197,24 +200,19 @@ export class BiographyContentInteractionsService {
       userId,
       content.trim(),
       parentId
-    );
+    )
 
     // 更新留言數
-    const commentCount = await this.interactionsRepo.getCommentCount(contentType, contentId);
-    await this.interactionsRepo.updateCommentCount(contentType, contentId, commentCount);
+    const commentCount = await this.interactionsRepo.getCommentCount(contentType, contentId)
+    await this.interactionsRepo.updateCommentCount(contentType, contentId, commentCount)
 
     // 發送通知（不通知自己）
     if (targetContent.owner_id !== userId) {
-      await this.sendCommentNotification(
-        contentType,
-        contentId,
-        targetContent.owner_id,
-        userId
-      );
+      await this.sendCommentNotification(contentType, contentId, targetContent.owner_id, userId)
     }
 
     // 回傳新留言
-    return this.interactionsRepo.getCommentWithUser(contentType, commentId);
+    return this.interactionsRepo.getCommentWithUser(contentType, commentId)
   }
 
   /**
@@ -222,25 +220,25 @@ export class BiographyContentInteractionsService {
    */
   async deleteComment(contentType: ContentType, commentId: string, userId: string) {
     // 取得留言資訊
-    const comment = await this.interactionsRepo.getComment(contentType, commentId);
+    const comment = await this.interactionsRepo.getComment(contentType, commentId)
     if (!comment) {
-      throw new Error('找不到此留言');
+      throw new Error('找不到此留言')
     }
 
     // 權限檢查
     if (comment.user_id !== userId) {
-      throw new Error('無權限刪除此留言');
+      throw new Error('無權限刪除此留言')
     }
 
     // 取得內容 ID（不同內容類型的欄位名稱不同）
-    const contentId = this.getContentIdFromComment(contentType, comment);
+    const contentId = this.getContentIdFromComment(contentType, comment)
 
     // 刪除留言
-    await this.interactionsRepo.deleteComment(contentType, commentId);
+    await this.interactionsRepo.deleteComment(contentType, commentId)
 
     // 更新留言數
-    const commentCount = await this.interactionsRepo.getCommentCount(contentType, contentId);
-    await this.interactionsRepo.updateCommentCount(contentType, contentId, commentCount);
+    const commentCount = await this.interactionsRepo.getCommentCount(contentType, contentId)
+    await this.interactionsRepo.updateCommentCount(contentType, contentId, commentCount)
   }
 
   // ═══════════════════════════════════════════
@@ -257,32 +255,32 @@ export class BiographyContentInteractionsService {
     userId: string
   ): Promise<ReactionResponse> {
     // 驗證內容存在
-    const content = await this.getContentWithOwner(contentType, contentId);
+    const content = await this.getContentWithOwner(contentType, contentId)
     if (!content) {
-      throw new Error('找不到此內容');
+      throw new Error('找不到此內容')
     }
 
     // 檢查是否已反應
-    const hasReacted = await this.hasReacted(contentType, contentId, reactionType, userId);
+    const hasReacted = await this.hasReacted(contentType, contentId, reactionType, userId)
 
     if (hasReacted) {
       // 移除反應
-      await this.removeReaction(contentType, contentId, reactionType, userId);
+      await this.removeReaction(contentType, contentId, reactionType, userId)
     } else {
       // 新增反應
-      await this.addReaction(contentType, contentId, reactionType, userId);
+      await this.addReaction(contentType, contentId, reactionType, userId)
     }
 
     // 取得更新後的反應計數
-    const reactionCounts = await this.getReactionCounts(contentType, contentId);
+    const reactionCounts = await this.getReactionCounts(contentType, contentId)
 
     // 更新內容表的反應計數
-    await this.updateReactionCounts(contentType, contentId, reactionCounts);
+    await this.updateReactionCounts(contentType, contentId, reactionCounts)
 
     return {
       reacted: !hasReacted,
       reaction_counts: reactionCounts,
-    };
+    }
   }
 
   /**
@@ -300,9 +298,9 @@ export class BiographyContentInteractionsService {
          WHERE content_type = ? AND content_id = ? AND reaction_type = ? AND user_id = ?`
       )
       .bind(contentType, contentId, reactionType, userId)
-      .first();
+      .first()
 
-    return !!result;
+    return !!result
   }
 
   /**
@@ -320,7 +318,7 @@ export class BiographyContentInteractionsService {
          VALUES (?, ?, ?, ?)`
       )
       .bind(contentType, contentId, reactionType, userId)
-      .run();
+      .run()
   }
 
   /**
@@ -338,7 +336,7 @@ export class BiographyContentInteractionsService {
          WHERE content_type = ? AND content_id = ? AND reaction_type = ? AND user_id = ?`
       )
       .bind(contentType, contentId, reactionType, userId)
-      .run();
+      .run()
   }
 
   /**
@@ -356,19 +354,22 @@ export class BiographyContentInteractionsService {
          GROUP BY reaction_type`
       )
       .bind(contentType, contentId)
-      .all();
+      .all()
 
     const counts: Record<ReactionType, number> = {
       me_too: 0,
       plus_one: 0,
       well_said: 0,
-    };
-
-    for (const row of (result.results || []) as Array<{ reaction_type: ReactionType; count: number }>) {
-      counts[row.reaction_type] = row.count;
     }
 
-    return counts;
+    for (const row of (result.results || []) as Array<{
+      reaction_type: ReactionType
+      count: number
+    }>) {
+      counts[row.reaction_type] = row.count
+    }
+
+    return counts
   }
 
   /**
@@ -385,23 +386,23 @@ export class BiographyContentInteractionsService {
          WHERE content_type = ? AND content_id = ? AND user_id = ?`
       )
       .bind(contentType, contentId, userId)
-      .all();
+      .all()
 
-    return (result.results || []).map((row: any) => row.reaction_type);
+    return (result.results || []).map((row: any) => row.reaction_type)
   }
 
   /**
    * 取得內容的按讚者列表
    */
   async getLikers(contentType: ContentType, contentId: string) {
-    return this.interactionsRepo.getLikersByEntity(contentType, contentId);
+    return this.interactionsRepo.getLikersByEntity(contentType, contentId)
   }
 
   /**
    * 取得內容的反應者列表
    */
   async getReactors(contentType: ContentType, contentId: string, reactionType: ReactionType) {
-    return this.interactionsRepo.getReactorsByContent(contentType, contentId, reactionType);
+    return this.interactionsRepo.getReactorsByContent(contentType, contentId, reactionType)
   }
 
   /**
@@ -413,26 +414,29 @@ export class BiographyContentInteractionsService {
     userId: string
   ): Promise<Map<string, ReactionType[]>> {
     if (contentIds.length === 0) {
-      return new Map();
+      return new Map()
     }
 
-    const placeholders = contentIds.map(() => '?').join(',');
+    const placeholders = contentIds.map(() => '?').join(',')
     const result = await this.db
       .prepare(
         `SELECT content_id, reaction_type FROM content_reactions
          WHERE content_type = ? AND content_id IN (${placeholders}) AND user_id = ?`
       )
       .bind(contentType, ...contentIds, userId)
-      .all();
+      .all()
 
-    const reactionsMap = new Map<string, ReactionType[]>();
-    for (const row of (result.results || []) as Array<{ content_id: string; reaction_type: ReactionType }>) {
-      const existing = reactionsMap.get(row.content_id) || [];
-      existing.push(row.reaction_type);
-      reactionsMap.set(row.content_id, existing);
+    const reactionsMap = new Map<string, ReactionType[]>()
+    for (const row of (result.results || []) as Array<{
+      content_id: string
+      reaction_type: ReactionType
+    }>) {
+      const existing = reactionsMap.get(row.content_id) || []
+      existing.push(row.reaction_type)
+      reactionsMap.set(row.content_id, existing)
     }
 
-    return reactionsMap;
+    return reactionsMap
   }
 
   /**
@@ -443,7 +447,7 @@ export class BiographyContentInteractionsService {
     contentId: string,
     counts: Record<ReactionType, number>
   ): Promise<void> {
-    const tableName = this.getTableName(contentType);
+    const tableName = this.getTableName(contentType)
 
     await this.db
       .prepare(
@@ -454,7 +458,7 @@ export class BiographyContentInteractionsService {
          WHERE id = ?`
       )
       .bind(counts.me_too, counts.plus_one, counts.well_said, contentId)
-      .run();
+      .run()
   }
 
   /**
@@ -463,11 +467,11 @@ export class BiographyContentInteractionsService {
   private getTableName(contentType: ContentType): string {
     switch (contentType) {
       case 'core_story':
-        return 'biography_core_stories';
+        return 'biography_core_stories'
       case 'one_liner':
-        return 'biography_one_liners';
+        return 'biography_one_liners'
       case 'story':
-        return 'biography_stories';
+        return 'biography_stories'
     }
   }
 
@@ -484,11 +488,11 @@ export class BiographyContentInteractionsService {
   ): Promise<{ owner_id: string } | null> {
     switch (contentType) {
       case 'core_story':
-        return this.contentRepo.getCoreStoryWithOwner(contentId);
+        return this.contentRepo.getCoreStoryWithOwner(contentId)
       case 'one_liner':
-        return this.contentRepo.getOneLinerWithOwner(contentId);
+        return this.contentRepo.getOneLinerWithOwner(contentId)
       case 'story':
-        return this.contentRepo.getStoryWithOwner(contentId);
+        return this.contentRepo.getStoryWithOwner(contentId)
     }
   }
 
@@ -502,14 +506,14 @@ export class BiographyContentInteractionsService {
     actorId: string
   ): Promise<void> {
     try {
-      const notifType = NOTIFICATION_TYPE_MAP[contentType];
-      const messages = NOTIFICATION_MESSAGE_MAP[contentType];
+      const notifType = NOTIFICATION_TYPE_MAP[contentType]
+      const messages = NOTIFICATION_MESSAGE_MAP[contentType]
 
       const actor = await this.db
         .prepare('SELECT display_name, username FROM users WHERE id = ?')
         .bind(actorId)
-        .first<{ display_name: string | null; username: string }>();
-      const actorName = actor?.display_name || actor?.username || '有人';
+        .first<{ display_name: string | null; username: string }>()
+      const actorName = actor?.display_name || actor?.username || '有人'
 
       await createNotification(this.db, {
         userId: ownerId,
@@ -518,9 +522,9 @@ export class BiographyContentInteractionsService {
         targetId: contentId,
         title: messages.likedTitle,
         message: `${actorName} 對你的${messages.contentLabel}按讚`,
-      });
+      })
     } catch (err) {
-      console.error('Failed to create like notification:', err);
+      console.error('Failed to create like notification:', err)
     }
   }
 
@@ -534,14 +538,14 @@ export class BiographyContentInteractionsService {
     actorId: string
   ): Promise<void> {
     try {
-      const notifType = NOTIFICATION_TYPE_MAP[contentType];
-      const messages = NOTIFICATION_MESSAGE_MAP[contentType];
+      const notifType = NOTIFICATION_TYPE_MAP[contentType]
+      const messages = NOTIFICATION_MESSAGE_MAP[contentType]
 
       const actor = await this.db
         .prepare('SELECT display_name, username FROM users WHERE id = ?')
         .bind(actorId)
-        .first<{ display_name: string | null; username: string }>();
-      const actorName = actor?.display_name || actor?.username || '有人';
+        .first<{ display_name: string | null; username: string }>()
+      const actorName = actor?.display_name || actor?.username || '有人'
 
       await createNotification(this.db, {
         userId: ownerId,
@@ -550,9 +554,9 @@ export class BiographyContentInteractionsService {
         targetId: contentId,
         title: messages.commentedTitle,
         message: `${actorName} 對你的${messages.contentLabel}留言`,
-      });
+      })
     } catch (err) {
-      console.error('Failed to create comment notification:', err);
+      console.error('Failed to create comment notification:', err)
     }
   }
 
@@ -561,6 +565,6 @@ export class BiographyContentInteractionsService {
    */
   private getContentIdFromComment(contentType: ContentType, comment: any): string {
     // 統一的 comments 表使用 entity_id 欄位
-    return comment.entity_id;
+    return comment.entity_id
   }
 }

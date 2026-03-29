@@ -1,15 +1,15 @@
+import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { ChevronDown } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { View, Pressable, StyleSheet } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  Easing,
 } from 'react-native-reanimated'
-import { ChevronDown } from 'lucide-react-native'
-import { Text } from '../ui/Text'
 import { Icon } from '../ui/Icon'
-import { SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
+import { Text } from '../ui/Text'
 
 interface CollapsibleSectionProps {
   title: string

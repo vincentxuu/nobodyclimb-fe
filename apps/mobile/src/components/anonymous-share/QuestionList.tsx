@@ -3,22 +3,28 @@
  *
  * 對應 apps/web/src/components/anonymous-share/QuestionList.tsx
  */
-import React, { useState, useMemo } from 'react'
-import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native'
-import {
-  Check,
-  Plus,
-  X,
-  ChevronRight,
-  ChevronDown,
-  Pencil,
-  MessageCircle,
-  BookOpen,
-  Sparkles,
-} from 'lucide-react-native'
 
+import {
+  BORDER_RADIUS,
+  BRAND_YELLOW,
+  SEMANTIC_COLORS,
+  SPACING,
+  WB_COLORS,
+} from '@nobodyclimb/constants'
+import {
+  BookOpen,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  MessageCircle,
+  Pencil,
+  Plus,
+  Sparkles,
+  X,
+} from 'lucide-react-native'
+import React, { useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
-import { BORDER_RADIUS, BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useQuestions } from '@/lib/hooks/useQuestions'
 import type { Question, StoryInput } from './questions'
 import { convertApiQuestionsToQuestions } from './questions'
@@ -67,10 +73,7 @@ function AnsweredStories({
                 </Text>
               </View>
               <View style={styles.actionButtons}>
-                <Pressable
-                  style={styles.actionButton}
-                  onPress={() => q && onSelectQuestion(q)}
-                >
+                <Pressable style={styles.actionButton} onPress={() => q && onSelectQuestion(q)}>
                   <Pencil size={16} color="#9CA3AF" />
                 </Pressable>
                 <Pressable
@@ -102,19 +105,14 @@ function QuestionButton({
 }) {
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.questionButton,
-        pressed && styles.questionButtonPressed,
-      ]}
+      style={({ pressed }) => [styles.questionButton, pressed && styles.questionButtonPressed]}
       onPress={onPress}
     >
       <View style={[styles.plusIcon, { backgroundColor: iconBgColor }]}>
         <Plus size={16} color={SEMANTIC_COLORS.textMain} />
       </View>
       <View style={styles.questionContent}>
-        <Text variant="bodyBold">
-          {question.title}
-        </Text>
+        <Text variant="bodyBold">{question.title}</Text>
         {question.subtitle && (
           <Text variant="caption" color="muted">
             {question.subtitle}
@@ -183,11 +181,7 @@ function QuestionSection({
  * 問題列表組件
  * 預設顯示一題，點擊展開更多
  */
-export function QuestionList({
-  stories,
-  onSelectQuestion,
-  onRemoveStory,
-}: QuestionListProps) {
+export function QuestionList({ stories, onSelectQuestion, onRemoveStory }: QuestionListProps) {
   const [showMore, setShowMore] = useState(false)
   const { data: questionsData, isLoading } = useQuestions()
   const answeredIds = new Set(stories.map((s) => s.question_id))
@@ -281,10 +275,7 @@ export function QuestionList({
       {/* 想寫更多按鈕（未展開時顯示） */}
       {!shouldShowMore && (
         <Pressable
-          style={({ pressed }) => [
-            styles.showMoreButton,
-            pressed && styles.showMoreButtonPressed,
-          ]}
+          style={({ pressed }) => [styles.showMoreButton, pressed && styles.showMoreButtonPressed]}
           onPress={() => setShowMore(true)}
         >
           <ChevronDown size={16} color="#6B7280" />

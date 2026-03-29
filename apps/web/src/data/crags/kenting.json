@@ -38,16 +38,8 @@
       "max": 21,
       "unit": "m"
     },
-    "seasons": [
-      "秋",
-      "冬",
-      "春"
-    ],
-    "seasonsEn": [
-      "Autumn",
-      "Winter",
-      "Spring"
-    ],
+    "seasons": ["秋", "冬", "春"],
+    "seasonsEn": ["Autumn", "Winter", "Spring"],
     "access": {
       "approach": "8-10分鐘徒步",
       "approachEn": "8-10 minutes hiking",
@@ -66,12 +58,7 @@
         }
       ]
     },
-    "amenities": [
-      "7-11便利商店",
-      "船帆石周邊民宿",
-      "墾丁大街餐廳",
-      "恆春鎮機能完善"
-    ],
+    "amenities": ["7-11便利商店", "船帆石周邊民宿", "墾丁大街餐廳", "恆春鎮機能完善"],
     "amenitiesEn": [
       "7-Eleven",
       "Guesthouses near Sail Rock",
@@ -229,9 +216,7 @@
       "boltCount": 5,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=adVt6XDmLx0"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=adVt6XDmLx0"]
     },
     {
       "id": "KT-MF-002",
@@ -287,9 +272,7 @@
       "boltCount": 7,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=gKP8ieh7VEA"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=gKP8ieh7VEA"]
     },
     {
       "id": "KT-MF-005",
@@ -307,9 +290,7 @@
       "boltCount": 6,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=1x68c-k1DfA"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=1x68c-k1DfA"]
     },
     {
       "id": "KT-MF-006",
@@ -519,9 +500,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Qbdhad6LI_I"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=Qbdhad6LI_I"]
     },
     {
       "id": "KT-SW-003",
@@ -556,9 +535,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=rJ-U6dp0eNA"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=rJ-U6dp0eNA"]
     },
     {
       "id": "KT-SW-005",
@@ -593,9 +570,7 @@
       "boltCount": 5,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=vN8VWHYLQNM"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=vN8VWHYLQNM"]
     },
     {
       "id": "KT-SW-007",
@@ -613,9 +588,7 @@
       "boltCount": 5,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=kHUCV3_h1Z0"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=kHUCV3_h1Z0"]
     },
     {
       "id": "KT-SW-008",
@@ -672,9 +645,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=-9A0yUyMMP8"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=-9A0yUyMMP8"]
     },
     {
       "id": "KT-SW-011",
@@ -692,9 +663,7 @@
       "boltCount": 5,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=g12Zmh9VREk"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=g12Zmh9VREk"]
     },
     {
       "id": "KT-SW-012",
@@ -1115,9 +1084,7 @@
       "boltCount": 6,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=iBE9vW2DwQY"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=iBE9vW2DwQY"]
     },
     {
       "id": "KT-SW-032",
@@ -1135,9 +1102,7 @@
       "boltCount": 6,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=27ORLSbq3k4"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=27ORLSbq3k4"]
     },
     {
       "id": "KT-SW-033",
@@ -1325,9 +1290,7 @@
       "boltCount": 5,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=G5iEHe-rNd4"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=G5iEHe-rNd4"]
     },
     {
       "id": "KT-DW-005",
@@ -1368,9 +1331,7 @@
       "boltCount": 6,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=oMbnmoPUMd8"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=oMbnmoPUMd8"]
     },
     {
       "id": "KT-DW-007",
@@ -1533,9 +1494,7 @@
       "boltCount": 4,
       "popularity": 1,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=QeEZhnfFo5A"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=QeEZhnfFo5A"]
     },
     {
       "id": "KT-DW-015",
@@ -1575,9 +1534,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=Ny0ghXipZgo"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=Ny0ghXipZgo"]
     },
     {
       "id": "KT-DW-017",
@@ -1612,9 +1569,7 @@
       "boltCount": 4,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=YLSjg52TvTE"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=YLSjg52TvTE"]
     },
     {
       "id": "KT-DW-019",
@@ -1675,9 +1630,7 @@
       "boltCount": 3,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=ChwIMg_5P6Q"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=ChwIMg_5P6Q"]
     },
     {
       "id": "KT-DW-022",
@@ -1835,9 +1788,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=V1OQSA-kYBo"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=V1OQSA-kYBo"]
     },
     {
       "id": "KT-DAR-003",
@@ -1855,9 +1806,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=AMQi0OSoRMs"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=AMQi0OSoRMs"]
     },
     {
       "id": "KT-DAR-004",
@@ -1892,9 +1841,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=GPQ9WRxhecA"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=GPQ9WRxhecA"]
     },
     {
       "id": "KT-DAR-006",
@@ -1912,9 +1859,7 @@
       "boltCount": 5,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=i5Vf4ftldK4"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=i5Vf4ftldK4"]
     },
     {
       "id": "KT-DAR-007",
@@ -1932,9 +1877,7 @@
       "boltCount": 5,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=eXlKqufTJIQ"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=eXlKqufTJIQ"]
     },
     {
       "id": "KT-DAR-008",
@@ -1969,9 +1912,7 @@
       "boltCount": 4,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=4xPf9lmCjOY"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=4xPf9lmCjOY"]
     },
     {
       "id": "KT-DAR-010",
@@ -2028,9 +1969,7 @@
       "boltCount": 5,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=YKxKapa3x5Y"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=YKxKapa3x5Y"]
     },
     {
       "id": "KT-LPH-001",
@@ -2065,9 +2004,7 @@
       "boltCount": 2,
       "popularity": 2,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=ZV76CjmJ2Bo"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=ZV76CjmJ2Bo"]
     },
     {
       "id": "KT-LPH-003",
@@ -2085,9 +2022,7 @@
       "boltCount": 3,
       "popularity": 1,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=us0JO_Q7hRs"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=us0JO_Q7hRs"]
     },
     {
       "id": "KT-LPH-004",
@@ -2105,9 +2040,7 @@
       "boltCount": 4,
       "popularity": 1,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=tYGzLOv7IDk"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=tYGzLOv7IDk"]
     },
     {
       "id": "KT-LPH-005",
@@ -2159,9 +2092,7 @@
       "boltCount": 5,
       "popularity": 3,
       "status": "published",
-      "youtubeVideos": [
-        "https://www.youtube.com/watch?v=P6Q6R6xDSZg"
-      ]
+      "youtubeVideos": ["https://www.youtube.com/watch?v=P6Q6R6xDSZg"]
     },
     {
       "id": "KT-WW-003",

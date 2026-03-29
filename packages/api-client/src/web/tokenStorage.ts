@@ -4,8 +4,9 @@
  * 解決 Android WebView 和某些 Android 瀏覽器中 cookie 不穩定的問題
  * 同時使用 cookie 和 localStorage 作為備用方案
  */
-import Cookies from 'js-cookie'
+
 import { AUTH_KEYS } from '@nobodyclimb/constants'
+import Cookies from 'js-cookie'
 import type { TokenStorage } from '../core/types'
 
 // 時間常數

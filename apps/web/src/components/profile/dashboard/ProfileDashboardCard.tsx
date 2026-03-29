@@ -1,7 +1,7 @@
 'use client'
 
+import { Check, ChevronRight } from 'lucide-react'
 import React from 'react'
-import { ChevronRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProfileDashboardCardProps {
@@ -31,9 +31,7 @@ export function ProfileDashboardCard({
   className,
 }: ProfileDashboardCardProps) {
   const percentage =
-    progress && progress.total > 0
-      ? Math.round((progress.current / progress.total) * 100)
-      : null
+    progress && progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : null
 
   return (
     <button

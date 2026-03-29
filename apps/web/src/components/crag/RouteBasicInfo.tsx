@@ -1,14 +1,6 @@
 'use client'
 
-import React from 'react'
-import {
-  Ruler,
-  CircleDot,
-  Shield,
-  User,
-  FileText,
-  Lightbulb,
-} from 'lucide-react'
+import { CircleDot, FileText, Lightbulb, Ruler, Shield, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export interface RouteBasicInfoData {
@@ -52,9 +44,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
               <Ruler size={16} />
               {t('routeLength')}
             </div>
-            <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
-              {route.length}
-            </div>
+            <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.length}</div>
           </div>
         )}
         {route.boltCount !== undefined && route.boltCount > 0 && (
@@ -63,9 +53,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
               <CircleDot size={16} />
               {t('routeBoltCount')}
             </div>
-            <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
-              {route.boltCount}
-            </div>
+            <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.boltCount}</div>
           </div>
         )}
         {route.protection && (
@@ -74,9 +62,7 @@ export function RouteBasicInfo({ route, showTitle = true }: RouteBasicInfoProps)
               <Shield size={16} />
               {t('routeProtection')}
             </div>
-            <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">
-              {route.protection}
-            </div>
+            <div className="mt-1 text-lg font-semibold text-[#1B1A1A]">{route.protection}</div>
           </div>
         )}
         {route.firstAscent && (

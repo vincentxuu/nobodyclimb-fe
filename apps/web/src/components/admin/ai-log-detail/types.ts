@@ -12,4 +12,6 @@ export type StageBreakdownItem = {
   estimated: boolean
 }
 
-export type TokenBreakdown = NonNullable<NonNullable<AILogDetail['pipeline_trace']>['token_breakdown']>
+export type TokenBreakdown = NonNullable<
+  NonNullable<AILogDetail['pipeline_trace']>['token_breakdown']
+>

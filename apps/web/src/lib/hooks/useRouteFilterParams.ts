@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { useDebounce } from './useDebounce'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RouteSidebarItem } from '@/lib/crag-data'
+import { useDebounce } from './useDebounce'
 import type { RouteFilterState } from './useRouteFilter'
 
 // 預編譯的正則表達式（避免每次過濾時重新編譯）
@@ -70,30 +70,36 @@ export function useRouteFilterParams(routes: RouteSidebarItem[]): UseRouteFilter
   const debouncedSearchQuery = useDebounce(localSearchQuery, 300)
 
   // 從 URL 參數讀取其他篩選狀態
-  const filterState: RouteFilterState = useMemo(() => ({
-    searchQuery: localSearchQuery, // 使用本地狀態讓輸入即時響應
-    selectedArea: searchParams.get(PARAM_KEYS.area) || 'all',
-    selectedSector: searchParams.get(PARAM_KEYS.sector) || 'all',
-    selectedGrade: (searchParams.get(PARAM_KEYS.grade) || 'all') as GradeFilter,
-    selectedType: searchParams.get(PARAM_KEYS.type) || 'all',
-  }), [localSearchQuery, searchParams])
+  const filterState: RouteFilterState = useMemo(
+    () => ({
+      searchQuery: localSearchQuery, // 使用本地狀態讓輸入即時響應
+      selectedArea: searchParams.get(PARAM_KEYS.area) || 'all',
+      selectedSector: searchParams.get(PARAM_KEYS.sector) || 'all',
+      selectedGrade: (searchParams.get(PARAM_KEYS.grade) || 'all') as GradeFilter,
+      selectedType: searchParams.get(PARAM_KEYS.type) || 'all',
+    }),
+    [localSearchQuery, searchParams]
+  )
 
   // 更新 URL 參數的輔助函數
-  const updateParams = useCallback((updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString())
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString())
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '' || value === 'all') {
-        params.delete(key)
-      } else {
-        params.set(key, value)
-      }
-    })
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '' || value === 'all') {
+          params.delete(key)
+        } else {
+          params.set(key, value)
+        }
+      })
 
-    const queryString = params.toString()
-    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
-    router.replace(newUrl, { scroll: false })
-  }, [searchParams, pathname, router])
+      const queryString = params.toString()
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+      router.replace(newUrl, { scroll: false })
+    },
+    [searchParams, pathname, router]
+  )
 
   // 防抖後的搜尋 URL 更新
   const prevDebouncedQuery = useRef(debouncedSearchQuery)
@@ -118,25 +124,37 @@ export function useRouteFilterParams(routes: RouteSidebarItem[]): UseRouteFilter
     setLocalSearchQuery(query)
   }, [])
 
-  const setSelectedArea = useCallback((area: string) => {
-    // 區域改變時重置 sector
-    updateParams({
-      [PARAM_KEYS.area]: area,
-      [PARAM_KEYS.sector]: null,
-    })
-  }, [updateParams])
+  const setSelectedArea = useCallback(
+    (area: string) => {
+      // 區域改變時重置 sector
+      updateParams({
+        [PARAM_KEYS.area]: area,
+        [PARAM_KEYS.sector]: null,
+      })
+    },
+    [updateParams]
+  )
 
-  const setSelectedSector = useCallback((sector: string) => {
-    updateParams({ [PARAM_KEYS.sector]: sector })
-  }, [updateParams])
+  const setSelectedSector = useCallback(
+    (sector: string) => {
+      updateParams({ [PARAM_KEYS.sector]: sector })
+    },
+    [updateParams]
+  )
 
-  const setSelectedGrade = useCallback((grade: string) => {
-    updateParams({ [PARAM_KEYS.grade]: grade })
-  }, [updateParams])
+  const setSelectedGrade = useCallback(
+    (grade: string) => {
+      updateParams({ [PARAM_KEYS.grade]: grade })
+    },
+    [updateParams]
+  )
 
-  const setSelectedType = useCallback((type: string) => {
-    updateParams({ [PARAM_KEYS.type]: type })
-  }, [updateParams])
+  const setSelectedType = useCallback(
+    (type: string) => {
+      updateParams({ [PARAM_KEYS.type]: type })
+    },
+    [updateParams]
+  )
 
   const resetFilters = useCallback(() => {
     setLocalSearchQuery('') // 清除本地搜尋狀態

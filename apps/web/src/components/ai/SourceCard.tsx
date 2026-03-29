@@ -1,9 +1,9 @@
 'use client'
 
+import { MapPin, MountainSnow, Video } from 'lucide-react'
 import Link from 'next/link'
-import { MountainSnow, MapPin, Video } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { AISource } from '@/lib/api/ai'
+import { cn } from '@/lib/utils'
 
 const TYPE_LABEL: Record<AISource['type'], string> = {
   route: '路線',
@@ -60,5 +60,9 @@ export function SourceCard({ source, className }: SourceCardProps) {
     )
   }
 
-  return <Link href={source.url} target="_blank" rel="noopener noreferrer">{content}</Link>
+  return (
+    <Link href={source.url} target="_blank" rel="noopener noreferrer">
+      {content}
+    </Link>
+  )
 }

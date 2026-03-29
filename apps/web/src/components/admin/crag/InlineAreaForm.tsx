@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Loader2, Save, Trash2, FolderOpen } from 'lucide-react'
-import { AdminArea } from '@/lib/types'
+import { FolderOpen, Loader2, Save, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { adminCragService } from '@/lib/api/services'
+import { AdminArea } from '@/lib/types'
 
 interface InlineAreaFormProps {
   area: AdminArea | null
@@ -140,9 +140,7 @@ export default function InlineAreaForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-wb-70 mb-1">
-              英文名稱
-            </label>
+            <label className="block text-sm font-medium text-wb-70 mb-1">英文名稱</label>
             <input
               type="text"
               value={form.name_en}
@@ -153,9 +151,7 @@ export default function InlineAreaForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-wb-70 mb-1">
-              描述
-            </label>
+            <label className="block text-sm font-medium text-wb-70 mb-1">描述</label>
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -172,15 +168,11 @@ export default function InlineAreaForm({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <dt className="text-xs text-wb-50 mb-0.5">路線數</dt>
-                  <dd className="text-lg font-semibold text-wb-100">
-                    {area.route_count || 0}
-                  </dd>
+                  <dd className="text-lg font-semibold text-wb-100">{area.route_count || 0}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-wb-50 mb-0.5">Bolt 數</dt>
-                  <dd className="text-lg font-semibold text-wb-100">
-                    {area.bolt_count || 0}
-                  </dd>
+                  <dd className="text-lg font-semibold text-wb-100">{area.bolt_count || 0}</dd>
                 </div>
               </div>
             </div>
@@ -202,11 +194,7 @@ export default function InlineAreaForm({
                     disabled={deleting}
                     className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                   >
-                    {deleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      '確認刪除'
-                    )}
+                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : '確認刪除'}
                   </button>
                   <button
                     type="button"

@@ -238,14 +238,11 @@ export const ROUTES = {
 /** API 端點 */
 export const API_ENDPOINTS = {
   CATEGORIES: '/api/v1/games/rope-system/categories',
-  QUESTIONS: (categoryId: string) =>
-    `/api/v1/games/rope-system/categories/${categoryId}/questions`,
+  QUESTIONS: (categoryId: string) => `/api/v1/games/rope-system/categories/${categoryId}/questions`,
   EXAMS: '/api/v1/games/rope-system/exams',
   EXAM_DETAIL: (examId: string) => `/api/v1/games/rope-system/exams/${examId}`,
-  START_EXAM: (examId: string) =>
-    `/api/v1/games/rope-system/exams/${examId}/start`,
-  SUBMIT_ATTEMPT: (attemptId: string) =>
-    `/api/v1/games/rope-system/attempts/${attemptId}/submit`,
+  START_EXAM: (examId: string) => `/api/v1/games/rope-system/exams/${examId}/start`,
+  SUBMIT_ATTEMPT: (attemptId: string) => `/api/v1/games/rope-system/attempts/${attemptId}/submit`,
   USER_HISTORY: '/api/v1/games/rope-system/user/history',
   USER_CERTIFICATIONS: '/api/v1/games/rope-system/user/certifications',
 } as const

@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
-import Image from 'next/image'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { X, GripVertical } from 'lucide-react'
+import { GripVertical, X } from 'lucide-react'
+import Image from 'next/image'
+import React, { useState } from 'react'
 import { ProfileImage } from '../types'
 
 interface SortableImageCardProps {
@@ -25,14 +25,9 @@ export default function SortableImageCard({
   const [captionValue, setCaptionValue] = useState(image.caption || '')
   const [imageLoaded, setImageLoaded] = useState(false)
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: image.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: image.id,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -71,9 +66,7 @@ export default function SortableImageCard({
       {/* Image container with aspect ratio */}
       <div className="relative aspect-[4/3] w-full">
         {/* Skeleton loader */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 animate-pulse bg-gray-200" />
-        )}
+        {!imageLoaded && <div className="absolute inset-0 animate-pulse bg-gray-200" />}
 
         <Image
           src={image.url}
@@ -87,9 +80,7 @@ export default function SortableImageCard({
         />
 
         {/* Overlay */}
-        {isHovered && (
-          <div className="absolute inset-0 bg-black/30 transition-opacity" />
-        )}
+        {isHovered && <div className="absolute inset-0 bg-black/30 transition-opacity" />}
 
         {/* Delete button */}
         <button

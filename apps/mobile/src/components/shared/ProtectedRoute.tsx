@@ -3,13 +3,13 @@
  *
  * 受保護路由，對應 apps/web/src/components/shared/protected-route.tsx
  */
+
+import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { useRouter } from 'expo-router'
-
+import { Spinner, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
-import { Text, Spinner } from '@/components/ui'
-import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 
 interface ProtectedRouteProps {
   children: React.ReactNode

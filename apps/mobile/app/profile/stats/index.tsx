@@ -1,12 +1,10 @@
-import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { View, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { BadgeShowcase, StatsOverview } from '@/components/biography/stats'
 import { Text } from '@/components/ui'
-import { SPACING, WB_COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
-import { StatsOverview } from '@/components/biography/stats'
-import { BadgeShowcase } from '@/components/biography/stats'
 import { useProfileStats } from '@/lib/hooks/useProfileStats'
 export default function StatsScreen() {
   const router = useRouter()
@@ -22,7 +20,9 @@ export default function StatsScreen() {
         <View style={{ width: 40 }} />
       </View>
       <ScrollView>
-        {isLoading && <ActivityIndicator style={{ marginTop: SPACING.xl }} color={SEMANTIC_COLORS.success} />}
+        {isLoading && (
+          <ActivityIndicator style={{ marginTop: SPACING.xl }} color={SEMANTIC_COLORS.success} />
+        )}
         {stats && <StatsOverview stats={stats} />}
         {stats?.badges && (
           <View style={styles.badgeSection}>

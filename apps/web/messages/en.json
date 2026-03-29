@@ -316,9 +316,9 @@
     "instagramPostTitle": "{routeName} Instagram post {index}",
     "mapClickToVisit": "Tap a marker to visit the crag",
     "mapClickToVisitDesktop": "Click the map to visit a crag",
-    "layoutDescription": "Explore Taiwan outdoor climbing crags, including Longdong, Cannon Rock, Guanziling, and more. Full info on grades, routes, and best seasons.",
+    "layoutDescription": "Explore Taiwan outdoor climbing crags, including Longdong, Kenting, Guanziling, Defulan, and more. Full info on climbing routes, grades, access, and best seasons.",
     "layoutOgTitle": "Crags | NobodyClimb",
-    "layoutOgDescription": "Explore Taiwan outdoor climbing crags and find the perfect spot for you.",
+    "layoutOgDescription": "Explore Taiwan outdoor climbing crags including Longdong, Kenting, Guanziling, and Defulan. Find your perfect climbing destination.",
     "areaSectionTitle": "Area Details",
     "areaSectionHint": "Click an area card to explore its detailed page and view all routes in that zone",
     "viewDetails": "View Details",
@@ -1698,7 +1698,10 @@
   "GamesPage": {
     "title": "Climbing Systems Practice",
     "subtitle": "Practice rope system operations and learn safe climbing techniques",
-    "learnMode": { "title": "Learn Mode", "description": "Wrong answers show detailed explanations" },
+    "learnMode": {
+      "title": "Learn Mode",
+      "description": "Wrong answers show detailed explanations"
+    },
     "examMode": { "title": "System Exam", "comingSoon": "Coming Soon" },
     "certificationMode": { "title": "Certification Badge", "comingSoon": "Coming Soon" },
     "disclaimer": "Questions are based on authoritative sources including IFSC and AAC. Please practice under the guidance of a professional instructor. This system is for educational purposes only."

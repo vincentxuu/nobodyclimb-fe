@@ -1,14 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import {
-  Video,
-  Plus,
-  X,
-  Loader2,
-  Search,
-  ExternalLink,
-} from 'lucide-react'
+import { ExternalLink, Loader2, Plus, Search, Video, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { adminCragService, RouteVideoItem } from '@/lib/api/services'
 
@@ -45,10 +38,7 @@ function formatDuration(seconds: number | null): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-export default function RouteVideoManager({
-  routeId,
-  cragId,
-}: RouteVideoManagerProps) {
+export default function RouteVideoManager({ routeId, cragId }: RouteVideoManagerProps) {
   const { toast } = useToast()
   const [videos, setVideos] = useState<RouteVideoItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -116,8 +106,7 @@ export default function RouteVideoManager({
     } catch (error: unknown) {
       const message =
         error && typeof error === 'object' && 'response' in error
-          ? (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
           : '新增影片失敗'
       toast({ variant: 'destructive', title: '錯誤', description: message || '新增影片失敗' })
     } finally {
@@ -148,8 +137,7 @@ export default function RouteVideoManager({
     } catch (error: unknown) {
       const message =
         error && typeof error === 'object' && 'response' in error
-          ? (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
           : '關聯影片失敗'
       toast({ variant: 'destructive', title: '錯誤', description: message || '關聯影片失敗' })
     } finally {
@@ -160,11 +148,7 @@ export default function RouteVideoManager({
   const handleRemove = async (videoId: string) => {
     setRemovingId(videoId)
     try {
-      const response = await adminCragService.removeRouteVideo(
-        cragId,
-        routeId,
-        videoId
-      )
+      const response = await adminCragService.removeRouteVideo(cragId, routeId, videoId)
       if (response.success) {
         toast({ title: '成功', description: '影片已移除' })
         setVideos((prev) => prev.filter((v) => v.id !== videoId))
@@ -199,9 +183,7 @@ export default function RouteVideoManager({
       <legend className="text-sm font-medium text-wb-90 mb-2 flex items-center gap-2">
         <Video className="h-4 w-4" />
         路線影片
-        <span className="text-xs text-wb-50 font-normal">
-          ({videos.length})
-        </span>
+        <span className="text-xs text-wb-50 font-normal">({videos.length})</span>
       </legend>
 
       {/* Video list */}
@@ -234,14 +216,10 @@ export default function RouteVideoManager({
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-wb-100 truncate">
-                  {video.title}
-                </p>
+                <p className="text-sm font-medium text-wb-100 truncate">{video.title}</p>
                 <div className="flex items-center gap-2 text-xs text-wb-50 mt-0.5">
                   {video.channel && <span>{video.channel}</span>}
-                  {video.duration && (
-                    <span>{formatDuration(video.duration)}</span>
-                  )}
+                  {video.duration && <span>{formatDuration(video.duration)}</span>}
                 </div>
               </div>
 
@@ -288,8 +266,7 @@ export default function RouteVideoManager({
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-wb-70 border border-wb-20 rounded-lg hover:bg-wb-10 transition-colors"
           >
-            <Plus className="h-3.5 w-3.5" />
-            以 YouTube 網址新增
+            <Plus className="h-3.5 w-3.5" />以 YouTube 網址新增
           </button>
           <button
             type="button"
@@ -335,9 +312,7 @@ export default function RouteVideoManager({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-wb-70 mb-1">
-                  影片標題
-                </label>
+                <label className="block text-xs text-wb-70 mb-1">影片標題</label>
                 <input
                   type="text"
                   value={videoTitle}
@@ -347,9 +322,7 @@ export default function RouteVideoManager({
                 />
               </div>
               <div>
-                <label className="block text-xs text-wb-70 mb-1">
-                  頻道名稱
-                </label>
+                <label className="block text-xs text-wb-70 mb-1">頻道名稱</label>
                 <input
                   type="text"
                   value={videoChannel}
@@ -443,11 +416,7 @@ export default function RouteVideoManager({
               disabled={searching || !searchQuery.trim()}
               className="px-3 py-1.5 text-xs bg-wb-100 text-white rounded-lg hover:bg-wb-90 transition-colors disabled:opacity-50"
             >
-              {searching ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                '搜尋'
-              )}
+              {searching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : '搜尋'}
             </button>
           </div>
 
@@ -472,9 +441,7 @@ export default function RouteVideoManager({
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-wb-100 truncate">
-                      {video.title}
-                    </p>
+                    <p className="text-xs font-medium text-wb-100 truncate">{video.title}</p>
                     <p className="text-xs text-wb-50 truncate">
                       {video.channel}
                       {video.duration && ` · ${formatDuration(video.duration)}`}
@@ -486,9 +453,7 @@ export default function RouteVideoManager({
             </div>
           )}
           {searchResults.length === 0 && searchQuery && !searching && (
-            <p className="text-xs text-wb-40 text-center py-2">
-              沒有找到符合的影片
-            </p>
+            <p className="text-xs text-wb-40 text-center py-2">沒有找到符合的影片</p>
           )}
         </div>
       )}

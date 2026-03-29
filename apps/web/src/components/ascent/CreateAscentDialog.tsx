@@ -1,25 +1,19 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ChevronLeft, Search, MapPin, Route, Layers, Grid3X3 } from 'lucide-react'
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+import { ChevronLeft, Grid3X3, Layers, MapPin, Route, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useCrags, useCragFullAreas, useCragFullRoutes, useAllCragsRoutes } from '@/hooks/api/useCrags'
+import {
+  useAllCragsRoutes,
+  useCragFullAreas,
+  useCragFullRoutes,
+  useCrags,
+} from '@/hooks/api/useCrags'
+import type { CragArea, CragListItem, CragRoute, RouteSearchItem } from '@/lib/crag-data'
 import { getRouteName } from '@/lib/route-utils'
-import type {
-  CragListItem,
-  CragArea,
-  CragRoute,
-  RouteSearchItem,
-} from '@/lib/crag-data'
 import { AscentFormData } from '@/lib/types/ascent'
 import { cn } from '@/lib/utils'
 
@@ -63,9 +57,9 @@ export function CreateAscentDialog({
   const getSectorsForArea = (areaId: string): { id: string; name: string }[] => {
     const sectorsSet = new Set<string>()
     cragRoutes
-      .filter(route => route.areaId === areaId && route.sector)
-      .forEach(route => sectorsSet.add(route.sector!))
-    return Array.from(sectorsSet).map(sector => ({ id: sector, name: sector }))
+      .filter((route) => route.areaId === areaId && route.sector)
+      .forEach((route) => sectorsSet.add(route.sector!))
+    return Array.from(sectorsSet).map((sector) => ({ id: sector, name: sector }))
   }
 
   // 取得選擇區域的子區域（從路線資料計算）
@@ -78,7 +72,7 @@ export function CreateAscentDialog({
   // 取得路線（根據區域和子區域過濾）
   const routes = useMemo(() => {
     if (!selectedCrag || !selectedArea) return []
-    const areaRoutes = cragRoutes.filter(route => route.areaId === selectedArea.id)
+    const areaRoutes = cragRoutes.filter((route) => route.areaId === selectedArea.id)
     // 如果選擇了子區域，進一步過濾
     if (selectedSector) {
       return areaRoutes.filter((route) => route.sector === selectedSector.name)
@@ -103,9 +97,7 @@ export function CreateAscentDialog({
     if (!searchQuery.trim()) return areas
     const query = searchQuery.toLowerCase()
     return areas.filter(
-      (area) =>
-        area.name.toLowerCase().includes(query) ||
-        area.nameEn.toLowerCase().includes(query)
+      (area) => area.name.toLowerCase().includes(query) || area.nameEn.toLowerCase().includes(query)
     )
   }, [areas, searchQuery])
 
@@ -210,7 +202,7 @@ export function CreateAscentDialog({
   // 從全域搜尋選擇路線
   const handleSelectGlobalRoute = (item: RouteSearchItem) => {
     // 從岩場列表找到對應的岩場
-    const cragListItem = crags.find(c => c.id === item.cragId)
+    const cragListItem = crags.find((c) => c.id === item.cragId)
     if (cragListItem) {
       setSelectedCrag(cragListItem)
     }
@@ -296,11 +288,7 @@ export function CreateAscentDialog({
     if (selectedArea) parts.push(selectedArea.name)
     if (selectedSector) parts.push(selectedSector.name)
     if (parts.length === 0) return null
-    return (
-      <p className="text-xs text-muted-foreground">
-        {parts.join(' > ')}
-      </p>
-    )
+    return <p className="text-xs text-muted-foreground">{parts.join(' > ')}</p>
   }
 
   // 渲染路線搜尋框和結果
@@ -321,9 +309,7 @@ export function CreateAscentDialog({
         {showResults && (
           <div className="rounded-lg border bg-muted/30 p-2">
             {globalRouteResults.length === 0 ? (
-              <p className="py-2 text-center text-sm text-muted-foreground">
-                找不到符合的路線
-              </p>
+              <p className="py-2 text-center text-sm text-muted-foreground">找不到符合的路線</p>
             ) : (
               <ScrollArea className="max-h-[200px]">
                 <div className="space-y-1">
@@ -340,9 +326,7 @@ export function CreateAscentDialog({
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-text-main truncate">
                           {getRouteName(item.route.name, item.route.nameEn)}
-                          <span className="ml-1 text-xs text-text-subtle">
-                            {item.route.grade}
-                          </span>
+                          <span className="ml-1 text-xs text-text-subtle">{item.route.grade}</span>
                         </p>
                         <p className="text-xs text-text-subtle truncate">
                           {item.cragName} · {item.areaName}
@@ -366,12 +350,7 @@ export function CreateAscentDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             {step !== 'crag' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={handleBack}
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleBack}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             )}
@@ -383,8 +362,7 @@ export function CreateAscentDialog({
           {step === 'form' && selectedRoute && (
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                {selectedRoute.name}{' '}
-                <span className="font-medium">({selectedRoute.grade})</span>
+                {selectedRoute.name} <span className="font-medium">({selectedRoute.grade})</span>
               </p>
               {renderBreadcrumb()}
             </div>
@@ -416,9 +394,7 @@ export function CreateAscentDialog({
             <ScrollArea className="h-[280px] pr-4">
               <div className="space-y-2">
                 {filteredCrags.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    找不到符合的岩場
-                  </p>
+                  <p className="py-8 text-center text-sm text-muted-foreground">找不到符合的岩場</p>
                 ) : (
                   filteredCrags.map((crag) => (
                     <button
@@ -434,9 +410,7 @@ export function CreateAscentDialog({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-text-main">{crag.name}</p>
-                        <p className="text-sm text-text-subtle">
-                          {crag.routes} 條路線
-                        </p>
+                        <p className="text-sm text-text-subtle">{crag.routes} 條路線</p>
                       </div>
                     </button>
                   ))
@@ -471,9 +445,7 @@ export function CreateAscentDialog({
             <ScrollArea className="h-[280px] pr-4">
               <div className="space-y-2">
                 {filteredAreas.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    找不到符合的區域
-                  </p>
+                  <p className="py-8 text-center text-sm text-muted-foreground">找不到符合的區域</p>
                 ) : (
                   filteredAreas.map((area) => (
                     <button
@@ -488,10 +460,10 @@ export function CreateAscentDialog({
                         <Layers className="h-5 w-5 text-emerald-600" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-text-main">{getRouteName(area.name, area.nameEn)}</p>
-                        <p className="text-sm text-text-subtle">
-                          {area.routesCount} 條路線
+                        <p className="font-medium text-text-main">
+                          {getRouteName(area.name, area.nameEn)}
                         </p>
+                        <p className="text-sm text-text-subtle">{area.routesCount} 條路線</p>
                       </div>
                     </button>
                   ))
@@ -551,8 +523,9 @@ export function CreateAscentDialog({
                 ) : (
                   filteredSectors.map((sector) => {
                     // 計算該子區域的路線數
-                    const sectorRouteCount = cragRoutes
-                      .filter((r) => r.areaId === selectedArea!.id && r.sector === sector.name).length
+                    const sectorRouteCount = cragRoutes.filter(
+                      (r) => r.areaId === selectedArea!.id && r.sector === sector.name
+                    ).length
                     return (
                       <button
                         key={sector.id}
@@ -567,9 +540,7 @@ export function CreateAscentDialog({
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-text-main">{sector.name}</p>
-                          <p className="text-sm text-text-subtle">
-                            {sectorRouteCount} 條路線
-                          </p>
+                          <p className="text-sm text-text-subtle">{sectorRouteCount} 條路線</p>
                         </div>
                       </button>
                     )
@@ -595,9 +566,7 @@ export function CreateAscentDialog({
             <ScrollArea className="h-[400px] pr-4">
               <div className="space-y-2">
                 {filteredRoutes.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    找不到符合的路線
-                  </p>
+                  <p className="py-8 text-center text-sm text-muted-foreground">找不到符合的路線</p>
                 ) : (
                   filteredRoutes.map((route) => (
                     <button
@@ -612,7 +581,9 @@ export function CreateAscentDialog({
                         <Route className="h-5 w-5 text-brand-dark" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-text-main">{getRouteName(route.name, route.nameEn)}</p>
+                        <p className="font-medium text-text-main">
+                          {getRouteName(route.name, route.nameEn)}
+                        </p>
                         <p className="text-sm text-text-subtle">
                           {route.grade} · {route.type}
                         </p>
@@ -639,20 +610,20 @@ export function CreateAscentDialog({
   )
 }
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { Calendar as CalendarIcon, Instagram, Star, Youtube } from 'lucide-react'
 /**
  * 內嵌表單內容（不使用 AscentForm 的 Dialog 包裝）
  */
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { format } from 'date-fns'
-import { Calendar as CalendarIcon, Star, Instagram, Youtube } from 'lucide-react'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { PhotoUpload } from '@/components/ui/photo-upload'
+import { Textarea } from '@/components/ui/textarea'
 import { galleryService } from '@/lib/api/services'
-import { AscentTypeSelect } from './AscentTypeSelect'
 import { AscentType } from '@/lib/types/ascent'
+import { AscentTypeSelect } from './AscentTypeSelect'
 
 const ascentFormSchema = z.object({
   route_id: z.string().min(1, '請選擇路線'),
@@ -825,29 +796,18 @@ function AscentFormContent({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Youtube className="h-5 w-5 text-red-500" />
-              <Input
-                placeholder="YouTube 影片連結"
-                {...form.register('youtube_url')}
-              />
+              <Input placeholder="YouTube 影片連結" {...form.register('youtube_url')} />
             </div>
             <div className="flex items-center gap-2">
               <Instagram className="h-5 w-5 text-pink-500" />
-              <Input
-                placeholder="Instagram 貼文連結"
-                {...form.register('instagram_url')}
-              />
+              <Input placeholder="Instagram 貼文連結" {...form.register('instagram_url')} />
             </div>
           </div>
         </div>
 
         {/* 提交按鈕 */}
         <div className="flex gap-2 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-          >
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
             取消
           </Button>
           <Button type="submit" className="flex-1" disabled={isLoading}>

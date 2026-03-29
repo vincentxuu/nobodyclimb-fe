@@ -1,19 +1,19 @@
 'use client'
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { BarChart3, Award, Trophy, TrendingUp } from 'lucide-react'
+import { Award, BarChart3, TrendingUp, Trophy } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import React from 'react'
+import { BadgeShowcase, StatsOverview } from '@/components/biography/stats'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 import ProfilePageTitle from '@/components/profile/ProfilePageTitle'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
-import { StatsOverview, BadgeShowcase } from '@/components/biography/stats'
-import { useBiographyStats, useBiographyBadges } from '@/lib/hooks/useBiographyStats'
+import { EmptyState } from '@/components/ui/empty-state'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { biographyService } from '@/lib/api/services'
-import { useTranslations } from 'next-intl'
+import { useBiographyBadges, useBiographyStats } from '@/lib/hooks/useBiographyStats'
 
 export default function StatsPage() {
   const t = useTranslations('ProfilePage')
@@ -52,11 +52,7 @@ export default function StatsPage() {
             icon={<BarChart3 className="h-12 w-12 text-subtle" />}
             title={t('noBiographyTitle')}
             description={t('noBiographyForStatsDesc')}
-            action={
-              <Button onClick={() => router.push('/profile')}>
-                {t('createBiography')}
-              </Button>
-            }
+            action={<Button onClick={() => router.push('/profile')}>{t('createBiography')}</Button>}
           />
         </div>
       </ProfilePageLayout>

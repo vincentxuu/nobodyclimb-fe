@@ -3,17 +3,14 @@
  *
  * 對應 apps/web/src/components/biography/stats/progress-chart.tsx
  */
-import React, { useEffect } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
-import Animated, {
-  useAnimatedProps,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import Svg, { Circle } from 'react-native-svg'
+
 import { BRAND_YELLOW, DURATION, SEMANTIC_COLORS, WB_COLORS } from '@nobodyclimb/constants'
-import { Text } from '../../ui/Text'
+import React, { useEffect } from 'react'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
+import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated'
+import Svg, { Circle } from 'react-native-svg'
 import { ProgressBar as BaseProgressBar } from '../../ui/ProgressBar'
+import { Text } from '../../ui/Text'
 
 // 動畫 Circle
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
@@ -227,11 +224,7 @@ export function StatCard({
   return (
     <View style={[styles.statCard, style]}>
       <View style={styles.statCardHeader}>
-        {icon && (
-          <View style={[styles.statCardIcon, { backgroundColor: color }]}>
-            {icon}
-          </View>
-        )}
+        {icon && <View style={[styles.statCardIcon, { backgroundColor: color }]}>{icon}</View>}
         {trend && (
           <Text
             variant="caption"

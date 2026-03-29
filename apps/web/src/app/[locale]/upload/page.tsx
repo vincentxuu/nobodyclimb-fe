@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Upload, MapPin, Loader2, CheckCircle, ImageIcon, X, AlertCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import { motion } from 'framer-motion'
+import { AlertCircle, CheckCircle, ImageIcon, Loader2, MapPin, Upload, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Link } from '@/i18n/navigation'
 import { galleryService } from '@/lib/api/services'
 import { useAuthStore } from '@/store/authStore'
-import Link from 'next/link'
 
 // File validation constants
 const VALID_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -73,7 +73,10 @@ export default function UploadPage() {
   const [location, setLocation] = useState({ country: '', city: '', spot: '' })
   const [isUploading, setIsUploading] = useState(false)
   const [isCompressing, setIsCompressing] = useState(false)
-  const [compressProgress, setCompressProgress] = useState<{ current: number; total: number } | null>(null)
+  const [compressProgress, setCompressProgress] = useState<{
+    current: number
+    total: number
+  } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([])
 
@@ -94,74 +97,77 @@ export default function UploadPage() {
   }, [])
 
   // Process and compress files
-  const processFiles = useCallback(async (selectedFiles: FileList | File[]) => {
-    const fileArray = Array.from(selectedFiles)
+  const processFiles = useCallback(
+    async (selectedFiles: FileList | File[]) => {
+      const fileArray = Array.from(selectedFiles)
 
-    if (files.length + fileArray.length > MAX_FILE_COUNT) {
-      setError(`最多只能上傳 ${MAX_FILE_COUNT} 張照片`)
-      return
-    }
-
-    const typeErrors: string[] = []
-    const filesToProcess: File[] = []
-
-    fileArray.forEach((file) => {
-      const typeError = validateFileType(file)
-      if (typeError) {
-        typeErrors.push(typeError)
-      } else {
-        filesToProcess.push(file)
+      if (files.length + fileArray.length > MAX_FILE_COUNT) {
+        setError(`最多只能上傳 ${MAX_FILE_COUNT} 張照片`)
+        return
       }
-    })
 
-    if (typeErrors.length > 0) {
-      setError(typeErrors.join('\n'))
-      if (filesToProcess.length === 0) return
-    } else {
-      setError(null)
-    }
+      const typeErrors: string[] = []
+      const filesToProcess: File[] = []
 
-    setIsCompressing(true)
-    setCompressProgress({ current: 0, total: filesToProcess.length })
-
-    const validFiles: FileWithPreview[] = []
-    const compressionErrors: string[] = []
-
-    for (let i = 0; i < filesToProcess.length; i++) {
-      const file = filesToProcess[i]
-      setCompressProgress({ current: i + 1, total: filesToProcess.length })
-
-      try {
-        const originalSize = file.size
-        const { file: processedFile, wasCompressed } = await compressImageFile(file)
-        const id = crypto.randomUUID()
-
-        validFiles.push({
-          file: processedFile,
-          preview: URL.createObjectURL(processedFile),
-          id,
-          originalSize: wasCompressed ? originalSize : undefined,
-          wasCompressed,
-        })
-      } catch (err) {
-        compressionErrors.push(err instanceof Error ? err.message : `處理 ${file.name} 失敗`)
-      }
-    }
-
-    setIsCompressing(false)
-    setCompressProgress(null)
-
-    if (compressionErrors.length > 0) {
-      setError((prev) => {
-        const combined = [prev, ...compressionErrors].filter(Boolean).join('\n')
-        return combined
+      fileArray.forEach((file) => {
+        const typeError = validateFileType(file)
+        if (typeError) {
+          typeErrors.push(typeError)
+        } else {
+          filesToProcess.push(file)
+        }
       })
-    }
 
-    if (validFiles.length > 0) {
-      setFiles((prev) => [...prev, ...validFiles])
-    }
-  }, [files.length])
+      if (typeErrors.length > 0) {
+        setError(typeErrors.join('\n'))
+        if (filesToProcess.length === 0) return
+      } else {
+        setError(null)
+      }
+
+      setIsCompressing(true)
+      setCompressProgress({ current: 0, total: filesToProcess.length })
+
+      const validFiles: FileWithPreview[] = []
+      const compressionErrors: string[] = []
+
+      for (let i = 0; i < filesToProcess.length; i++) {
+        const file = filesToProcess[i]
+        setCompressProgress({ current: i + 1, total: filesToProcess.length })
+
+        try {
+          const originalSize = file.size
+          const { file: processedFile, wasCompressed } = await compressImageFile(file)
+          const id = crypto.randomUUID()
+
+          validFiles.push({
+            file: processedFile,
+            preview: URL.createObjectURL(processedFile),
+            id,
+            originalSize: wasCompressed ? originalSize : undefined,
+            wasCompressed,
+          })
+        } catch (err) {
+          compressionErrors.push(err instanceof Error ? err.message : `處理 ${file.name} 失敗`)
+        }
+      }
+
+      setIsCompressing(false)
+      setCompressProgress(null)
+
+      if (compressionErrors.length > 0) {
+        setError((prev) => {
+          const combined = [prev, ...compressionErrors].filter(Boolean).join('\n')
+          return combined
+        })
+      }
+
+      if (validFiles.length > 0) {
+        setFiles((prev) => [...prev, ...validFiles])
+      }
+    },
+    [files.length]
+  )
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,9 +252,7 @@ export default function UploadPage() {
         }
 
         setUploadStatuses((prev) =>
-          prev.map((s) =>
-            s.id === fileItem.id ? { ...s, status: 'success' } : s
-          )
+          prev.map((s) => (s.id === fileItem.id ? { ...s, status: 'success' } : s))
         )
         return { status: 'success' as const }
       } catch (err) {
@@ -312,16 +316,12 @@ export default function UploadPage() {
         >
           <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
           <h1 className="mb-2 text-xl font-semibold text-neutral-800">上傳成功！</h1>
-          <p className="mb-6 text-neutral-500">
-            {successCount} 張照片已成功上傳到攝影集
-          </p>
+          <p className="mb-6 text-neutral-500">{successCount} 張照片已成功上傳到攝影集</p>
           <div className="flex gap-3">
             <Button variant="outline" onClick={resetForm}>
               繼續上傳
             </Button>
-            <Button onClick={() => router.push('/gallery')}>
-              前往攝影集
-            </Button>
+            <Button onClick={() => router.push('/gallery')}>前往攝影集</Button>
           </div>
         </motion.div>
       </div>
@@ -436,10 +436,10 @@ export default function UploadPage() {
                               status.status === 'uploading'
                                 ? 'bg-black bg-opacity-50'
                                 : status.status === 'success'
-                                ? 'bg-green-500 bg-opacity-50'
-                                : status.status === 'error'
-                                ? 'bg-red-500 bg-opacity-50'
-                                : ''
+                                  ? 'bg-green-500 bg-opacity-50'
+                                  : status.status === 'error'
+                                    ? 'bg-red-500 bg-opacity-50'
+                                    : ''
                             }`}
                           >
                             {status.status === 'uploading' && (
@@ -467,12 +467,17 @@ export default function UploadPage() {
                           </button>
                         )}
                         {/* File size indicator */}
-                        <div className={`absolute bottom-0 left-0 right-0 px-1 py-0.5 text-xs text-white text-center ${
-                          fileItem.wasCompressed ? 'bg-amber-600 bg-opacity-80' : 'bg-black bg-opacity-50'
-                        }`}>
+                        <div
+                          className={`absolute bottom-0 left-0 right-0 px-1 py-0.5 text-xs text-white text-center ${
+                            fileItem.wasCompressed
+                              ? 'bg-amber-600 bg-opacity-80'
+                              : 'bg-black bg-opacity-50'
+                          }`}
+                        >
                           {fileItem.wasCompressed && fileItem.originalSize ? (
                             <span title={`原始: ${(fileItem.originalSize / 1024).toFixed(0)}KB`}>
-                              {(fileItem.originalSize / 1024).toFixed(0)}→{(fileItem.file.size / 1024).toFixed(0)}KB
+                              {(fileItem.originalSize / 1024).toFixed(0)}→
+                              {(fileItem.file.size / 1024).toFixed(0)}KB
                             </span>
                           ) : (
                             `${(fileItem.file.size / 1024).toFixed(0)}KB`

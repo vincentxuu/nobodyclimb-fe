@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, ReactNode } from 'react'
 import Image from 'next/image'
+import { ReactNode, useEffect, useState } from 'react'
 
 interface AvatarWithFallbackProps {
   src?: string | null

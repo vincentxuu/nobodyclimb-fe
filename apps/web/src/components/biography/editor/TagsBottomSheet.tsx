@@ -1,28 +1,28 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useTranslations } from 'next-intl'
-import { cn } from '@/lib/utils'
 import {
   Check,
-  Tag,
   ChevronDown,
+  Clock,
+  Dumbbell,
+  Footprints,
+  Hand,
+  HeartPulse,
+  type LucideIcon,
+  MapPin,
+  Music,
   Plus,
   Sparkles,
-  HeartPulse,
-  Footprints,
-  Clock,
-  Tent,
-  Music,
+  Tag,
   Target,
+  Tent,
   Users,
-  Hand,
-  Dumbbell,
-  MapPin,
   X,
-  type LucideIcon,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TagDimension } from '@/lib/types/biography-v2'
+import { cn } from '@/lib/utils'
 import { TagCard } from '../shared/TagChip'
 
 // Icon mapping for dynamic rendering
@@ -102,13 +102,16 @@ export function TagsBottomSheet({
   }, [])
 
   // 處理拖曳移動
-  const handleDragMove = useCallback((clientY: number) => {
-    if (!isDragging) return
-    const deltaY = clientY - startY.current
-    if (deltaY > 0) {
-      setDragY(deltaY)
-    }
-  }, [isDragging])
+  const handleDragMove = useCallback(
+    (clientY: number) => {
+      if (!isDragging) return
+      const deltaY = clientY - startY.current
+      if (deltaY > 0) {
+        setDragY(deltaY)
+      }
+    },
+    [isDragging]
+  )
 
   // 處理拖曳結束
   const handleDragEnd = useCallback(() => {
@@ -189,10 +192,7 @@ export function TagsBottomSheet({
   }
 
   // 計算總選中數量
-  const totalSelected = Object.values(selections).reduce(
-    (sum, ids) => sum + ids.length,
-    0
-  )
+  const totalSelected = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
 
   // 處理完成
   const handleComplete = () => {
@@ -215,10 +215,7 @@ export function TagsBottomSheet({
       }}
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-brand-dark/30 backdrop-blur-sm" onClick={onClose} />
 
       {/* Bottom Sheet */}
       <div
@@ -255,7 +252,7 @@ export function TagsBottomSheet({
               type="button"
               onClick={onClose}
               className="p-1.5 -ml-1.5 rounded-full hover:bg-[#F5F5F5] active:bg-[#EBEAEA] transition-colors"
-              {...{"aria-label": t('tagsBottomSheetClose')}}
+              {...{ 'aria-label': t('tagsBottomSheetClose') }}
             >
               <X size={20} className="text-[#6D6C6C]" />
             </button>
@@ -303,13 +300,9 @@ export function TagsBottomSheet({
                         <Tag size={18} className="text-[#3F3D3D]" />
                       )
                     })()}
-                    <span className="font-medium text-[#1B1A1A] text-sm">
-                      {dimension.name}
-                    </span>
+                    <span className="font-medium text-[#1B1A1A] text-sm">{dimension.name}</span>
                     {selectedCount > 0 && (
-                      <span className="text-xs text-brand-dark font-medium">
-                        ({selectedCount})
-                      </span>
+                      <span className="text-xs text-brand-dark font-medium">({selectedCount})</span>
                     )}
                   </div>
                   <ChevronDown
@@ -329,9 +322,7 @@ export function TagsBottomSheet({
                         <TagCard
                           key={option.id}
                           tag={option}
-                          selected={(selections[dimension.id] || []).includes(
-                            option.id
-                          )}
+                          selected={(selections[dimension.id] || []).includes(option.id)}
                           onClick={() => handleTagClick(dimension, option.id)}
                           multiSelect={dimension.selection_mode === 'multiple'}
                           size="sm"

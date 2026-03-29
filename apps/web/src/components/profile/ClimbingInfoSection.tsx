@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
   Select,
   SelectContent,
@@ -8,10 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { TagInput, stringToTags, tagsToString } from '@/components/ui/tag-input'
+import { stringToTags, TagInput, tagsToString } from '@/components/ui/tag-input'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
-import { RouteTypeSelector, stringToRouteTypes, routeTypesToString } from './RouteTypeSelector'
+import { RouteTypeSelector, routeTypesToString, stringToRouteTypes } from './RouteTypeSelector'
 
 // 產生年份選項
 const currentYear = new Date().getFullYear()

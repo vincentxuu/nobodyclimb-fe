@@ -1,13 +1,24 @@
 'use client'
 
-import { UserCircle, FileText, Bookmark, Settings, Image as ImageIcon, Target, BarChart3, MountainSnow, Sparkles, Brain } from 'lucide-react'
-import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
+import {
+  BarChart3,
+  Bookmark,
+  Brain,
+  FileText,
+  Image as ImageIcon,
+  MountainSnow,
+  Settings,
+  Sparkles,
+  Target,
+  UserCircle,
+} from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback } from 'react'
-import { useAuthStore } from '@/store/authStore'
+import { RankBadge } from '@/components/rank/RankBadge'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
 import { useMyQuota } from '@/lib/api/ai'
-import { RankBadge } from '@/components/rank/RankBadge'
+import { useAuthStore } from '@/store/authStore'
 
 interface MenuItem {
   name: string

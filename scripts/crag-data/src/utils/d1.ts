@@ -1,51 +1,58 @@
-import { execSync } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
-import { join } from 'path';
-import { config } from '../config.js';
-import type { CragDB, RouteDB, AreaDB, SectorDB, CragSheetRow, RouteSheetRow, CragJsonArea, CragJsonSector } from '../types.js';
+import { execSync } from 'child_process'
+import { unlinkSync, writeFileSync } from 'fs'
+import { join } from 'path'
+import { config } from '../config.js'
+import type {
+  CragDB,
+  CragJsonArea,
+  CragJsonSector,
+  CragSheetRow,
+  RouteDB,
+  RouteSheetRow,
+} from '../types.js'
 
 // ============================================
 // Wrangler D1 執行器
 // ============================================
 
 interface D1QueryResult {
-  results: Record<string, unknown>[];
-  success: boolean;
+  results: Record<string, unknown>[]
+  success: boolean
   meta?: {
-    changes: number;
-    duration: number;
-    rows_read: number;
-    rows_written: number;
-  };
+    changes: number
+    duration: number
+    rows_read: number
+    rows_written: number
+  }
 }
 
 function escapeSQL(value: unknown): string {
   if (value === null || value === undefined) {
-    return 'NULL';
+    return 'NULL'
   }
   if (typeof value === 'number') {
-    return String(value);
+    return String(value)
   }
   if (typeof value === 'boolean') {
-    return value ? '1' : '0';
+    return value ? '1' : '0'
   }
   // Escape single quotes by doubling them
-  const str = String(value).replace(/'/g, "''");
-  return `'${str}'`;
+  const str = String(value).replace(/'/g, "''")
+  return `'${str}'`
 }
 
 function executeD1Query(sql: string): D1QueryResult {
-  const dbName = config.environment === 'production' ? 'nobodyclimb-db' : 'nobodyclimb-db-preview';
+  const dbName = config.environment === 'production' ? 'nobodyclimb-db' : 'nobodyclimb-db-preview'
 
   // 切換到 backend 目錄執行 wrangler
-  const backendDir = config.backendPath;
+  const backendDir = config.backendPath
 
   // 使用暫存檔案來避免命令列編碼問題
-  const tempFile = join(backendDir, `.temp-query-${Date.now()}.sql`);
+  const tempFile = join(backendDir, `.temp-query-${Date.now()}.sql`)
 
   try {
     // 寫入 SQL 到暫存檔
-    writeFileSync(tempFile, sql, 'utf-8');
+    writeFileSync(tempFile, sql, 'utf-8')
 
     const result = execSync(
       `pnpm wrangler d1 execute ${dbName} --remote --json --file "${tempFile}"`,
@@ -55,33 +62,41 @@ function executeD1Query(sql: string): D1QueryResult {
         maxBuffer: 10 * 1024 * 1024, // 10MB buffer
         stdio: ['pipe', 'pipe', 'pipe'],
       }
-    );
+    )
 
     // 刪除暫存檔
-    try { unlinkSync(tempFile); } catch { /* ignore */ }
+    try {
+      unlinkSync(tempFile)
+    } catch {
+      /* ignore */
+    }
 
     // 過濾掉 wrangler 的進度輸出，只保留 JSON 部分
-    const jsonStart = result.indexOf('[');
-    const jsonEnd = result.lastIndexOf(']');
+    const jsonStart = result.indexOf('[')
+    const jsonEnd = result.lastIndexOf(']')
     if (jsonStart === -1 || jsonEnd === -1) {
-      throw new Error(`Invalid response: ${result.substring(0, 200)}`);
+      throw new Error(`Invalid response: ${result.substring(0, 200)}`)
     }
-    const jsonStr = result.substring(jsonStart, jsonEnd + 1);
-    const parsed = JSON.parse(jsonStr);
+    const jsonStr = result.substring(jsonStart, jsonEnd + 1)
+    const parsed = JSON.parse(jsonStr)
     return {
       results: parsed[0]?.results || [],
       success: true,
       meta: parsed[0]?.meta,
-    };
+    }
   } catch (error) {
     // 確保刪除暫存檔
-    try { unlinkSync(tempFile); } catch { /* ignore */ }
+    try {
+      unlinkSync(tempFile)
+    } catch {
+      /* ignore */
+    }
 
-    const err = error as { stderr?: string; stdout?: string; message?: string };
-    const errorDetail = err.stderr || err.stdout || err.message || 'Unknown error';
-    console.error('D1 Query Error:', errorDetail);
-    console.error('SQL:', sql.substring(0, 200) + '...');
-    throw new Error(`D1 query failed: ${errorDetail}`);
+    const err = error as { stderr?: string; stdout?: string; message?: string }
+    const errorDetail = err.stderr || err.stdout || err.message || 'Unknown error'
+    console.error('D1 Query Error:', errorDetail)
+    console.error('SQL:', sql.substring(0, 200) + '...')
+    throw new Error(`D1 query failed: ${errorDetail}`)
   }
 }
 
@@ -94,56 +109,61 @@ export function executeBatchD1Query(
   sqlStatements: string[],
   batchSize: number = 50
 ): { success: number; failed: number } {
-  const dbName = config.environment === 'production' ? 'nobodyclimb-db' : 'nobodyclimb-db-preview';
-  const backendDir = config.backendPath;
+  const dbName = config.environment === 'production' ? 'nobodyclimb-db' : 'nobodyclimb-db-preview'
+  const backendDir = config.backendPath
 
-  let successCount = 0;
-  let failedCount = 0;
+  let successCount = 0
+  let failedCount = 0
 
   // 分批處理
   for (let i = 0; i < sqlStatements.length; i += batchSize) {
-    const batch = sqlStatements.slice(i, i + batchSize);
-    const batchNum = Math.floor(i / batchSize) + 1;
-    const totalBatches = Math.ceil(sqlStatements.length / batchSize);
+    const batch = sqlStatements.slice(i, i + batchSize)
+    const batchNum = Math.floor(i / batchSize) + 1
+    const totalBatches = Math.ceil(sqlStatements.length / batchSize)
 
     // 合併成單一 SQL 文件（每條語句以分號結尾）
-    const combinedSql = batch.join(';\n') + ';';
-    const tempFile = join(backendDir, `.temp-batch-${Date.now()}.sql`);
+    const combinedSql = batch.join(';\n') + ';'
+    const tempFile = join(backendDir, `.temp-batch-${Date.now()}.sql`)
 
     try {
-      writeFileSync(tempFile, combinedSql, 'utf-8');
+      writeFileSync(tempFile, combinedSql, 'utf-8')
 
-      execSync(
-        `pnpm wrangler d1 execute ${dbName} --remote --file "${tempFile}"`,
-        {
-          cwd: backendDir,
-          encoding: 'utf-8',
-          maxBuffer: 10 * 1024 * 1024,
-          stdio: ['pipe', 'pipe', 'pipe'],
-        }
-      );
+      execSync(`pnpm wrangler d1 execute ${dbName} --remote --file "${tempFile}"`, {
+        cwd: backendDir,
+        encoding: 'utf-8',
+        maxBuffer: 10 * 1024 * 1024,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      })
 
-      try { unlinkSync(tempFile); } catch { /* ignore */ }
+      try {
+        unlinkSync(tempFile)
+      } catch {
+        /* ignore */
+      }
 
-      successCount += batch.length;
-      process.stdout.write(`\r   ⏳ 批次 ${batchNum}/${totalBatches} 完成 (${successCount}/${sqlStatements.length})`);
-
+      successCount += batch.length
+      process.stdout.write(
+        `\r   ⏳ 批次 ${batchNum}/${totalBatches} 完成 (${successCount}/${sqlStatements.length})`
+      )
     } catch (error) {
-      try { unlinkSync(tempFile); } catch { /* ignore */ }
+      try {
+        unlinkSync(tempFile)
+      } catch {
+        /* ignore */
+      }
 
-      const err = error as { stderr?: string; stdout?: string; message?: string };
-      const errorDetail = err.stderr || err.stdout || err.message || 'Unknown error';
-      console.error(`\n   ✗ 批次 ${batchNum} 失敗:`, errorDetail.substring(0, 200));
-      failedCount += batch.length;
+      const err = error as { stderr?: string; stdout?: string; message?: string }
+      const errorDetail = err.stderr || err.stdout || err.message || 'Unknown error'
+      console.error(`\n   ✗ 批次 ${batchNum} 失敗:`, errorDetail.substring(0, 200))
+      failedCount += batch.length
     }
   }
 
   // 換行
   if (sqlStatements.length > 0) {
-    console.log();
   }
 
-  return { success: successCount, failed: failedCount };
+  return { success: successCount, failed: failedCount }
 }
 
 // ============================================
@@ -162,20 +182,24 @@ function cragSheetToDb(crag: CragSheetRow): Partial<CragDB> {
     longitude: crag.longitude || null,
     altitude: crag.altitude || null,
     rock_type: crag.rockType || null,
-    climbing_types: crag.climbingTypes ? JSON.stringify(crag.climbingTypes.split(',').map(s => s.trim())) : null,
+    climbing_types: crag.climbingTypes
+      ? JSON.stringify(crag.climbingTypes.split(',').map((s) => s.trim()))
+      : null,
     difficulty_range: crag.difficultyRange || null,
     cover_image: crag.coverImage || null,
     is_featured: crag.isFeatured ? 1 : 0,
     access_info: crag.accessInfo || null,
     parking_info: crag.parkingInfo || null,
     approach_time: crag.approachTime || null,
-    best_seasons: crag.bestSeasons ? JSON.stringify(crag.bestSeasons.split(',').map(s => s.trim())) : null,
+    best_seasons: crag.bestSeasons
+      ? JSON.stringify(crag.bestSeasons.split(',').map((s) => s.trim()))
+      : null,
     restrictions: crag.restrictions || null,
-  };
+  }
 }
 
 export function upsertCrag(crag: CragSheetRow): void {
-  const dbCrag = cragSheetToDb(crag);
+  const dbCrag = cragSheetToDb(crag)
 
   const sql = `
     INSERT INTO crags (
@@ -213,28 +237,28 @@ export function upsertCrag(crag: CragSheetRow): void {
       best_seasons = excluded.best_seasons,
       restrictions = excluded.restrictions,
       updated_at = datetime('now')
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 /**
  * 更新岩場的 metadata 和其他擴展欄位
  */
 export interface CragMetadataUpdate {
-  metadataSource?: string | null;
-  metadataSourceUrl?: string | null;
-  metadataMaintainer?: string | null;
-  metadataMaintainerUrl?: string | null;
-  liveVideoId?: string | null;
-  liveVideoTitle?: string | null;
-  liveVideoDescription?: string | null;
-  transportation?: Array<{ type: string; description: string }> | null;
-  amenities?: string[] | null;
-  googleMapsUrl?: string | null;
-  ratingAvg?: number | null;
-  heightMin?: number | null;
-  heightMax?: number | null;
+  metadataSource?: string | null
+  metadataSourceUrl?: string | null
+  metadataMaintainer?: string | null
+  metadataMaintainerUrl?: string | null
+  liveVideoId?: string | null
+  liveVideoTitle?: string | null
+  liveVideoDescription?: string | null
+  transportation?: Array<{ type: string; description: string }> | null
+  amenities?: string[] | null
+  googleMapsUrl?: string | null
+  ratingAvg?: number | null
+  heightMin?: number | null
+  heightMax?: number | null
 }
 
 export function updateCragMetadata(cragId: string, metadata: CragMetadataUpdate): void {
@@ -255,9 +279,9 @@ export function updateCragMetadata(cragId: string, metadata: CragMetadataUpdate)
       height_max = COALESCE(${escapeSQL(metadata.heightMax)}, height_max),
       updated_at = datetime('now')
     WHERE id = ${escapeSQL(cragId)}
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 // ============================================
@@ -265,8 +289,8 @@ export function updateCragMetadata(cragId: string, metadata: CragMetadataUpdate)
 // ============================================
 
 export function upsertRoute(route: RouteSheetRow, cragId: string): void {
-  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  const routeId = route.id || `${cragId}-route-${uniqueId}`;
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  const routeId = route.id || `${cragId}-route-${uniqueId}`
 
   const sql = `
     INSERT INTO routes (
@@ -289,9 +313,9 @@ export function upsertRoute(route: RouteSheetRow, cragId: string): void {
       route_type = excluded.route_type,
       description = excluded.description,
       first_ascent = excluded.first_ascent
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 export function updateCragRouteCount(cragId: string): void {
@@ -301,20 +325,16 @@ export function updateCragRouteCount(cragId: string): void {
         bolt_count = (SELECT COALESCE(SUM(bolt_count), 0) FROM routes WHERE crag_id = ${escapeSQL(cragId)}),
         updated_at = datetime('now')
     WHERE id = ${escapeSQL(cragId)}
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 // ============================================
 // Area CRUD
 // ============================================
 
-export function upsertArea(
-  area: CragJsonArea,
-  cragId: string,
-  sortOrder: number
-): void {
+export function upsertArea(area: CragJsonArea, cragId: string, sortOrder: number): void {
   const sql = `
     INSERT INTO areas (
       id, crag_id, name, name_en, slug, description, description_en,
@@ -337,20 +357,16 @@ export function upsertArea(
       route_count = excluded.route_count,
       sort_order = excluded.sort_order,
       updated_at = datetime('now')
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 // ============================================
 // Sector CRUD
 // ============================================
 
-export function upsertSector(
-  sector: CragJsonSector,
-  areaId: string,
-  sortOrder: number
-): void {
+export function upsertSector(sector: CragJsonSector, areaId: string, sortOrder: number): void {
   const sql = `
     INSERT INTO sectors (
       id, area_id, name, name_en, sort_order, created_at, updated_at
@@ -363,9 +379,9 @@ export function upsertSector(
       name_en = excluded.name_en,
       sort_order = excluded.sort_order,
       updated_at = datetime('now')
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 // ============================================
@@ -378,8 +394,8 @@ export function upsertRouteWithRelations(
   areaId: string | null,
   sectorId: string | null
 ): void {
-  const sql = buildRouteSQL(route, cragId, areaId, sectorId);
-  executeD1Query(sql);
+  const sql = buildRouteSQL(route, cragId, areaId, sectorId)
+  executeD1Query(sql)
 }
 
 /**
@@ -391,8 +407,8 @@ export function buildRouteSQL(
   areaId: string | null,
   sectorId: string | null
 ): string {
-  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  const routeId = route.id || `${cragId}-route-${uniqueId}`;
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  const routeId = route.id || `${cragId}-route-${uniqueId}`
 
   return `
     INSERT INTO routes (
@@ -415,7 +431,9 @@ export function buildRouteSQL(
       route_type = excluded.route_type,
       description = excluded.description,
       first_ascent = excluded.first_ascent
-  `.replace(/\n/g, ' ').trim();
+  `
+    .replace(/\n/g, ' ')
+    .trim()
 }
 
 // ============================================
@@ -423,26 +441,28 @@ export function buildRouteSQL(
 // ============================================
 
 export function getAllCrags(): CragDB[] {
-  const result = executeD1Query('SELECT * FROM crags ORDER BY name');
-  return result.results as unknown as CragDB[];
+  const result = executeD1Query('SELECT * FROM crags ORDER BY name')
+  return result.results as unknown as CragDB[]
 }
 
 export function getCragBySlug(slug: string): CragDB | null {
-  const result = executeD1Query(`SELECT * FROM crags WHERE slug = ${escapeSQL(slug)}`);
-  return (result.results[0] as unknown as CragDB) || null;
+  const result = executeD1Query(`SELECT * FROM crags WHERE slug = ${escapeSQL(slug)}`)
+  return (result.results[0] as unknown as CragDB) || null
 }
 
 export function getRoutesByCragId(cragId: string): RouteDB[] {
-  const result = executeD1Query(`SELECT * FROM routes WHERE crag_id = ${escapeSQL(cragId)} ORDER BY name`);
-  return result.results as unknown as RouteDB[];
+  const result = executeD1Query(
+    `SELECT * FROM routes WHERE crag_id = ${escapeSQL(cragId)} ORDER BY name`
+  )
+  return result.results as unknown as RouteDB[]
 }
 
 export function deleteCrag(id: string): void {
-  executeD1Query(`DELETE FROM crags WHERE id = ${escapeSQL(id)}`);
+  executeD1Query(`DELETE FROM crags WHERE id = ${escapeSQL(id)}`)
 }
 
 export function deleteRoute(id: string): void {
-  executeD1Query(`DELETE FROM routes WHERE id = ${escapeSQL(id)}`);
+  executeD1Query(`DELETE FROM routes WHERE id = ${escapeSQL(id)}`)
 }
 
 // ============================================
@@ -450,18 +470,18 @@ export function deleteRoute(id: string): void {
 // ============================================
 
 export interface VideoMetadata {
-  id: string; // YouTube video ID
-  title: string;
-  channel: string;
-  channelId: string;
-  uploadDate: string;
-  duration: number;
-  viewCount: number;
-  thumbnailUrl: string;
+  id: string // YouTube video ID
+  title: string
+  channel: string
+  channelId: string
+  uploadDate: string
+  duration: number
+  viewCount: number
+  thumbnailUrl: string
 }
 
 export function upsertVideo(video: VideoMetadata): void {
-  const slug = `yt-${video.id}`;
+  const slug = `yt-${video.id}`
 
   const sql = `
     INSERT INTO videos (
@@ -483,16 +503,16 @@ export function upsertVideo(video: VideoMetadata): void {
       published_at = excluded.published_at,
       view_count = excluded.view_count,
       updated_at = datetime('now')
-  `.replace(/\n/g, ' ');
+  `.replace(/\n/g, ' ')
 
-  executeD1Query(sql);
+  executeD1Query(sql)
 }
 
 /**
  * 批量插入影片
  */
 export function buildVideoSQL(video: VideoMetadata): string {
-  const slug = `yt-${video.id}`;
+  const slug = `yt-${video.id}`
 
   return `
     INSERT INTO videos (
@@ -514,25 +534,25 @@ export function buildVideoSQL(video: VideoMetadata): string {
       published_at = excluded.published_at,
       view_count = excluded.view_count,
       updated_at = datetime('now')
-  `.replace(/\n/g, ' ').trim();
+  `
+    .replace(/\n/g, ' ')
+    .trim()
 }
 
 // ============================================
 // Route Videos (Many-to-Many)
 // ============================================
 
-export function buildRouteVideoSQL(
-  routeId: string,
-  videoId: string,
-  sortOrder: number
-): string {
-  const id = `${routeId}-${videoId}`;
+export function buildRouteVideoSQL(routeId: string, videoId: string, sortOrder: number): string {
+  const id = `${routeId}-${videoId}`
 
   return `
     INSERT INTO route_videos (id, route_id, video_id, sort_order, created_at)
     VALUES (${escapeSQL(id)}, ${escapeSQL(routeId)}, ${escapeSQL(videoId)}, ${escapeSQL(sortOrder)}, datetime('now'))
     ON CONFLICT(route_id, video_id) DO UPDATE SET sort_order = excluded.sort_order
-  `.replace(/\n/g, ' ').trim();
+  `
+    .replace(/\n/g, ' ')
+    .trim()
 }
 
 // ============================================
@@ -540,16 +560,16 @@ export function buildRouteVideoSQL(
 // ============================================
 
 export interface RouteExtendedFields {
-  nameEn?: string | null;
-  typeEn?: string | null;
-  firstAscentDate?: string | null;
-  firstAscentEn?: string | null;
-  safetyRating?: string | null;
-  status?: string | null;
-  sectorEn?: string | null;
-  tips?: string | null;
-  protection?: string | null;
-  anchorType?: string | null;
+  nameEn?: string | null
+  typeEn?: string | null
+  firstAscentDate?: string | null
+  firstAscentEn?: string | null
+  safetyRating?: string | null
+  status?: string | null
+  sectorEn?: string | null
+  tips?: string | null
+  protection?: string | null
+  anchorType?: string | null
 }
 
 export function buildRouteExtendedSQL(
@@ -559,8 +579,8 @@ export function buildRouteExtendedSQL(
   sectorId: string | null,
   extended: RouteExtendedFields
 ): string {
-  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  const routeId = route.id || `${cragId}-route-${uniqueId}`;
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  const routeId = route.id || `${cragId}-route-${uniqueId}`
 
   return `
     INSERT INTO routes (
@@ -599,5 +619,7 @@ export function buildRouteExtendedSQL(
       tips = excluded.tips,
       protection = excluded.protection,
       anchor_type = excluded.anchor_type
-  `.replace(/\n/g, ' ').trim();
+  `
+    .replace(/\n/g, ' ')
+    .trim()
 }

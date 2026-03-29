@@ -1,7 +1,7 @@
 'use client'
 
+import { Image as ImageIcon, User, X } from 'lucide-react'
 import React, { useRef, useState } from 'react'
-import { User, Image as ImageIcon, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { processImage, validateImageType } from '@/lib/utils/image'
@@ -167,11 +167,7 @@ export default function BiographyAvatarSection({
             {coverImageUrl ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={coverImageUrl}
-                  alt="封面照片"
-                  className="h-full w-full object-cover"
-                />
+                <img src={coverImageUrl} alt="封面照片" className="h-full w-full object-cover" />
                 {isEditing && (
                   <button
                     onClick={onCoverImageDelete}

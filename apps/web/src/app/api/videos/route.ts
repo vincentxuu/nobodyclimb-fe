@@ -17,19 +17,19 @@ export async function GET(request: NextRequest) {
     // Fetch 靜態檔案（適用於所有環境，包括 Workers）
     // 注意：不使用 next.revalidate，因為它在 Cloudflare Workers 環境中不支持
     const response = await fetch(staticFileUrl, {
-      cache: 'default'
+      cache: 'default',
     })
 
     if (!response.ok) {
       throw new Error(`Failed to fetch videos: ${response.status}`)
     }
 
-    const videosData = await response.json() as unknown[]
+    const videosData = (await response.json()) as unknown[]
 
     return NextResponse.json(videosData, {
       headers: {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate',
-      }
+      },
     })
   } catch (error) {
     console.error('Error loading videos:', error)
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       {
         error: 'Failed to load videos',
         details: error instanceof Error ? error.message : String(error),
-        hint: 'Try accessing /data/videos.json directly'
+        hint: 'Try accessing /data/videos.json directly',
       },
       {
         status: 500,

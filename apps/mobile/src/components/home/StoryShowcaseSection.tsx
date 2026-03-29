@@ -4,15 +4,15 @@
  * 故事展示區，對應 apps/web/src/components/home/story-showcase-section.tsx
  * 設計目標：讓用戶覺得「原來我也可以寫」
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import { YStack, XStack } from 'tamagui'
-import { useRouter } from 'expo-router'
-import { HandMetal, MapPin, Users, BookOpen } from 'lucide-react-native'
 
-import { Text, Button, Spinner } from '@/components/ui'
-import { FadeIn, SlideUp } from '@/components/animation'
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
+import { BookOpen, HandMetal, MapPin, Users } from 'lucide-react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { XStack, YStack } from 'tamagui'
+import { FadeIn, SlideUp } from '@/components/animation'
+import { Button, Spinner, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 
 interface FeaturedStory {
@@ -87,9 +87,7 @@ export function StoryShowcaseSection() {
         <YStack style={styles.content}>
           {/* 區塊標題 */}
           <View style={styles.header}>
-            <Text style={styles.title}>
-              他們也曾經覺得自己{'\n'}「沒什麼特別」
-            </Text>
+            <Text style={styles.title}>他們也曾經覺得自己{'\n'}「沒什麼特別」</Text>
           </View>
 
           {loading ? (
@@ -105,17 +103,9 @@ export function StoryShowcaseSection() {
               {/* 精選故事引言 */}
               {data?.featuredStory && (
                 <View style={styles.quoteCard}>
-                  <Text style={styles.quoteText}>
-                    「{data.featuredStory.content}」
-                  </Text>
-                  <XStack
-                    justifyContent="space-between"
-                    alignItems="center"
-                    marginTop={SPACING[3]}
-                  >
-                    <Pressable
-                      onPress={() => handleAuthorPress(data.featuredStory!.author.slug)}
-                    >
+                  <Text style={styles.quoteText}>「{data.featuredStory.content}」</Text>
+                  <XStack justifyContent="space-between" alignItems="center" marginTop={SPACING[3]}>
+                    <Pressable onPress={() => handleAuthorPress(data.featuredStory!.author.slug)}>
                       <Text style={styles.authorText}>
                         — @{data.featuredStory.author.displayName}
                       </Text>
@@ -166,11 +156,7 @@ export function StoryShowcaseSection() {
 
               {/* CTA 按鈕 */}
               <View style={styles.ctaContainer}>
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onPress={handleRegisterPress}
-                >
+                <Button variant="primary" size="lg" onPress={handleRegisterPress}>
                   我也想分享我的故事
                 </Button>
               </View>

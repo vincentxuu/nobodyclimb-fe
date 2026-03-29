@@ -8,10 +8,7 @@ export default function CragLoading() {
         {/* 岩場卡片骨架 */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="overflow-hidden rounded-lg border border-gray-200 bg-white"
-            >
+            <div key={i} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
               <div className="h-48 animate-pulse bg-gray-200" />
               <div className="p-4">
                 <div className="mb-2 h-5 w-3/4 animate-pulse rounded bg-gray-200" />

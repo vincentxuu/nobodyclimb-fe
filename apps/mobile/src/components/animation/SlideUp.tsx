@@ -6,12 +6,12 @@
 import React, { useEffect } from 'react'
 import { type ViewStyle } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withDelay,
+  withTiming,
 } from 'react-native-reanimated'
-import { slideUpConfig, SLIDE_OFFSET } from '@/theme/animations'
+import { SLIDE_OFFSET, slideUpConfig } from '@/theme/animations'
 
 export interface SlideUpProps {
   /** 子元素 */
@@ -64,11 +64,7 @@ export function SlideUp({
     transform: [{ translateY: translateY.value }],
   }))
 
-  return (
-    <Animated.View style={[animatedStyle, style]}>
-      {children}
-    </Animated.View>
-  )
+  return <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>
 }
 
 export default SlideUp

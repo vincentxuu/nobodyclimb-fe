@@ -1,58 +1,55 @@
-import apiClient from './client'
 import {
-  Post,
-  PostCategory,
-  BackendPost,
-  BackendPaginatedResponse,
-  BackendPostPaginatedResponse,
-  PaginationInfo,
-  Gym,
-  Gallery,
-  GalleryPhoto,
-  UploadPhotoInput,
-  User,
-  Comment,
-  PaginatedResponse,
+  AdminArea,
+  AdminCrag,
+  AdminSector,
   ApiResponse,
-  SearchParams,
+  BackendPaginatedResponse,
+  BackendPost,
+  BackendPostPaginatedResponse,
   Biography,
   BiographyAdjacent,
   BiographyInput,
-  BucketListItem,
-  BucketListItemInput,
-  BucketListCompleteInput,
-  BucketListComment,
-  BucketListReference,
-  Milestone,
-  Crag,
-  AdminCrag,
-  AdminArea,
-  AdminSector,
-  Route,
-  Weather,
-  BiographyVideo,
-  BiographyVideoRelationType,
   BiographyInstagram,
   BiographyInstagramRelationType,
+  BiographyVideo,
+  BiographyVideoRelationType,
+  BucketListComment,
+  BucketListCompleteInput,
+  BucketListItem,
+  BucketListItemInput,
+  BucketListReference,
+  ClimbingLocationRecord,
+  Comment,
+  CountryStat,
+  Crag,
+  Gallery,
+  GalleryPhoto,
+  Gym,
   InstagramMediaType,
   LocationDetail,
-  CountryStat,
-  ClimbingLocationRecord,
+  Milestone,
+  PaginatedResponse,
+  PaginationInfo,
+  Post,
+  PostCategory,
+  Route,
+  SearchParams,
   StoryPrompt,
   StoryPromptStats,
+  UploadPhotoInput,
+  User,
+  Weather,
 } from '@/lib/types'
 import type {
-  ApiCragListResponse,
-  ApiCragDetailResponse,
-  ApiCragRoutesResponse,
   ApiCragAreasResponse,
+  ApiCragDetailResponse,
+  ApiCragListResponse,
+  ApiCragRoutesResponse,
   ApiFeaturedRoutesResponse,
 } from '@/lib/types/api-crag'
-import type {
-  ApiGymListResponse,
-  ApiGymDetailResponse,
-} from '@/lib/types/api-gym'
+import type { ApiGymDetailResponse, ApiGymListResponse } from '@/lib/types/api-gym'
 import { processImage } from '@/lib/utils/image'
+import apiClient from './client'
 
 /**
  * 共用圖片上傳函數
@@ -148,7 +145,10 @@ export const authService = {
    * 重設密碼（直接重設）
    */
   forgotPassword: async (email: string, password: string) => {
-    const response = await apiClient.post<ApiResponse<{}>>('/auth/forgot-password', { email, password })
+    const response = await apiClient.post<ApiResponse<{}>>('/auth/forgot-password', {
+      email,
+      password,
+    })
     return response.data
   },
 
@@ -206,9 +206,12 @@ export const postService = {
    * 獲取當前用戶的文章列表（包含所有狀態：草稿、已發布、已封存）
    */
   getMyPosts: async (page = 1, limit = 50, status?: 'draft' | 'published' | 'archived') => {
-    const response = await apiClient.get<ApiResponse<BackendPaginatedResponse<BackendPost>>>('/posts/me', {
-      params: { page, limit, status },
-    })
+    const response = await apiClient.get<ApiResponse<BackendPaginatedResponse<BackendPost>>>(
+      '/posts/me',
+      {
+        params: { page, limit, status },
+      }
+    )
     return response.data
   },
 
@@ -517,10 +520,7 @@ export const galleryService = {
    * 上傳單張照片到攝影集
    */
   uploadPhoto: async (photoData: UploadPhotoInput) => {
-    const response = await apiClient.post<ApiResponse<GalleryPhoto>>(
-      '/galleries/photos',
-      photoData
-    )
+    const response = await apiClient.post<ApiResponse<GalleryPhoto>>('/galleries/photos', photoData)
     return response.data
   },
 
@@ -635,9 +635,7 @@ export const galleryService = {
    * 上傳相簿圖片（多張，自動壓縮）
    */
   uploadImages: async (files: File[]) => {
-    const results = await Promise.all(
-      files.map((file) => uploadImage(file, 'gallery'))
-    )
+    const results = await Promise.all(files.map((file) => uploadImage(file, 'gallery')))
     return {
       success: true,
       data: { urls: results.map((r) => r.data?.url).filter((url): url is string => !!url) },
@@ -694,7 +692,9 @@ export const biographyService = {
     if (!response.data.success || !response.data.data) {
       return { success: false, data: null }
     }
-    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
+    const bioV2 = transformBackendToBiographyV2(
+      response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend
+    )
     return { success: true, data: bioV2 }
   },
 
@@ -816,7 +816,9 @@ export const biographyService = {
     if (!response.data.success || !response.data.data) {
       return { success: true, data: null }
     }
-    const bioV2 = transformBackendToBiographyV2(response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend)
+    const bioV2 = transformBackendToBiographyV2(
+      response.data.data as unknown as import('@/lib/types/biography-v2').BiographyBackend
+    )
     return { success: true, data: bioV2 }
   },
 
@@ -1033,9 +1035,8 @@ export const climbingLocationService = {
    * 獲取當前用戶的攀岩足跡
    */
   getMyLocations: async () => {
-    const response = await apiClient.get<ApiResponse<ClimbingLocationRecord[]>>(
-      '/climbing-locations'
-    )
+    const response =
+      await apiClient.get<ApiResponse<ClimbingLocationRecord[]>>('/climbing-locations')
     return response.data
   },
 
@@ -1161,9 +1162,9 @@ export const storyPromptService = {
    * 檢查是否應該顯示推題
    */
   shouldPrompt: async () => {
-    const response = await apiClient.get<
-      ApiResponse<{ should_prompt: boolean; reason: string }>
-    >('/story-prompts/should-prompt')
+    const response = await apiClient.get<ApiResponse<{ should_prompt: boolean; reason: string }>>(
+      '/story-prompts/should-prompt'
+    )
     return response.data
   },
 
@@ -1201,12 +1202,13 @@ export const storyPromptService = {
    * 獲取推題進度
    */
   getProgress: async () => {
-    const response = await apiClient.get<
-      ApiResponse<{
-        prompts: StoryPrompt[]
-        stats: StoryPromptStats
-      } | null>
-    >('/story-prompts/progress')
+    const response =
+      await apiClient.get<
+        ApiResponse<{
+          prompts: StoryPrompt[]
+          stats: StoryPromptStats
+        } | null>
+      >('/story-prompts/progress')
     return response.data
   },
 }
@@ -1249,10 +1251,7 @@ export const bucketListService = {
   /**
    * 獲取人物誌的人生清單
    */
-  getBucketList: async (
-    biographyId: string,
-    options?: { status?: string; category?: string }
-  ) => {
+  getBucketList: async (biographyId: string, options?: { status?: string; category?: string }) => {
     const response = await apiClient.get<ApiResponse<BucketListItem[]>>(
       `/bucket-list/${biographyId}`,
       { params: options }
@@ -1268,9 +1267,7 @@ export const bucketListService = {
    * 獲取單一人生清單項目
    */
   getBucketListItem: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<BucketListItem>>(
-      `/bucket-list/item/${id}`
-    )
+    const response = await apiClient.get<ApiResponse<BucketListItem>>(`/bucket-list/item/${id}`)
     // 解析 JSON 欄位
     if (response.data.data) {
       response.data.data = parseBucketListItem(response.data.data)
@@ -1304,9 +1301,7 @@ export const bucketListService = {
    * 刪除人生清單項目
    */
   deleteItem: async (id: string) => {
-    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-      `/bucket-list/${id}`
-    )
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(`/bucket-list/${id}`)
     return response.data
   },
 
@@ -1500,9 +1495,9 @@ export const bucketListService = {
    * 探索：取得所有分類的數量統計（解決 N+1 問題）
    */
   getCategoryCounts: async () => {
-    const response = await apiClient.get<
-      ApiResponse<Array<{ category: string; count: number }>>
-    >('/bucket-list/explore/category-counts')
+    const response = await apiClient.get<ApiResponse<Array<{ category: string; count: number }>>>(
+      '/bucket-list/explore/category-counts'
+    )
     return response.data
   },
 
@@ -1573,7 +1568,11 @@ export const cragService = {
   /**
    * 獲取岩場列表
    */
-  getCrags: async (page = 1, limit = 10, filters?: { difficulty?: string; type?: string }): Promise<ApiCragListResponse> => {
+  getCrags: async (
+    page = 1,
+    limit = 10,
+    filters?: { difficulty?: string; type?: string }
+  ): Promise<ApiCragListResponse> => {
     const response = await apiClient.get<ApiCragListResponse>('/crags', {
       params: { page, limit, ...filters },
     })
@@ -1617,7 +1616,11 @@ export const cragService = {
   /**
    * 獲取附近岩場
    */
-  getNearbyCrags: async (latitude: number, longitude: number, radius: number = 50): Promise<ApiCragListResponse> => {
+  getNearbyCrags: async (
+    latitude: number,
+    longitude: number,
+    radius: number = 50
+  ): Promise<ApiCragListResponse> => {
     const response = await apiClient.get<ApiCragListResponse>('/crags/nearby', {
       params: { latitude, longitude, radius },
     })
@@ -1701,9 +1704,7 @@ export const cragService = {
    * 上傳岩場圖片（多張，自動壓縮）
    */
   uploadImages: async (files: File[]) => {
-    const results = await Promise.all(
-      files.map((file) => uploadImage(file, 'crags'))
-    )
+    const results = await Promise.all(files.map((file) => uploadImage(file, 'crags')))
     return {
       success: true,
       data: { urls: results.map((r) => r.data?.url).filter((url): url is string => !!url) },
@@ -1908,9 +1909,8 @@ export const notificationService = {
    * 標記全部通知為已讀
    */
   markAllAsRead: async () => {
-    const response = await apiClient.put<ApiResponse<{ message: string }>>(
-      '/notifications/read-all'
-    )
+    const response =
+      await apiClient.put<ApiResponse<{ message: string }>>('/notifications/read-all')
     return response.data
   },
 
@@ -1979,18 +1979,19 @@ export const notificationService = {
    * 獲取用戶通知統計
    */
   getStats: async () => {
-    const response = await apiClient.get<
-      ApiResponse<{
-        overview: {
-          total: number
-          unread: number
-          read: number
-          readRate: number
-        }
-        byType: Array<{ type: string; count: number }>
-        dailyTrend: Array<{ date: string; count: number }>
-      }>
-    >('/notifications/stats')
+    const response =
+      await apiClient.get<
+        ApiResponse<{
+          overview: {
+            total: number
+            unread: number
+            read: number
+            readRate: number
+          }
+          byType: Array<{ type: string; count: number }>
+          dailyTrend: Array<{ date: string; count: number }>
+        }>
+      >('/notifications/stats')
     return response.data
   },
 
@@ -2219,9 +2220,7 @@ export const statsService = {
    * 取得全站統計資料
    */
   getStats: async () => {
-    const response = await apiClient.get<
-      ApiResponse<SiteStats> & { cached: boolean }
-    >('/stats')
+    const response = await apiClient.get<ApiResponse<SiteStats> & { cached: boolean }>('/stats')
     return response.data
   },
 
@@ -2229,9 +2228,7 @@ export const statsService = {
    * 強制清除統計快取
    */
   invalidateCache: async () => {
-    const response = await apiClient.post<ApiResponse<{ message: string }>>(
-      '/stats/invalidate'
-    )
+    const response = await apiClient.post<ApiResponse<{ message: string }>>('/stats/invalidate')
     return response.data
   },
 
@@ -2239,9 +2236,9 @@ export const statsService = {
    * 取得社群統計資料（用於首頁故事展示區）
    */
   getCommunityStats: async () => {
-    const response = await apiClient.get<
-      ApiResponse<CommunityStats> & { cached: boolean }
-    >('/stats/community')
+    const response = await apiClient.get<ApiResponse<CommunityStats> & { cached: boolean }>(
+      '/stats/community'
+    )
     return response.data
   },
 }
@@ -2456,9 +2453,7 @@ export const biographyContentService = {
    * 取得所有題目
    */
   getQuestions: async () => {
-    const response = await apiClient.get<ApiResponse<ContentQuestions>>(
-      '/content/questions'
-    )
+    const response = await apiClient.get<ApiResponse<ContentQuestions>>('/content/questions')
     return response.data
   },
 
@@ -2479,10 +2474,7 @@ export const biographyContentService = {
   /**
    * 儲存核心故事
    */
-  saveCoreStory: async (
-    biographyId: string,
-    data: { question_id: string; content: string }
-  ) => {
+  saveCoreStory: async (biographyId: string, data: { question_id: string; content: string }) => {
     const response = await apiClient.post<ApiResponse<{ message: string }>>(
       `/content/biographies/${biographyId}/core-stories`,
       data
@@ -2494,9 +2486,9 @@ export const biographyContentService = {
    * 按讚/取消按讚核心故事
    */
   toggleCoreStoryLike: async (storyId: string) => {
-    const response = await apiClient.post<
-      ApiResponse<{ liked: boolean; like_count: number }>
-    >(`/content/core-stories/${storyId}/like`)
+    const response = await apiClient.post<ApiResponse<{ liked: boolean; like_count: number }>>(
+      `/content/core-stories/${storyId}/like`
+    )
     return response.data
   },
 
@@ -2513,10 +2505,7 @@ export const biographyContentService = {
   /**
    * 新增核心故事留言
    */
-  addCoreStoryComment: async (
-    storyId: string,
-    data: { content: string; parent_id?: string }
-  ) => {
+  addCoreStoryComment: async (storyId: string, data: { content: string; parent_id?: string }) => {
     const response = await apiClient.post<ApiResponse<ContentComment>>(
       `/content/core-stories/${storyId}/comments`,
       data
@@ -2581,9 +2570,9 @@ export const biographyContentService = {
    * 按讚/取消按讚一句話
    */
   toggleOneLinerLike: async (oneLinerId: string) => {
-    const response = await apiClient.post<
-      ApiResponse<{ liked: boolean; like_count: number }>
-    >(`/content/one-liners/${oneLinerId}/like`)
+    const response = await apiClient.post<ApiResponse<{ liked: boolean; like_count: number }>>(
+      `/content/one-liners/${oneLinerId}/like`
+    )
     return response.data
   },
 
@@ -2600,10 +2589,7 @@ export const biographyContentService = {
   /**
    * 新增一句話留言
    */
-  addOneLinerComment: async (
-    oneLinerId: string,
-    data: { content: string; parent_id?: string }
-  ) => {
+  addOneLinerComment: async (oneLinerId: string, data: { content: string; parent_id?: string }) => {
     const response = await apiClient.post<ApiResponse<ContentComment>>(
       `/content/one-liners/${oneLinerId}/comments`,
       data
@@ -2660,9 +2646,9 @@ export const biographyContentService = {
    * 按讚/取消按讚小故事
    */
   toggleStoryLike: async (storyId: string) => {
-    const response = await apiClient.post<
-      ApiResponse<{ liked: boolean; like_count: number }>
-    >(`/content/stories/${storyId}/like`)
+    const response = await apiClient.post<ApiResponse<{ liked: boolean; like_count: number }>>(
+      `/content/stories/${storyId}/like`
+    )
     return response.data
   },
 
@@ -2679,10 +2665,7 @@ export const biographyContentService = {
   /**
    * 新增小故事留言
    */
-  addStoryComment: async (
-    storyId: string,
-    data: { content: string; parent_id?: string }
-  ) => {
+  addStoryComment: async (storyId: string, data: { content: string; parent_id?: string }) => {
     const response = await apiClient.post<ApiResponse<ContentComment>>(
       `/content/stories/${storyId}/comments`,
       data
@@ -2916,9 +2899,10 @@ export const adminUserService = {
    * 更新用戶狀態（需要 admin 權限）
    */
   updateStatus: async (id: string, isActive: boolean) => {
-    const response = await apiClient.put<
-      ApiResponse<{ id: string; is_active: number }>
-    >(`/users/admin/${id}/status`, { is_active: isActive })
+    const response = await apiClient.put<ApiResponse<{ id: string; is_active: number }>>(
+      `/users/admin/${id}/status`,
+      { is_active: isActive }
+    )
     return response.data
   },
 
@@ -2926,9 +2910,10 @@ export const adminUserService = {
    * 更新用戶角色（需要 admin 權限）
    */
   updateRole: async (id: string, role: 'user' | 'admin' | 'moderator') => {
-    const response = await apiClient.put<
-      ApiResponse<{ id: string; role: string }>
-    >(`/users/admin/${id}/role`, { role })
+    const response = await apiClient.put<ApiResponse<{ id: string; role: string }>>(
+      `/users/admin/${id}/role`,
+      { role }
+    )
     return response.data
   },
 }
@@ -3290,9 +3275,9 @@ export const adminCragService = {
    * 獲取單一岩場詳情（需要 admin 權限）
    */
   getCrag: async (id: string) => {
-    const response = await apiClient.get<
-      ApiResponse<AdminCrag & { routes: Route[] }>
-    >(`/admin/crags/${id}`)
+    const response = await apiClient.get<ApiResponse<AdminCrag & { routes: Route[] }>>(
+      `/admin/crags/${id}`
+    )
     return response.data
   },
 
@@ -3310,16 +3295,19 @@ export const adminCragService = {
    * 更新岩場路線統計（需要 admin 權限）
    */
   updateCounts: async (id: string) => {
-    const response = await apiClient.post<
-      ApiResponse<{ route_count: number; bolt_count: number }>
-    >(`/admin/crags/${id}/update-counts`)
+    const response = await apiClient.post<ApiResponse<{ route_count: number; bolt_count: number }>>(
+      `/admin/crags/${id}/update-counts`
+    )
     return response.data
   },
 
   /**
    * 獲取岩場路線列表（需要 admin 權限）
    */
-  getRoutes: async (cragId: string, options?: { page?: number; limit?: number; area_id?: string; sector_id?: string }) => {
+  getRoutes: async (
+    cragId: string,
+    options?: { page?: number; limit?: number; area_id?: string; sector_id?: string }
+  ) => {
     const response = await apiClient.get<
       ApiResponse<Route[]> & {
         pagination: { page: number; limit: number; total: number; total_pages: number }
@@ -3378,9 +3366,7 @@ export const adminCragService = {
    * 獲取區域列表（需要 admin 權限）
    */
   getAreas: async (cragId: string) => {
-    const response = await apiClient.get<ApiResponse<AdminArea[]>>(
-      `/admin/crags/${cragId}/areas`
-    )
+    const response = await apiClient.get<ApiResponse<AdminArea[]>>(`/admin/crags/${cragId}/areas`)
     return response.data
   },
 

@@ -2,9 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
-import { useTranslations } from 'next-intl'
 
 export function AboutSection() {
   const { status } = useAuthStore()
@@ -27,9 +27,7 @@ export function AboutSection() {
 
         <div className="my-2 h-1 w-10 bg-[#1B1A1A]" />
 
-        <p className="mt-4 max-w-[582px] px-4 text-base text-[#1B1A1A]">
-          {t('aboutDescription')}
-        </p>
+        <p className="mt-4 max-w-[582px] px-4 text-base text-[#1B1A1A]">{t('aboutDescription')}</p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
           <Link href="/about" className="w-full sm:w-auto">
@@ -39,7 +37,10 @@ export function AboutSection() {
           </Link>
           {status !== 'signIn' && (
             <Link href="/auth/register" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full bg-brand-accent/70 text-[#1B1A1A] hover:bg-brand-accent sm:w-auto">
+              <Button
+                size="lg"
+                className="w-full bg-brand-accent/70 text-[#1B1A1A] hover:bg-brand-accent sm:w-auto"
+              >
                 {t('aboutJoin')}
               </Button>
             </Link>

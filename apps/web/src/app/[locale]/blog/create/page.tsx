@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { ArrowLeft, Eye, Save, Send } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { ImageUploader, RichTextEditor, TagSelector } from '@/components/editor'
+import { ProtectedRoute } from '@/components/shared/protected-route'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,13 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Send, Save, ArrowLeft, Eye } from 'lucide-react'
-import { PostCategory, POST_CATEGORIES, getCategoryLabel } from '@/lib/types'
-import { ProtectedRoute } from '@/components/shared/protected-route'
-import { RichTextEditor, TagSelector, ImageUploader } from '@/components/editor'
 import { postService } from '@/lib/api/services'
-import { sanitizeHtml } from '@/lib/utils/sanitize'
+import { getCategoryLabel, POST_CATEGORIES, PostCategory } from '@/lib/types'
 import { generateSummary } from '@/lib/utils/article'
+import { sanitizeHtml } from '@/lib/utils/sanitize'
 
 type ArticleStatus = 'draft' | 'published'
 
@@ -160,10 +160,14 @@ function CreateBlogPageContent() {
                 </span>
               ))}
             </div>
-            <h1 className="mb-6 text-3xl font-bold text-brand-dark">{title || t('unnamedArticle')}</h1>
+            <h1 className="mb-6 text-3xl font-bold text-brand-dark">
+              {title || t('unnamedArticle')}
+            </h1>
             <div
               className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) || `<p>${t('noContent')}</p>` }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(content) || `<p>${t('noContent')}</p>`,
+              }}
             />
           </article>
         </main>
@@ -231,7 +235,9 @@ function CreateBlogPageContent() {
 
             {/* 內容編輯器 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-strong">{t('createContentLabel')}</label>
+              <label className="mb-3 block text-lg font-medium text-strong">
+                {t('createContentLabel')}
+              </label>
               <RichTextEditor
                 value={content}
                 onChange={setContent}
@@ -244,7 +250,9 @@ function CreateBlogPageContent() {
           <div className="space-y-6">
             {/* 封面圖片 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-strong">{t('createCoverLabel')}</label>
+              <label className="mb-3 block text-lg font-medium text-strong">
+                {t('createCoverLabel')}
+              </label>
               <ImageUploader
                 value={coverImage}
                 onChange={setCoverImage}
@@ -255,7 +263,9 @@ function CreateBlogPageContent() {
 
             {/* 分類 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-strong">{t('createCategoryLabel')}</label>
+              <label className="mb-3 block text-lg font-medium text-strong">
+                {t('createCategoryLabel')}
+              </label>
               <Select
                 value={category}
                 onValueChange={(value) => setCategory(value as PostCategory)}
@@ -275,7 +285,9 @@ function CreateBlogPageContent() {
 
             {/* 標籤 */}
             <div className="bg-white p-6">
-              <label className="mb-3 block text-lg font-medium text-strong">{t('createTagsLabel')}</label>
+              <label className="mb-3 block text-lg font-medium text-strong">
+                {t('createTagsLabel')}
+              </label>
               <TagSelector tags={tags} onChange={setTags} maxTags={5} />
             </div>
 
@@ -283,7 +295,9 @@ function CreateBlogPageContent() {
             <div className="bg-white p-6">
               <label className="mb-3 block text-lg font-medium text-strong">
                 {t('createSummaryLabel')}
-                <span className="ml-2 text-sm font-normal text-gray-400">{t('createSummaryOptional')}</span>
+                <span className="ml-2 text-sm font-normal text-gray-400">
+                  {t('createSummaryOptional')}
+                </span>
               </label>
               <textarea
                 value={summary}

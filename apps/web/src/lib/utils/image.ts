@@ -25,7 +25,11 @@ export function getDefaultAvatarUrl(name: string, size: number = 200): string {
  * @param height 封面高度（預設 600）
  * @returns Lorem Picsum 封面照 URL
  */
-export function getDefaultCoverUrl(seed: string, width: number = 1920, height: number = 600): string {
+export function getDefaultCoverUrl(
+  seed: string,
+  width: number = 1920,
+  height: number = 600
+): string {
   const safeSeed = encodeURIComponent(seed || 'default')
   return `https://picsum.photos/seed/${safeSeed}/${width}/${height}`
 }

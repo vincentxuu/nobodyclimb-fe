@@ -103,15 +103,15 @@ export interface ApiRoute {
   crag_id: string
   area_id: string | null
   sector_id: string | null
-  sector_name?: string | null  // Sector 中文名稱（從 JOIN sectors 獲取）
-  sector_name_en?: string | null  // Sector 英文名稱（從 JOIN sectors 獲取）
+  sector_name?: string | null // Sector 中文名稱（從 JOIN sectors 獲取）
+  sector_name_en?: string | null // Sector 英文名稱（從 JOIN sectors 獲取）
   name: string
   name_en?: string | null
   alternative_names?: string | null
   grade: string
   grade_system?: string
-  route_type: string  // 'sport', 'trad', 'boulder', etc.
-  height?: string | null  // e.g. "10m"
+  route_type: string // 'sport', 'trad', 'boulder', etc.
+  height?: string | null // e.g. "10m"
   bolt_count: number
   anchor_type?: string | null
   first_ascent: string | null
@@ -125,8 +125,8 @@ export interface ApiRoute {
   view_count?: number
   status?: string
   images?: string | null
-  videos?: ApiRouteVideo[]  // 從後端 API 返回的影片陣列（來自 route_videos 關聯）
-  youtube_videos?: string | null  // 舊的 JSON 字串格式（可能已棄用）
+  videos?: ApiRouteVideo[] // 從後端 API 返回的影片陣列（來自 route_videos 關聯）
+  youtube_videos?: string | null // 舊的 JSON 字串格式（可能已棄用）
   instagram_posts?: string | null
   ascent_count?: number
   story_count?: number

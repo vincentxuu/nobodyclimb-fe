@@ -1,8 +1,8 @@
-import { renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react-native'
 import { createElement } from 'react'
-import { useProfileStats } from '../useProfileStats'
 import { apiClient } from '@/lib/api'
+import { useProfileStats } from '../useProfileStats'
 
 jest.mock('@/lib/api')
 const mockedApiClient = apiClient as jest.Mocked<typeof apiClient>

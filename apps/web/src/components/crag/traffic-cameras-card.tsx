@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Camera, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
+import { AlertCircle, Camera, ExternalLink, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import React, { useCallback, useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/constants'
 
 const MAX_CAMERAS_TO_SHOW = 6
@@ -23,10 +23,7 @@ interface TrafficCamerasCardProps {
   longitude: number
 }
 
-export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
-  latitude,
-  longitude,
-}) => {
+export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({ latitude, longitude }) => {
   const t = useTranslations('CragPage')
   const [cameras, setCameras] = useState<CameraData[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,9 +95,7 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
         </h3>
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <AlertCircle className="mb-2 h-8 w-8 text-gray-400" />
-          <p className="mb-2 text-gray-500">
-            {serviceMessage || t('trafficCamerasNone')}
-          </p>
+          <p className="mb-2 text-gray-500">{serviceMessage || t('trafficCamerasNone')}</p>
           <a
             href={TRAFFIC_CAMERA_SERVICE_URL}
             target="_blank"
@@ -149,7 +144,8 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
               className="h-full w-full object-cover transition-opacity group-hover:opacity-80"
               onError={(e) => {
                 const target = e.target as HTMLImageElement
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23333" width="400" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle"%3E點擊前往 1968 查看%3C/text%3E%3C/svg%3E'
+                target.src =
+                  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23333" width="400" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle"%3E點擊前往 1968 查看%3C/text%3E%3C/svg%3E'
               }}
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
@@ -198,7 +194,8 @@ export const TrafficCamerasCard: React.FC<TrafficCamerasCardProps> = ({
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
-                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150"%3E%3Crect fill="%23333" width="200" height="150"/%3E%3Ctext fill="%23666" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle"%3E點擊選取%3C/text%3E%3C/svg%3E'
+                  target.src =
+                    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150"%3E%3Crect fill="%23333" width="200" height="150"/%3E%3Ctext fill="%23666" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle"%3E點擊選取%3C/text%3E%3C/svg%3E'
                 }}
               />
             </button>

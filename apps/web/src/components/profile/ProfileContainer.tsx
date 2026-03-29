@@ -1,22 +1,22 @@
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import ProfilePageHeader from './ProfilePageHeader'
-import ProfileDivider from './ProfileDivider'
-import BasicInfoSection from './BasicInfoSection'
-import ClimbingInfoSection from './ClimbingInfoSection'
-import ClimbingExperienceSection from './ClimbingExperienceSection'
-import AdvancedStoriesSection from './AdvancedStoriesSection'
-import ClimbingFootprintsSection from './ClimbingFootprintsSection'
-import SocialLinksSection from './SocialLinksSection'
-import PublicSettingSection from './PublicSettingSection'
-import ProfileActionButtons from './ProfileActionButtons'
-import BiographyAvatarSection from './BiographyAvatarSection'
-import { useProfile } from './ProfileContext'
-import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import { useCallback, useRef, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
+import { useIsMobile } from '@/lib/hooks/useIsMobile'
+import AdvancedStoriesSection from './AdvancedStoriesSection'
+import BasicInfoSection from './BasicInfoSection'
+import BiographyAvatarSection from './BiographyAvatarSection'
+import ClimbingExperienceSection from './ClimbingExperienceSection'
+import ClimbingFootprintsSection from './ClimbingFootprintsSection'
+import ClimbingInfoSection from './ClimbingInfoSection'
+import ProfileActionButtons from './ProfileActionButtons'
+import { useProfile } from './ProfileContext'
+import ProfileDivider from './ProfileDivider'
+import ProfilePageHeader from './ProfilePageHeader'
+import PublicSettingSection from './PublicSettingSection'
+import SocialLinksSection from './SocialLinksSection'
 import { AdvancedStories, SocialLinks } from './types'
 
 export default function ProfileContainer() {
@@ -107,7 +107,6 @@ export default function ProfileContainer() {
       coverImageUrl: null,
     })
   }
-
 
   // 處理進階故事單一欄位儲存
   const handleAdvancedStorySave = useCallback(
@@ -280,10 +279,7 @@ export default function ProfileContainer() {
             onSaveAll={handleAdvancedStorySaveAll}
           />
           <ProfileDivider />
-          <ClimbingFootprintsSection
-            isEditing={isEditing}
-            isMobile={isMobile}
-          />
+          <ClimbingFootprintsSection isEditing={isEditing} isMobile={isMobile} />
           <ProfileDivider />
           <PublicSettingSection
             isPublic={profileData.isPublic}

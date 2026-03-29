@@ -4,16 +4,13 @@
  * 進度追蹤組件，支援百分比進度條和里程碑模式
  * 對應 apps/web/src/components/bucket-list/progress-tracker.tsx
  */
-import React, { useMemo } from 'react'
-import { StyleSheet, View, Pressable } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import { Check, Circle } from 'lucide-react-native'
+
 import { DURATION, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { Milestone } from '@nobodyclimb/types'
+import { Check, Circle } from 'lucide-react-native'
+import React, { useMemo } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { Text } from '../ui/Text'
 
 type ProgressMode = 'manual' | 'milestone' | null
@@ -126,11 +123,7 @@ interface ManualProgressProps {
   onProgressChange?: (progress: number) => void
 }
 
-function ManualProgress({
-  progress,
-  showLabels,
-  sizeConfig,
-}: ManualProgressProps) {
+function ManualProgress({ progress, showLabels, sizeConfig }: ManualProgressProps) {
   const clampedProgress = Math.min(100, Math.max(0, progress))
   const progressAnim = useSharedValue(clampedProgress)
 
@@ -277,10 +270,7 @@ function MilestoneProgress({
           {sortedMilestones.map((milestone) => (
             <View
               key={milestone.id}
-              style={[
-                styles.milestoneLabel,
-                { width: `${100 / sortedMilestones.length}%` },
-              ]}
+              style={[styles.milestoneLabel, { width: `${100 / sortedMilestones.length}%` }]}
             >
               <Text
                 variant="caption"
@@ -311,12 +301,7 @@ interface MilestonePointProps {
   onToggle?: (milestoneId: string, completed: boolean) => void
 }
 
-function MilestonePoint({
-  milestone,
-  sizeConfig,
-  editable,
-  onToggle,
-}: MilestonePointProps) {
+function MilestonePoint({ milestone, sizeConfig, editable, onToggle }: MilestonePointProps) {
   const isCompleted = milestone.completed
 
   const handlePress = () => {
@@ -335,16 +320,10 @@ function MilestonePoint({
     isCompleted && styles.milestonePointCompleted,
   ]
 
-  const iconColor = isCompleted
-    ? SEMANTIC_COLORS.textMain
-    : SEMANTIC_COLORS.textMuted
+  const iconColor = isCompleted ? SEMANTIC_COLORS.textMain : SEMANTIC_COLORS.textMuted
 
   return (
-    <Pressable
-      onPress={handlePress}
-      disabled={!editable}
-      style={pointStyle}
-    >
+    <Pressable onPress={handlePress} disabled={!editable} style={pointStyle}>
       {isCompleted ? (
         <Check size={sizeConfig.iconSize} color={iconColor} />
       ) : (
@@ -366,11 +345,7 @@ export interface ProgressBarProps {
   showLabel?: boolean
 }
 
-export function ProgressBar({
-  progress,
-  size = 'md',
-  showLabel = true,
-}: ProgressBarProps) {
+export function ProgressBar({ progress, size = 'md', showLabel = true }: ProgressBarProps) {
   const sizeConfig = SIZE_CONFIG[size]
   const clampedProgress = Math.min(100, Math.max(0, progress))
 
@@ -396,11 +371,7 @@ export function ProgressBar({
         />
       </View>
       {showLabel && (
-        <Text
-          variant="caption"
-          color="textSubtle"
-          style={styles.progressLabel}
-        >
+        <Text variant="caption" color="textSubtle" style={styles.progressLabel}>
           {clampedProgress}%
         </Text>
       )}

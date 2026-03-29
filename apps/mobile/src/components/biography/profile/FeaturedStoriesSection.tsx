@@ -3,14 +3,14 @@
  *
  * 精選故事區塊，對應 apps/web/src/components/biography/profile/FeaturedStoriesSection.tsx
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { StyleSheet, View, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 
-import { Text, Card } from '@/components/ui'
+import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import { Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
 import { ContentInteractionBar } from '../display/ContentInteractionBar'
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 
 // 類型定義
 interface Story {
@@ -80,42 +80,53 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
   }, [fetchStories])
 
   // 按讚切換（呼叫後端 API）
-  const handleToggleLike = useCallback(async (storyId: string) => {
-    // Optimistic update
-    setStories(prev =>
-      prev.map(item =>
-        item.id === storyId
-          ? { ...item, is_liked: !item.is_liked, like_count: item.is_liked ? item.like_count - 1 : item.like_count + 1 }
-          : item
-      )
-    )
-    try {
-      const response = await apiClient.post(`/content/stories/${storyId}/like`)
-      const data = response.data?.data ?? response.data
-      if (data) {
-        setStories(prev =>
-          prev.map(item =>
-            item.id === storyId
-              ? { ...item, is_liked: data.liked, like_count: data.like_count }
-              : item
-          )
-        )
-        return data
-      }
-    } catch (error) {
-      // Rollback
-      setStories(prev =>
-        prev.map(item =>
+  const handleToggleLike = useCallback(
+    async (storyId: string) => {
+      // Optimistic update
+      setStories((prev) =>
+        prev.map((item) =>
           item.id === storyId
-            ? { ...item, is_liked: !item.is_liked, like_count: item.is_liked ? item.like_count - 1 : item.like_count + 1 }
+            ? {
+                ...item,
+                is_liked: !item.is_liked,
+                like_count: item.is_liked ? item.like_count - 1 : item.like_count + 1,
+              }
             : item
         )
       )
-      console.error('Failed to toggle like:', error)
-    }
-    const item = stories.find(i => i.id === storyId)
-    return { liked: item?.is_liked ?? false, like_count: item?.like_count ?? 0 }
-  }, [stories])
+      try {
+        const response = await apiClient.post(`/content/stories/${storyId}/like`)
+        const data = response.data?.data ?? response.data
+        if (data) {
+          setStories((prev) =>
+            prev.map((item) =>
+              item.id === storyId
+                ? { ...item, is_liked: data.liked, like_count: data.like_count }
+                : item
+            )
+          )
+          return data
+        }
+      } catch (error) {
+        // Rollback
+        setStories((prev) =>
+          prev.map((item) =>
+            item.id === storyId
+              ? {
+                  ...item,
+                  is_liked: !item.is_liked,
+                  like_count: item.is_liked ? item.like_count - 1 : item.like_count + 1,
+                }
+              : item
+          )
+        )
+        console.error('Failed to toggle like:', error)
+      }
+      const item = stories.find((i) => i.id === storyId)
+      return { liked: item?.is_liked ?? false, like_count: item?.like_count ?? 0 }
+    },
+    [stories]
+  )
 
   // 獲取留言（呼叫後端 API）
   const handleFetchComments = useCallback(async (storyId: string) => {
@@ -134,11 +145,9 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
       const response = await apiClient.post(`/content/stories/${storyId}/comments`, { content })
       const data = response.data?.data ?? response.data
       if (data) {
-        setStories(prev =>
-          prev.map(item =>
-            item.id === storyId
-              ? { ...item, comment_count: item.comment_count + 1 }
-              : item
+        setStories((prev) =>
+          prev.map((item) =>
+            item.id === storyId ? { ...item, comment_count: item.comment_count + 1 } : item
           )
         )
         return data
@@ -154,14 +163,17 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
     if (stories.length === 0) return []
 
     // 按類別分組
-    const storiesByCategory = stories.reduce((acc, story) => {
-      const categoryId = story.category_id || 'uncategorized'
-      if (!acc[categoryId]) {
-        acc[categoryId] = []
-      }
-      acc[categoryId].push(story)
-      return acc
-    }, {} as Record<string, Story[]>)
+    const storiesByCategory = stories.reduce(
+      (acc, story) => {
+        const categoryId = story.category_id || 'uncategorized'
+        if (!acc[categoryId]) {
+          acc[categoryId] = []
+        }
+        acc[categoryId].push(story)
+        return acc
+      },
+      {} as Record<string, Story[]>
+    )
 
     const selected: Story[] = []
     const categories = Object.keys(storiesByCategory)
@@ -216,7 +228,10 @@ export function FeaturedStoriesSection({ person }: FeaturedStoriesSectionProps) 
       >
         {featuredStories.map((story, index) => {
           const categoryId = story.category_id || 'sys_cat_growth'
-          const colors = STORY_CATEGORY_COLORS[categoryId] || { bg: WB_COLORS[10], text: WB_COLORS[100] }
+          const colors = STORY_CATEGORY_COLORS[categoryId] || {
+            bg: WB_COLORS[10],
+            text: WB_COLORS[100],
+          }
 
           return (
             <Animated.View

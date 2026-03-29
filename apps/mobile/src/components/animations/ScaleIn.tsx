@@ -1,13 +1,8 @@
 /**
  * ScaleIn 動畫包裝組件
  */
-import React, { ReactNode } from 'react'
-import Animated, {
-  ZoomIn,
-  ZoomInDown,
-  ZoomInUp,
-  BounceIn,
-} from 'react-native-reanimated'
+import { ReactNode } from 'react'
+import Animated, { BounceIn, ZoomIn, ZoomInDown, ZoomInUp } from 'react-native-reanimated'
 
 type ScaleType = 'zoom' | 'bounce' | 'zoomUp' | 'zoomDown'
 
@@ -18,12 +13,7 @@ interface ScaleInProps {
   delay?: number
 }
 
-export function ScaleIn({
-  children,
-  type = 'zoom',
-  duration = 300,
-  delay = 0,
-}: ScaleInProps) {
+export function ScaleIn({ children, type = 'zoom', duration = 300, delay = 0 }: ScaleInProps) {
   const getEnteringAnimation = () => {
     const baseAnimation = (() => {
       switch (type) {
@@ -41,9 +31,5 @@ export function ScaleIn({
     return baseAnimation.duration(duration).delay(delay)
   }
 
-  return (
-    <Animated.View entering={getEnteringAnimation()}>
-      {children}
-    </Animated.View>
-  )
+  return <Animated.View entering={getEnteringAnimation()}>{children}</Animated.View>
 }

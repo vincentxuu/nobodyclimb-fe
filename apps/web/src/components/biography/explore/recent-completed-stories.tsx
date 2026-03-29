@@ -1,24 +1,24 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Sparkles,
-  Mountain,
-  MessageCircle,
-  Link as LinkIcon,
-  Clock,
   Brain,
   ChevronRight,
+  Clock,
+  Link as LinkIcon,
   Loader2,
+  MessageCircle,
+  Mountain,
+  Sparkles,
 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Card, CardContent } from '@/components/ui/card'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { bucketListService } from '@/lib/api/services'
-import { BucketListItem, BUCKET_LIST_CATEGORIES } from '@/lib/types'
+import { BUCKET_LIST_CATEGORIES, BucketListItem } from '@/lib/types'
 
 interface RecentCompletedStoriesProps {
   searchTerm?: string
@@ -128,7 +128,9 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
 
       {items.length === 0 ? (
         <div className="flex min-h-[150px] items-center justify-center text-gray-500">
-          {searchTerm ? t('noCompletedStoriesForSearch', { term: searchTerm }) : t('noCompletedStories')}
+          {searchTerm
+            ? t('noCompletedStoriesForSearch', { term: searchTerm })
+            : t('noCompletedStories')}
         </div>
       ) : (
         <div className="space-y-6">
@@ -163,7 +165,10 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                       </div>
                       <div>
                         <span className="font-medium text-[#1B1A1A]">{item.author_name}</span>
-                        <span className="text-gray-600"> {t('completedGoal', { title: item.title })}</span>
+                        <span className="text-gray-600">
+                          {' '}
+                          {t('completedGoal', { title: item.title })}
+                        </span>
                       </div>
                     </Link>
                     <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -210,11 +215,13 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                   )}
 
                   {/* 完成故事摘要 */}
-                  {item.completion_story && !item.psychological_insights && !item.technical_insights && (
-                    <div className="mb-4">
-                      <p className="line-clamp-3 text-gray-700">{item.completion_story}</p>
-                    </div>
-                  )}
+                  {item.completion_story &&
+                    !item.psychological_insights &&
+                    !item.technical_insights && (
+                      <div className="mb-4">
+                        <p className="line-clamp-3 text-gray-700">{item.completion_story}</p>
+                      </div>
+                    )}
 
                   {/* 互動資訊 */}
                   <div className="flex items-center justify-between border-t pt-4">
@@ -233,7 +240,11 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                       </span>
                     </div>
                     <Link href={`/biography/profile/${item.author_slug || item.biography_id}`}>
-                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-600 hover:text-gray-900"
+                      >
                         {t('viewFullStory')}
                         <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>

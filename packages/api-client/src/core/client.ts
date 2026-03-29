@@ -2,8 +2,8 @@
  * API Client 核心實作
  */
 
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { API_TIMEOUT, RETRY_CONFIG } from '@nobodyclimb/constants'
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import type {
   ApiClientConfig,
   ApiResponse,
@@ -22,11 +22,7 @@ function getRetryDelay(retryCount: number, baseDelay: number): number {
 /**
  * 判斷是否應該重試
  */
-function shouldRetry(
-  error: AxiosError,
-  retryCount: number,
-  config: RetryConfig
-): boolean {
+function shouldRetry(error: AxiosError, retryCount: number, config: RetryConfig): boolean {
   if (retryCount >= config.maxRetries) return false
 
   // timeout（ECONNABORTED）或主動取消（ERR_CANCELED）不重試
@@ -145,12 +141,6 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
       if (shouldRetry(error, retryCount, retryConfig)) {
         originalRequest._retryCount = retryCount + 1
         const delay = getRetryDelay(retryCount, retryConfig.retryDelay)
-
-        // eslint-disable-next-line no-console
-        console.info(
-          `[API] 請求失敗，${delay}ms 後重試 (${originalRequest._retryCount}/${retryConfig.maxRetries})`,
-          originalRequest.url
-        )
 
         // 等待後重試
         await new Promise((resolve) => setTimeout(resolve, delay))
