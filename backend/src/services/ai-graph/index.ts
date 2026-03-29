@@ -39,14 +39,49 @@ function sumTokenBreakdown(tb: Record<string, unknown>): number {
  * Post-graph 後處理：等同舊引擎的 postPipelineProcessing。
  * 僅在非 earlyReturn 路徑執行（GK / text-to-sql 已在各自 node 處理完畢）。
  */
+/**
+ * 從 state.trace 提取 phase latency（各階段延遲）
+ */
+function extractPhaseLatency(trace: Record<string, unknown>): {
+  embeddingMs: number | null;
+  retrievalMs: number | null;
+  generationMs: number | null;
+} {
+  // embedding: 從 trace.embedding.duration_ms 提取
+  const embeddingTrace = trace.embedding as
+    | { duration_ms?: number }
+    | undefined;
+  const embeddingMs = embeddingTrace?.duration_ms ?? null;
+
+  // retrieval: 從 hybrid_search / agentic_retrieve 的 trace 提取
+  const hybridTrace = trace.hybrid_search as
+    | { total_duration_ms?: number }
+    | undefined;
+  const agenticTrace = trace.agentic_retrieve as
+    | { step?: number }
+    | undefined;
+  // hybrid_search 有 total_duration_ms；agentic_retrieve 沒有精確時間
+  const retrievalMs = hybridTrace?.total_duration_ms ?? null;
+
+  // generation: 目前 nodes 未記錄精確時間，傳 null
+  const generationMs = null;
+
+  return {
+    embeddingMs: embeddingMs && embeddingMs > 0 ? embeddingMs : null,
+    retrievalMs: retrievalMs && retrievalMs > 0 ? retrievalMs : null,
+    generationMs,
+  };
+}
+
 async function postGraphProcessing(
   state: GraphState,
 ): Promise<AIAskResponse> {
   const { queryService, pipelineConfig } = state;
 
-  // ---- Token breakdown 彙總 ----
+  // ---- Token breakdown 彙總（不 mutate state.trace，建立副本）----
+  const finalTrace = { ...state.trace };
   if (Object.keys(state.tokenBreakdown).length > 0) {
-    state.trace.token_breakdown = state.tokenBreakdown;
+    finalTrace.token_breakdown = state.tokenBreakdown;
   }
   const totalStageTokens = sumTokenBreakdown(
     state.tokenBreakdown as Record<string, unknown>,
@@ -63,6 +98,9 @@ async function postGraphProcessing(
       ? totalStageTokens
       : (mainGenUsage?.total_tokens ?? estimatedTokens);
 
+  // ---- Phase latency 提取 ----
+  const phaseLatency = extractPhaseLatency(finalTrace);
+
   // ---- logQuery ----
   const queryId = await queryService.logQuery({
     userId: state.userId ?? null,
@@ -74,9 +112,9 @@ async function postGraphProcessing(
     tokenCount,
     groundednessScore: state.groundedness ?? null,
     autoScore: state.quality ?? null,
-    embeddingMs: null,
-    retrievalMs: null,
-    generationMs: null,
+    embeddingMs: phaseLatency.embeddingMs,
+    retrievalMs: phaseLatency.retrievalMs,
+    generationMs: phaseLatency.generationMs,
     queryType: state.queryType,
     modelUsed: state.effectiveLlmModel,
     retrievalScore: state.retrievalScore ?? 0,
@@ -84,8 +122,8 @@ async function postGraphProcessing(
     isHighConsumption: tokenCount > pipelineConfig.high_consumption_threshold,
     hydeTriggered: (state.hydeDoc ?? "") !== "",
     pipelineTrace:
-      Object.keys(state.trace).length > 0
-        ? JSON.stringify(state.trace)
+      Object.keys(finalTrace).length > 0
+        ? JSON.stringify(finalTrace)
         : undefined,
   });
 
