@@ -19,7 +19,7 @@
     "build:cf": "turbo run build:cf --filter=@nobodyclimb/web",
     "lint": "biome check .",
     "test": "turbo run test",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "pnpm -r --if-present run typecheck",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "android": "expo run:android",

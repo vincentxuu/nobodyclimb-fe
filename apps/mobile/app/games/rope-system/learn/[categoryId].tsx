@@ -277,7 +277,6 @@ export default function LearnScreen() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>()
   const {
     currentSession,
-    soundEnabled,
     vibrationEnabled,
     startGame,
     submitAnswer,

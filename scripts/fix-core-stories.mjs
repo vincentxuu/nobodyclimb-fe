@@ -78,7 +78,7 @@ async function main() {
     results.push({ id, slug: bio.slug, extracted })
   }
 
-  for (const { id, slug, extracted } of results) {
+  for (const { extracted } of results) {
     let hasData = false
     for (const [_field, value] of Object.entries(extracted)) {
       if (value && value.trim()) {
@@ -87,7 +87,7 @@ async function main() {
         const _escapedValue = value.replace(/'/g, "''")
       }
     }
-    if (!hasData)
+    if (!hasData) continue
   }
 }
 

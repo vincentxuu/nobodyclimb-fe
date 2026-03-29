@@ -3,7 +3,7 @@ import { endSpan, startSpan } from '../../../utils/langfuse'
 import { GraphState } from '../state'
 
 export async function judgeNode(state: GraphState): Promise<Partial<GraphState>> {
-  const { pipelineConfig, prompts, trace, queryService } = state
+  const { pipelineConfig, prompts, queryService } = state
 
   const span = startSpan(state.langfuseTrace ?? null, 'judge', {
     queryType: state.queryType,

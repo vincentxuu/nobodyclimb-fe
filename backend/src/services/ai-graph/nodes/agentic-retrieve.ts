@@ -159,8 +159,7 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
             url: queryService.buildUrl(doc),
             score:
               merged.find((m) => m.id === doc.source_id || documents.get(m.id) === doc)?.score ?? 0,
-            latestVideoUrl:
-              doc.type === 'route' ? latestVideoMap.get(doc.source_id) : undefined,
+            latestVideoUrl: doc.type === 'route' ? latestVideoMap.get(doc.source_id) : undefined,
           }) as AISource
       )
       .filter((s): s is AISource => s !== null)

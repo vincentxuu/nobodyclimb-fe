@@ -74,9 +74,6 @@ const _ALL_STORY_FIELDS = [...CORE_STORY_FIELDS, ...ADVANCED_STORY_FIELDS] as co
 /** BiographyV2 新欄位 */
 const _V2_FIELDS = ['visibility', 'tags_data', 'basic_info_data', 'autosave_at'] as const
 
-/** Visibility 等級 */
-type VisibilityLevel = 'private' | 'anonymous' | 'community' | 'public'
-
 export const biographiesRoutes = new Hono<{ Bindings: Env }>()
 
 // ═══════════════════════════════════════════════════════════

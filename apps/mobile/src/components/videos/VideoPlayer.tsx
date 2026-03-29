@@ -33,7 +33,7 @@ try {
   // WebView 未安裝，使用備用方案
 }
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 export interface VideoPlayerProps {
   /** 影片資料 */

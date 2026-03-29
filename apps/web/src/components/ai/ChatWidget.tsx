@@ -120,7 +120,7 @@ export function ChatWidget() {
 
     getMyQuota()
       .then(setQuota)
-      .catch(() => { })
+      .catch(() => {})
 
     if (isAuthenticated && !sessionIdRef.current) {
       getChatSessions()
@@ -135,24 +135,24 @@ export function ChatWidget() {
                   prev.length > 0
                     ? prev
                     : msgs.map((m) => ({
-                      id: m.id,
-                      role: m.role,
-                      content: m.content,
-                      sources: undefined,
-                      queryId: m.query_id,
-                      suggestedQuestions: m.suggested_questions
-                        ? typeof m.suggested_questions === 'string'
-                          ? JSON.parse(m.suggested_questions)
-                          : m.suggested_questions
-                        : undefined,
-                    }))
+                        id: m.id,
+                        role: m.role,
+                        content: m.content,
+                        sources: undefined,
+                        queryId: m.query_id,
+                        suggestedQuestions: m.suggested_questions
+                          ? typeof m.suggested_questions === 'string'
+                            ? JSON.parse(m.suggested_questions)
+                            : m.suggested_questions
+                          : undefined,
+                      }))
                 )
               })
-              .catch(() => { })
+              .catch(() => {})
           } else {
             createChatSession()
               .then((s) => updateSessionId(s.id))
-              .catch(() => { })
+              .catch(() => {})
           }
         })
         .catch(() => {
@@ -262,12 +262,12 @@ export function ChatWidget() {
             prev.map((m) =>
               m.id === streamingMsgId
                 ? {
-                  ...m,
-                  // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
-                  ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
-                  sources: doneEvent.sources,
-                  queryId: doneEvent.query_id,
-                }
+                    ...m,
+                    // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
+                    ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
+                    sources: doneEvent.sources,
+                    queryId: doneEvent.query_id,
+                  }
                 : m
             )
           )
@@ -276,10 +276,10 @@ export function ChatWidget() {
             setQuota((prev) =>
               prev
                 ? {
-                  ...prev,
-                  remaining: doneEvent.quota_remaining,
-                  daily_used: prev.daily_limit - doneEvent.quota_remaining,
-                }
+                    ...prev,
+                    remaining: doneEvent.quota_remaining,
+                    daily_used: prev.daily_limit - doneEvent.quota_remaining,
+                  }
                 : prev
             )
           }
@@ -554,7 +554,7 @@ export function ChatWidget() {
     if (sid) {
       try {
         await deleteChatSession(sid)
-      } catch { }
+      } catch {}
     }
     setMessages([])
     setSuggestedQuestions([])
@@ -566,7 +566,7 @@ export function ChatWidget() {
       try {
         const newSession = await createChatSession()
         updateSessionId(newSession.id)
-      } catch { }
+      } catch {}
     }
   }, [isAuthenticated, updateSessionId])
 
@@ -579,7 +579,7 @@ export function ChatWidget() {
     try {
       const newSession = await createChatSession()
       updateSessionId(newSession.id)
-    } catch { }
+    } catch {}
   }, [updateSessionId])
 
   // 開啟歷史面板
@@ -587,7 +587,7 @@ export function ChatWidget() {
     try {
       const list = await getChatSessions()
       setSessions(list)
-    } catch { }
+    } catch {}
     setShowHistory(true)
   }, [])
 
@@ -613,7 +613,7 @@ export function ChatWidget() {
         )
         setSuggestedQuestions([])
         setShowHistory(false)
-      } catch { }
+      } catch {}
     },
     [updateSessionId]
   )
@@ -868,11 +868,11 @@ export function ChatWidget() {
                     {/* 載入狀態 */}
                     {(isPending ||
                       (isStreaming && messages[messages.length - 1]?.content === '')) && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>思考中...</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>思考中...</span>
+                      </div>
+                    )}
                     <div ref={messagesEndRef} />
                   </>
                 )}

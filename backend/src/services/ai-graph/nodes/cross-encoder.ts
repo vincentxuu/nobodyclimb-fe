@@ -6,18 +6,23 @@ export async function crossEncoderNode(state: GraphState): Promise<Partial<Graph
     candidateCount: (state.candidateMatches ?? []).length,
   })
   try {
+    const existingRetrievalTrace = (state.trace?.retrieval ?? {}) as Record<string, unknown>
+
     // Plan-and-Execute 已完成 synthesis，跳過 post-retrieval
     if (state.skipPostRetrieval) {
       endSpan(span, { output: { skipped: true } })
       return {
         scoredCandidates: state.candidateMatches ?? [],
         trace: {
-          retrieval: { reranker: { skipped_reason: 'skipPostRetrieval' } },
+          retrieval: {
+            ...existingRetrievalTrace,
+            reranker: { skipped_reason: 'skipPostRetrieval' },
+          },
         },
       }
     }
 
-    const { env, request, trace } = state
+    const { env, request } = state
     const candidateMatches = state.candidateMatches ?? []
     const documents = state.documents ?? new Map()
 
@@ -28,7 +33,10 @@ export async function crossEncoderNode(state: GraphState): Promise<Partial<Graph
       return {
         scoredCandidates: candidateMatches,
         trace: {
-          retrieval: { reranker: { skipped_reason: 'too_few_candidates' } },
+          retrieval: {
+            ...existingRetrievalTrace,
+            reranker: { skipped_reason: 'too_few_candidates' },
+          },
         },
       }
     }
@@ -75,7 +83,12 @@ export async function crossEncoderNode(state: GraphState): Promise<Partial<Graph
         endSpan(span, { output: { scoredCount: scoredCandidates.length } })
         return {
           scoredCandidates,
-          trace: { retrieval: rerankerTrace },
+          trace: {
+            retrieval: {
+              ...existingRetrievalTrace,
+              ...rerankerTrace,
+            },
+          },
         }
       } else {
         endSpan(span, { output: { scoredCount: candidateMatches.length } })

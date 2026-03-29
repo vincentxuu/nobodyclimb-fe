@@ -20,8 +20,6 @@ const postMetadataSchema = z.object({
   tags: z.array(z.string()),
 })
 
-type PostMetadata = z.infer<typeof postMetadataSchema>
-
 /**
  * Post 列表回應格式
  */

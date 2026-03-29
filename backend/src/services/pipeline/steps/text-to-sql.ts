@@ -21,8 +21,7 @@ export const textToSqlStep: PipelineStep = {
   ],
 
   async execute(ctx: PipelineContext): Promise<PipelineContext> {
-    const { env, request, pipelineConfig, gatewayOptions, trace, queryService } = ctx
-    const { query } = request
+    const { env } = ctx
 
     const sqlService = new TextToSqlService(env.DB)
 

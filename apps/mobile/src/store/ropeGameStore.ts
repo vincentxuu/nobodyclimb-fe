@@ -108,7 +108,7 @@ export const useRopeGameStore = create<RopeGameState>((set, get) => ({
   },
 
   updateCategoryProgress: async (categoryId, progressUpdate) => {
-    const { progress, totalScore } = get()
+    const { progress } = get()
     const existing = progress.get(categoryId)
 
     const updated: CategoryProgress = {

@@ -1,5 +1,5 @@
 const React = require('react')
-const { Text, View } = require('react-native')
+const { Text } = require('react-native')
 
 // Simple markdown mock that strips common markers so text content is testable
 function stripMarkdown(text) {

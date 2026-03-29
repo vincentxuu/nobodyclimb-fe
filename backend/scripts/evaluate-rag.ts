@@ -58,13 +58,6 @@ interface MetricsResult {
   success_rate: number | null
 }
 
-interface RedTeamMetrics {
-  overall_safety_rate: number
-  guardrail_block_rate: number | null
-  safe_refusal_rate: number | null
-  per_type_stats: Record<string, { total: number; passed: number; rate: number }>
-}
-
 interface Thresholds {
   tool_accuracy: number
   faithfulness: number

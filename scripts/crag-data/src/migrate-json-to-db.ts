@@ -399,7 +399,7 @@ function migrateToD1(
               const videoUrl = route.youtubeVideos[i]
               const videoId = extractYouTubeVideoId(videoUrl)
 
-              if (videoId && videoMetadata.has(videoId)) {
+              if (routeId && videoId && videoMetadata.has(videoId)) {
                 routeVideoSQLs.push(buildRouteVideoSQL(routeId, videoId, i))
               }
             }

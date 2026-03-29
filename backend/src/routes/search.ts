@@ -34,7 +34,7 @@ searchRoutes.get(
   validator('query', searchQuerySchema),
   async (c) => {
     const { q: query, type, page: pageStr, limit: limitStr } = c.req.valid('query')
-    const { page, limit, offset } = parsePagination(pageStr, limitStr)
+    const { page, limit } = parsePagination(pageStr, limitStr)
 
     const searchPattern = `%${query}%`
     const results: Record<string, unknown[]> = {}
