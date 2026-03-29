@@ -41,9 +41,9 @@ import { ChatMessage } from './ChatMessage'
 // =============================================
 const SUGGESTION_POOL = [
   // 完攀推薦型：用 5.10 以下熱門路線名，請 AI 推薦下一條
-  '我爬了終極右和道長，推薦我下一條關子嶺路線',
+  '我爬了終極右和天天天藍，推薦我下一條關子嶺路線',
   '我剛完攀剃刀邊緣 5.10c，推薦我類似難度的路線',
-  '我爬了留校察看和結婚的日子，接下來推薦什麼？',
+  '我爬了結婚的日子，接下來推薦什麼？',
   '我爬了斜陽跟新竹客家人，推薦墾丁下一條',
   '我完攀了天天天藍 5.10d，推薦我下一條',
   // 難度挑戰型：指定岩場與難度找路線
@@ -53,14 +53,14 @@ const SUGGESTION_POOL = [
   '關子嶺推薦 2 條 5.10 的路線',
   '德芙蘭推薦幾條 5.9 的入門路線',
   // 進階推薦型：帶完攀紀錄，請 AI 推薦進階路線
-  '我爬過倒走天梯和白鯨記，推薦我龍洞下一條',
+  '我爬過白龍夢和白鯨記，推薦我龍洞下一條',
   '我最高完攀 5.10d，推薦 3 條可以嘗試突破的路線',
-  '我在壽山爬了山頂洞人和蛹夢，推薦我進階路線',
+  '我在壽山爬了山頂洞人，推薦我進階路線',
   '我在關子嶺爬了新手上路和右耳，推薦下一條',
   '我在墾丁爬了小精靈和水牛，推薦我下一條',
   // 5.11 挑戰型：用 5.11 熱門路線
   '我完攀了美人照鏡 5.11b，推薦我類似難度的路線',
-  '我爬了橋下風光和赤頭 5.11a，推薦下一條',
+  '我爬了大家的福利和赤頭 5.11a，推薦下一條',
   '我在龍洞完攀了新法拉利 5.11c，推薦我進階路線',
   '推薦 3 條龍洞 5.11 的經典路線',
   '推薦 3 條關子嶺 5.11 的路線',
@@ -120,7 +120,7 @@ export function ChatWidget() {
 
     getMyQuota()
       .then(setQuota)
-      .catch(() => {})
+      .catch(() => { })
 
     if (isAuthenticated && !sessionIdRef.current) {
       getChatSessions()
@@ -135,24 +135,24 @@ export function ChatWidget() {
                   prev.length > 0
                     ? prev
                     : msgs.map((m) => ({
-                        id: m.id,
-                        role: m.role,
-                        content: m.content,
-                        sources: undefined,
-                        queryId: m.query_id,
-                        suggestedQuestions: m.suggested_questions
-                          ? typeof m.suggested_questions === 'string'
-                            ? JSON.parse(m.suggested_questions)
-                            : m.suggested_questions
-                          : undefined,
-                      }))
+                      id: m.id,
+                      role: m.role,
+                      content: m.content,
+                      sources: undefined,
+                      queryId: m.query_id,
+                      suggestedQuestions: m.suggested_questions
+                        ? typeof m.suggested_questions === 'string'
+                          ? JSON.parse(m.suggested_questions)
+                          : m.suggested_questions
+                        : undefined,
+                    }))
                 )
               })
-              .catch(() => {})
+              .catch(() => { })
           } else {
             createChatSession()
               .then((s) => updateSessionId(s.id))
-              .catch(() => {})
+              .catch(() => { })
           }
         })
         .catch(() => {
@@ -262,12 +262,12 @@ export function ChatWidget() {
             prev.map((m) =>
               m.id === streamingMsgId
                 ? {
-                    ...m,
-                    // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
-                    ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
-                    sources: doneEvent.sources,
-                    queryId: doneEvent.query_id,
-                  }
+                  ...m,
+                  // 用後端後處理版本（已注入路線/影片連結）替換串流原始累積文字
+                  ...(doneEvent.answer ? { content: doneEvent.answer } : {}),
+                  sources: doneEvent.sources,
+                  queryId: doneEvent.query_id,
+                }
                 : m
             )
           )
@@ -276,10 +276,10 @@ export function ChatWidget() {
             setQuota((prev) =>
               prev
                 ? {
-                    ...prev,
-                    remaining: doneEvent.quota_remaining,
-                    daily_used: prev.daily_limit - doneEvent.quota_remaining,
-                  }
+                  ...prev,
+                  remaining: doneEvent.quota_remaining,
+                  daily_used: prev.daily_limit - doneEvent.quota_remaining,
+                }
                 : prev
             )
           }
@@ -554,7 +554,7 @@ export function ChatWidget() {
     if (sid) {
       try {
         await deleteChatSession(sid)
-      } catch {}
+      } catch { }
     }
     setMessages([])
     setSuggestedQuestions([])
@@ -566,7 +566,7 @@ export function ChatWidget() {
       try {
         const newSession = await createChatSession()
         updateSessionId(newSession.id)
-      } catch {}
+      } catch { }
     }
   }, [isAuthenticated, updateSessionId])
 
@@ -579,7 +579,7 @@ export function ChatWidget() {
     try {
       const newSession = await createChatSession()
       updateSessionId(newSession.id)
-    } catch {}
+    } catch { }
   }, [updateSessionId])
 
   // 開啟歷史面板
@@ -587,7 +587,7 @@ export function ChatWidget() {
     try {
       const list = await getChatSessions()
       setSessions(list)
-    } catch {}
+    } catch { }
     setShowHistory(true)
   }, [])
 
@@ -613,7 +613,7 @@ export function ChatWidget() {
         )
         setSuggestedQuestions([])
         setShowHistory(false)
-      } catch {}
+      } catch { }
     },
     [updateSessionId]
   )
@@ -868,11 +868,11 @@ export function ChatWidget() {
                     {/* 載入狀態 */}
                     {(isPending ||
                       (isStreaming && messages[messages.length - 1]?.content === '')) && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>思考中...</span>
-                      </div>
-                    )}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>思考中...</span>
+                        </div>
+                      )}
                     <div ref={messagesEndRef} />
                   </>
                 )}
