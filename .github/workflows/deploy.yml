@@ -15,8 +15,48 @@ on:
       - 'packages/**'
 
 jobs:
-  deploy:
+  build:
+    name: Build Web (PR Check)
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages and web
+        run: pnpm turbo run build:cf --filter=@nobodyclimb/web
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api-preview.nobodyclimb.cc/api/v1'
+          NEXT_PUBLIC_ENABLE_ANALYTICS: 'false'
+          NEXT_PUBLIC_ENABLE_AI_CHAT: 'true'
+          NEXT_PUBLIC_ENABLE_AI_STREAMING: 'true'
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_GA_ID: ${{ secrets.GA_ID }}
+          NEXT_PUBLIC_CLARITY_ID: ${{ secrets.CLARITY_ID }}
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+  deploy:
+    name: Deploy Web (Push Only)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout
