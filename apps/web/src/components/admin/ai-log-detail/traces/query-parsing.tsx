@@ -1,7 +1,7 @@
 'use client'
 
 import { IOFlow, KVRow, StageDesc, StageSection, TraceBadge } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function QueryParsingTrace({ trace, query }: { trace: PipelineTrace; query: string }) {
   const qp = trace.query_parsing
@@ -22,7 +22,10 @@ export function QueryParsingTrace({ trace, query }: { trace: PipelineTrace; quer
     sql: 'amber',
     'multi-tool': 'default',
   }
-  const alternatives = qp?.alternatives ?? ['search_routes', 'search_crags', 'general_knowledge']
+  const alternatives = qp
+    ? ensureArray<string>(qp.alternatives)
+    : ['search_routes', 'search_crags', 'general_knowledge']
+  const params = qp?.params ?? {}
   const ts = trace.tool_selection
 
   return (
@@ -99,11 +102,11 @@ export function QueryParsingTrace({ trace, query }: { trace: PipelineTrace; quer
                   />
                 </div>
               )}
-              {Object.keys(qp.params).length > 0 && (
+              {Object.keys(params).length > 0 && (
                 <div>
                   <p className="text-wb-40 mb-1">LLM 抽取 Params：</p>
                   <div className="space-y-0.5">
-                    {Object.entries(qp.params).map(([k, v]) => (
+                    {Object.entries(params).map(([k, v]) => (
                       <KVRow key={k} label={k} value={JSON.stringify(v)} />
                     ))}
                   </div>

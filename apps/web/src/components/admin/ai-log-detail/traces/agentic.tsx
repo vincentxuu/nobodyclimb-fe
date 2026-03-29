@@ -1,7 +1,7 @@
 'use client'
 
 import { IOFlow, KVRow, StageDesc, StageSection, TraceBadge } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function AgenticTrace({ trace }: { trace: PipelineTrace }) {
   const a = trace.agentic
@@ -23,6 +23,16 @@ export function AgenticTrace({ trace }: { trace: PipelineTrace }) {
   }
 
   const ini = a.initial_search
+  const steps = ensureArray<{
+    step: number
+    type: string
+    refinedQuery?: string
+    docs_retrieved?: number
+    targetTool?: string
+    reason?: string
+    subQueries?: string[]
+    verifyQuery?: string
+  }>(a.steps)
 
   return (
     <div>
@@ -82,11 +92,11 @@ export function AgenticTrace({ trace }: { trace: PipelineTrace }) {
           </StageSection>
         )}
         <StageSection type="decision">
-          {a.steps.length > 0 ? (
+          {steps.length > 0 ? (
             <div className="space-y-1.5">
               <p className="text-wb-40">LLM 決策步驟：</p>
               <ol className="space-y-1.5">
-                {a.steps.map((s, i) => (
+                {steps.map((s, i) => (
                   <li key={i} className="space-y-0.5">
                     <div className="flex items-start gap-2">
                       <span className="shrink-0 text-wb-40 tabular-nums text-[10px] mt-0.5">
@@ -117,9 +127,9 @@ export function AgenticTrace({ trace }: { trace: PipelineTrace }) {
                     {s.type === 'SWITCH_TOOL' && s.reason && (
                       <p className="ml-12 text-[10px] text-wb-40">{s.reason}</p>
                     )}
-                    {s.type === 'DECOMPOSE' && s.subQueries && (
+                    {s.type === 'DECOMPOSE' && ensureArray<string>(s.subQueries).length > 0 && (
                       <div className="ml-12 space-y-0.5">
-                        {s.subQueries.map((sq, j) => (
+                        {ensureArray<string>(s.subQueries).map((sq, j) => (
                           <p key={j} className="text-[10px] text-wb-50 font-mono">
                             • {sq}
                           </p>

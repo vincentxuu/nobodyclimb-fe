@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { IOFlow, KVRow, StageDesc, StageSection, TraceBadge } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function GenerationTrace({
   trace,
@@ -22,6 +22,8 @@ export function GenerationTrace({
   const model = pipelineStage?.model as string | null | undefined
   const tokenCount = pipelineStage?.token_count as number | null | undefined
   const durationMs = pipelineStage?.duration_ms as number | null | undefined
+  const contextDocTitles = ensureArray<string>(g.context_doc_titles)
+  const suggestedQuestions = ensureArray<string>(g.suggested_questions)
 
   return (
     <div>
@@ -39,13 +41,13 @@ export function GenerationTrace({
               label="查詢"
               value={<span className="italic text-wb-60 line-clamp-1">{query}</span>}
             />
-            {g.context_doc_titles && g.context_doc_titles.length > 0 && (
+            {contextDocTitles.length > 0 && (
               <div>
                 <p className="text-wb-40 text-[10px] mb-1">
-                  注入 Prompt 的文件（前 {g.context_doc_titles.length} 筆）：
+                  注入 Prompt 的文件（前 {contextDocTitles.length} 筆）：
                 </p>
                 <ol className="space-y-0.5">
-                  {g.context_doc_titles.map((title, i) => (
+                  {contextDocTitles.map((title, i) => (
                     <li key={i} className="flex gap-1.5 text-[11px]">
                       <span className="shrink-0 text-wb-40 tabular-nums">{i + 1}.</span>
                       <span className="text-wb-70 truncate">{title}</span>
@@ -134,13 +136,11 @@ export function GenerationTrace({
         <StageSection type="output">
           <div className="space-y-1">
             {tokenCount != null && <KVRow label="Token 用量" value={`${tokenCount} tokens`} />}
-            {g.suggested_questions && g.suggested_questions.length > 0 && (
+            {suggestedQuestions.length > 0 && (
               <div>
-                <p className="text-wb-40 mb-1">
-                  生成建議問題（{g.suggested_questions.length} 條）：
-                </p>
+                <p className="text-wb-40 mb-1">生成建議問題（{suggestedQuestions.length} 條）：</p>
                 <ol className="space-y-0.5">
-                  {g.suggested_questions.map((q, i) => (
+                  {suggestedQuestions.map((q, i) => (
                     <li key={i} className="flex gap-2">
                       <span className="shrink-0 text-wb-40 tabular-nums">{i + 1}.</span>
                       <span className="text-wb-70">{q}</span>

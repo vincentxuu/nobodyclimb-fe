@@ -15,3 +15,7 @@ export type StageBreakdownItem = {
 export type TokenBreakdown = NonNullable<
   NonNullable<AILogDetail['pipeline_trace']>['token_breakdown']
 >
+
+export function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : []
+}

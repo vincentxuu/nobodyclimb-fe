@@ -30,6 +30,102 @@ export const adminAiRoutes = new Hono<{ Bindings: Env }>()
 // 所有路由需要管理員權限
 adminAiRoutes.use('*', authMiddleware, adminMiddleware)
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  return value as Record<string, unknown>
+}
+
+function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : []
+}
+
+function normalizeAILogPipelineTrace(trace: unknown): unknown {
+  const normalized = asRecord(trace)
+  if (!normalized) return trace
+
+  const retrieval = asRecord(normalized.retrieval)
+  if (retrieval) {
+    retrieval.paths = ensureArray<string>(retrieval.paths)
+    const reranker = asRecord(retrieval.reranker)
+    retrieval.reranker = reranker
+    if (reranker) {
+      reranker.top_scores = ensureArray(reranker.top_scores)
+    }
+    const cragFallbackDetail = asRecord(retrieval.crag_fallback_detail)
+    retrieval.crag_fallback_detail = cragFallbackDetail
+    if (cragFallbackDetail) {
+      cragFallbackDetail.retries = ensureArray(cragFallbackDetail.retries)
+    }
+    const pathResults = asRecord(retrieval.path_results)
+    if (pathResults) {
+      retrieval.path_results = Object.fromEntries(
+        Object.entries(pathResults).map(([key, value]) => [key, ensureArray(value)])
+      )
+    }
+  }
+
+  const queryParsing = asRecord(normalized.query_parsing)
+  if (queryParsing) {
+    queryParsing.alternatives = ensureArray<string>(queryParsing.alternatives)
+  }
+
+  const multiQuery = asRecord(normalized.multi_query)
+  if (multiQuery) {
+    multiQuery.queries = ensureArray<string>(multiQuery.queries)
+  }
+
+  const generation = asRecord(normalized.generation)
+  if (generation) {
+    generation.suggested_questions = ensureArray<string>(generation.suggested_questions)
+    generation.context_doc_titles = ensureArray<string>(generation.context_doc_titles)
+  }
+
+  const agentic = asRecord(normalized.agentic)
+  if (agentic) {
+    agentic.steps = ensureArray(agentic.steps).map((step) => {
+      const stepRecord = asRecord(step) ?? {}
+      stepRecord.subQueries = ensureArray<string>(stepRecord.subQueries)
+      return stepRecord
+    })
+  }
+
+  const planExecute = asRecord(normalized.plan_execute)
+  if (planExecute) {
+    const plan = asRecord(planExecute.plan)
+    if (plan) plan.steps = ensureArray(plan.steps)
+    planExecute.steps = ensureArray(planExecute.steps)
+    const adaptiveReplanInfo = asRecord(planExecute.adaptive_replan_info)
+    if (adaptiveReplanInfo) {
+      adaptiveReplanInfo.new_steps = ensureArray(adaptiveReplanInfo.new_steps)
+    }
+  }
+
+  const multiTool = asRecord(normalized.multi_tool)
+  if (multiTool) {
+    multiTool.steps = ensureArray(multiTool.steps)
+  }
+
+  const mmrSelection = asRecord(normalized.mmr_selection)
+  if (mmrSelection) {
+    mmrSelection.top_selected = ensureArray(mmrSelection.top_selected)
+  }
+
+  const popularityRerank = asRecord(normalized.popularity_rerank)
+  if (popularityRerank) {
+    popularityRerank.top_selected = ensureArray(popularityRerank.top_selected)
+  }
+
+  const tokenBreakdown = asRecord(normalized.token_breakdown)
+  if (tokenBreakdown) {
+    tokenBreakdown.agentic_decisions = ensureArray(tokenBreakdown.agentic_decisions)
+  }
+
+  normalized.degraded_stages = ensureArray<string>(normalized.degraded_stages)
+  normalized.pipeline_execution = ensureArray(normalized.pipeline_execution)
+
+  return normalized
+}
+
 // =============================================
 // GET /dashboard - KPI 數據
 // =============================================
@@ -418,6 +514,7 @@ adminAiRoutes.get(
       let pipelineTrace: unknown = null
       try {
         pipelineTrace = JSON.parse((log.pipeline_trace as string) ?? 'null')
+        pipelineTrace = normalizeAILogPipelineTrace(pipelineTrace)
       } catch {
         /* ignore */
       }

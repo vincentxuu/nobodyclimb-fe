@@ -1,11 +1,29 @@
 'use client'
 
 import { IOFlow, KVRow, StageDesc, StageSection, TraceBadge } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function PlanAndExecuteTrace({ trace }: { trace: PipelineTrace }) {
   const pe = trace.plan_execute
   if (!pe) return <p className="text-[11px] text-wb-40">無詳細資料</p>
+  const planSteps = ensureArray<{
+    id: number
+    query: string
+    tool: string
+    depends_on: number[]
+    filters?: Record<string, unknown>
+  }>(pe.plan?.steps)
+  const executionSteps = ensureArray<{
+    stepId: number
+    query: string
+    tool: string
+    result_count: number
+    duration_ms: number
+    error?: string
+  }>(pe.steps)
+  const newSteps = ensureArray<{ id: number; query: string; tool: string }>(
+    pe.adaptive_replan_info?.new_steps
+  )
 
   const hasFallback = !!pe.plan_fallback
 
@@ -76,17 +94,17 @@ export function PlanAndExecuteTrace({ trace }: { trace: PipelineTrace }) {
                         : pe.plan.execution_mode
                   }
                 />
-                <KVRow label="計畫子任務" value={`${pe.plan.steps.length} 步`} />
+                <KVRow label="計畫子任務" value={`${planSteps.length} 步`} />
               </>
             )}
           </div>
         </StageSection>
         <StageSection type="decision">
-          {pe.steps && pe.steps.length > 0 ? (
+          {executionSteps.length > 0 ? (
             <div className="space-y-1.5">
               <p className="text-wb-40">子任務執行結果：</p>
               <ol className="space-y-1.5">
-                {pe.steps.map((s, i) => (
+                {executionSteps.map((s, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="shrink-0 text-wb-40 tabular-nums text-[10px] mt-0.5">
                       #{s.stepId}
@@ -115,7 +133,7 @@ export function PlanAndExecuteTrace({ trace }: { trace: PipelineTrace }) {
                   {pe.adaptive_replan_info.reason}）
                 </span>
               </div>
-              {pe.adaptive_replan_info.new_steps.map((ns, i) => (
+              {newSteps.map((ns, i) => (
                 <div key={i} className="flex items-center gap-2 text-[10px]">
                   <span className="text-wb-40">替代：</span>
                   <TraceBadge text={ns.tool} color="blue" />

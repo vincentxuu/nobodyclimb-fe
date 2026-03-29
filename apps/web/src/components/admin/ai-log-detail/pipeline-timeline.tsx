@@ -11,7 +11,7 @@ import {
 import { calcCost } from './cost-analysis'
 import { STAGE_LABELS, StageIcon, StatusBadge } from './shared'
 import { StageTraceDetail } from './traces'
-import type { PipelineKey } from './types'
+import { ensureArray, type PipelineKey } from './types'
 
 export function PipelineTimeline({
   pipeline,
@@ -28,6 +28,19 @@ export function PipelineTimeline({
 }) {
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
   const [allExpanded, setAllExpanded] = useState(false)
+  const degradedStages = ensureArray<string>(pipelineTrace?.degraded_stages)
+  const pipelineExecution = ensureArray<{ step: string; timeout?: boolean }>(
+    pipelineTrace?.pipeline_execution
+  )
+  const agenticDecisionUsages = ensureArray<{
+    prompt_tokens: number
+    completion_tokens: number
+    estimated: boolean
+  }>(pipelineTrace?.token_breakdown?.agentic_decisions)
+  const multiQueryItems = ensureArray<string>(pipelineTrace?.multi_query?.queries)
+  const cragFallbackRetries = ensureArray<{ removed_filter: string; candidates_after: number }>(
+    pipelineTrace?.retrieval?.crag_fallback_detail?.retries
+  )
   const { data: aiConfig } = useAIConfig()
   const primaryProvider = useMemo<CostProvider | null>(() => {
     try {
@@ -142,23 +155,21 @@ export function PipelineTimeline({
       </div>
       <p className="mb-4 text-[11px] text-wb-40">點擊各階段展開 Input → Decision → Output 詳情</p>
 
-      {pipelineTrace?.degraded &&
-        pipelineTrace.degraded_stages &&
-        pipelineTrace.degraded_stages.length > 0 && (
-          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
-            <p className="text-xs font-medium text-amber-700">降級階段</p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {pipelineTrace.degraded_stages.map((stage) => (
-                <span
-                  key={stage}
-                  className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700"
-                >
-                  {STAGE_LABELS[stage] ?? stage}
-                </span>
-              ))}
-            </div>
+      {pipelineTrace?.degraded && degradedStages.length > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
+          <p className="text-xs font-medium text-amber-700">降級階段</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {degradedStages.map((stage) => (
+              <span
+                key={stage}
+                className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700"
+              >
+                {STAGE_LABELS[stage] ?? stage}
+              </span>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
       {pipelineTrace?.circuit_breaker && (
         <div className="mb-4 rounded-lg border border-wb-20 bg-wb-05 px-4 py-3 flex flex-wrap items-center gap-3 text-xs">
@@ -199,7 +210,7 @@ export function PipelineTimeline({
           const isExpanded = expandedStages.has(key)
           const canExpand = !skipped
 
-          const execStep = pipelineTrace?.pipeline_execution?.find((s) => s.step === key)
+          const execStep = pipelineExecution.find((s) => s.step === key)
           const isTimeout = Boolean(execStep?.timeout)
 
           let status:
@@ -374,10 +385,10 @@ export function PipelineTimeline({
             }
             metrics.push({ label: '步驟', value: `${a.steps.length + 1}` })
             metrics.push({ label: '最終文件', value: `${a.final_doc_count} 筆` })
-            if (tb?.agentic_decisions?.length) {
-              const totalIn = tb.agentic_decisions.reduce((s, d) => s + d.prompt_tokens, 0)
-              const totalOut = tb.agentic_decisions.reduce((s, d) => s + d.completion_tokens, 0)
-              const anyEst = tb.agentic_decisions.some((d) => d.estimated)
+            if (agenticDecisionUsages.length > 0) {
+              const totalIn = agenticDecisionUsages.reduce((s, d) => s + d.prompt_tokens, 0)
+              const totalOut = agenticDecisionUsages.reduce((s, d) => s + d.completion_tokens, 0)
+              const anyEst = agenticDecisionUsages.some((d) => d.estimated)
               metrics.push({ label: 'in', value: totalIn.toLocaleString(), estimated: anyEst })
               metrics.push({ label: 'out', value: totalOut.toLocaleString(), estimated: anyEst })
               if (primaryProvider) {
@@ -390,7 +401,7 @@ export function PipelineTimeline({
           if (isTraceOnly && key === 'multi_query' && pipelineTrace?.multi_query) {
             metrics.push({
               label: '子查詢',
-              value: `${pipelineTrace.multi_query.queries.length} 條`,
+              value: `${multiQueryItems.length} 條`,
             })
             if (tb?.multi_query) {
               const mq = tb.multi_query
@@ -427,7 +438,7 @@ export function PipelineTimeline({
           ) {
             metrics.push({
               label: '重試',
-              value: `${pipelineTrace.retrieval.crag_fallback_detail.retries.length} 次`,
+              value: `${cragFallbackRetries.length} 次`,
             })
           }
           if (isTraceOnly && key === 'reranking' && pipelineTrace?.retrieval?.reranker) {

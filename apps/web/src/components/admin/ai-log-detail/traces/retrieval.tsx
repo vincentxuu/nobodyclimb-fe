@@ -3,7 +3,7 @@
 import { ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { IOFlow, StageDesc, StageSection, TraceBadge } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function OutputPathList({
   r,
@@ -26,7 +26,9 @@ export function OutputPathList({
       {r.path_counts && (
         <div className="space-y-1">
           {Object.entries(r.path_counts).map(([path, count]) => {
-            const docs = r.path_results?.[path] ?? []
+            const docs = ensureArray<{ id: string; score: number; name?: string }>(
+              r.path_results?.[path]
+            )
             const isExpanded = expandedPath === path
             const hasData = docs.length > 0
             return (
@@ -121,7 +123,8 @@ export function RetrievalTrace({
   const filterKeys = appliedFilter ? Object.keys(appliedFilter) : []
 
   const hydeDoc = trace.hyde?.document
-  const expandedQueries = trace.multi_query?.queries ?? []
+  const expandedQueries = Array.isArray(trace.multi_query?.queries) ? trace.multi_query.queries : []
+  const retrievalPaths = Array.isArray(r.paths) ? r.paths : []
 
   const pathMeta: Record<string, { label: string; trigger: string; dotColor: string }> = {
     query_vec: {
@@ -166,59 +169,64 @@ export function RetrievalTrace({
                 />
               </div>
             )}
-            {r.paths.map((p) => {
-              const meta = pathMeta[p]
-              const isMQ = !meta
-              const mqIndex = isMQ ? parseInt(p.replace(/^(expanded_|mq_)/, ''), 10) : -1
-              const mqQuery = !isNaN(mqIndex) && mqIndex >= 0 ? expandedQueries[mqIndex] : undefined
-              const dotColor = isMQ ? 'bg-amber-400' : meta.dotColor
-              const label = isMQ ? `Multi-Query 擴展 #${mqIndex + 1}` : meta.label
-              const trigger = isMQ ? 'Multi-Query 啟用，由 LLM 改寫原始查詢而來' : meta.trigger
+            {retrievalPaths.length > 0 ? (
+              retrievalPaths.map((p) => {
+                const meta = pathMeta[p]
+                const isMQ = !meta
+                const mqIndex = isMQ ? parseInt(p.replace(/^(expanded_|mq_)/, ''), 10) : -1
+                const mqQuery =
+                  !isNaN(mqIndex) && mqIndex >= 0 ? expandedQueries[mqIndex] : undefined
+                const dotColor = isMQ ? 'bg-amber-400' : meta.dotColor
+                const label = isMQ ? `Multi-Query 擴展 #${mqIndex + 1}` : meta.label
+                const trigger = isMQ ? 'Multi-Query 啟用，由 LLM 改寫原始查詢而來' : meta.trigger
 
-              let inputText: string | null = null
-              if (p === 'query_vec') inputText = query || null
-              else if (p === 'hyde_vec') inputText = hydeDoc ?? null
-              else if (p === 'bm25') inputText = r.bm25_fts_query ?? null
-              else if (isMQ) inputText = mqQuery ?? null
+                let inputText: string | null = null
+                if (p === 'query_vec') inputText = query || null
+                else if (p === 'hyde_vec') inputText = hydeDoc ?? null
+                else if (p === 'bm25') inputText = r.bm25_fts_query ?? null
+                else if (isMQ) inputText = mqQuery ?? null
 
-              const borderColor =
-                p === 'bm25'
-                  ? 'border-emerald-100'
-                  : p === 'hyde_vec'
-                    ? 'border-violet-100'
-                    : isMQ
-                      ? 'border-amber-100'
-                      : 'border-blue-100'
-              const textCls =
-                p === 'hyde_vec'
-                  ? `ml-3 text-[10px] text-wb-70 font-mono border-l-2 pl-2 max-h-40 overflow-auto whitespace-pre-wrap ${borderColor}`
-                  : `ml-3 text-[10px] text-wb-70 font-mono border-l-2 pl-2 whitespace-pre-wrap break-all ${borderColor}`
+                const borderColor =
+                  p === 'bm25'
+                    ? 'border-emerald-100'
+                    : p === 'hyde_vec'
+                      ? 'border-violet-100'
+                      : isMQ
+                        ? 'border-amber-100'
+                        : 'border-blue-100'
+                const textCls =
+                  p === 'hyde_vec'
+                    ? `ml-3 text-[10px] text-wb-70 font-mono border-l-2 pl-2 max-h-40 overflow-auto whitespace-pre-wrap ${borderColor}`
+                    : `ml-3 text-[10px] text-wb-70 font-mono border-l-2 pl-2 whitespace-pre-wrap break-all ${borderColor}`
 
-              return (
-                <div key={p} className="space-y-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${dotColor}`} />
-                    <span className="font-medium">{label}</span>
-                  </div>
-                  <p className="ml-3 text-[10px] text-wb-40 border-l-2 border-wb-8 pl-2">
-                    {trigger}
-                  </p>
-                  {inputText ? (
-                    <p className={textCls}>{inputText}</p>
-                  ) : (
-                    <p className="ml-3 text-[10px] text-wb-30 border-l-2 border-wb-8 pl-2 italic">
-                      {p === 'bm25'
-                        ? 'BM25 查詢未記錄'
-                        : p === 'hyde_vec'
-                          ? '假設文件未記錄（舊記錄）'
-                          : isMQ
-                            ? '擴展查詢未記錄（舊記錄）'
-                            : '查詢文字未記錄'}
+                return (
+                  <div key={p} className="space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${dotColor}`} />
+                      <span className="font-medium">{label}</span>
+                    </div>
+                    <p className="ml-3 text-[10px] text-wb-40 border-l-2 border-wb-8 pl-2">
+                      {trigger}
                     </p>
-                  )}
-                </div>
-              )
-            })}
+                    {inputText ? (
+                      <p className={textCls}>{inputText}</p>
+                    ) : (
+                      <p className="ml-3 text-[10px] text-wb-30 border-l-2 border-wb-8 pl-2 italic">
+                        {p === 'bm25'
+                          ? 'BM25 查詢未記錄'
+                          : p === 'hyde_vec'
+                            ? '假設文件未記錄（舊記錄）'
+                            : isMQ
+                              ? '擴展查詢未記錄（舊記錄）'
+                              : '查詢文字未記錄'}
+                      </p>
+                    )}
+                  </div>
+                )
+              })
+            ) : (
+              <p className="text-[11px] text-wb-40">無路徑資料（舊記錄或 trace 不完整）</p>
+            )}
             <div className="pt-1 border-t border-wb-8 space-y-0.5">
               <p className="text-wb-30 text-[10px]">Metadata Filter：</p>
               {filterKeys.length > 0 ? (
@@ -241,95 +249,101 @@ export function RetrievalTrace({
         <StageSection type="decision">
           <div className="space-y-1">
             <p className="text-wb-30 text-[10px] mb-1">各路徑執行結果（點擊展開文件清單）</p>
-            {r.paths.map((p) => {
-              const docs = r.path_results?.[p]
-              const count = r.path_counts?.[p]
-              const expanded = expandedPaths.has(p)
-              const hasData = (count ?? 0) > 0
-              const isMQPath = p !== 'query_vec' && p !== 'hyde_vec' && p !== 'bm25'
-              const mqIdx = isMQPath ? parseInt(p.replace(/^(expanded_|mq_)/, ''), 10) : -1
-              const pathInputText =
-                p === 'query_vec'
-                  ? query
-                  : p === 'hyde_vec'
-                    ? (hydeDoc ?? null)
-                    : p === 'bm25'
-                      ? (r.bm25_fts_query ?? null)
-                      : !isNaN(mqIdx) && mqIdx >= 0
-                        ? (expandedQueries[mqIdx] ?? null)
-                        : null
-              return (
-                <div key={p} className="rounded border border-wb-10 overflow-hidden">
-                  <button
-                    onClick={() => (hasData ? togglePath(p) : undefined)}
-                    className={`flex items-start gap-2 w-full px-2 py-1.5 bg-wb-3 text-left ${hasData ? 'cursor-pointer hover:bg-wb-5' : 'cursor-default'}`}
-                  >
-                    <TraceBadge text={p} color={pathColor(p)} />
-                    <span
-                      className={`text-[11px] tabular-nums font-semibold shrink-0 ${hasData ? 'text-wb-70' : 'text-wb-30'}`}
+            {retrievalPaths.length > 0 ? (
+              retrievalPaths.map((p) => {
+                const docs = r.path_results?.[p]
+                const count = r.path_counts?.[p]
+                const expanded = expandedPaths.has(p)
+                const hasData = (count ?? 0) > 0
+                const isMQPath = p !== 'query_vec' && p !== 'hyde_vec' && p !== 'bm25'
+                const mqIdx = isMQPath ? parseInt(p.replace(/^(expanded_|mq_)/, ''), 10) : -1
+                const pathInputText =
+                  p === 'query_vec'
+                    ? query
+                    : p === 'hyde_vec'
+                      ? (hydeDoc ?? null)
+                      : p === 'bm25'
+                        ? (r.bm25_fts_query ?? null)
+                        : !isNaN(mqIdx) && mqIdx >= 0
+                          ? (expandedQueries[mqIdx] ?? null)
+                          : null
+                return (
+                  <div key={p} className="rounded border border-wb-10 overflow-hidden">
+                    <button
+                      onClick={() => (hasData ? togglePath(p) : undefined)}
+                      className={`flex items-start gap-2 w-full px-2 py-1.5 bg-wb-3 text-left ${hasData ? 'cursor-pointer hover:bg-wb-5' : 'cursor-default'}`}
                     >
-                      {count ?? 0} 筆
-                    </span>
-                    <div className="flex-1 min-w-0 space-y-0.5">
-                      <p className="text-[10px] text-wb-30">
-                        {p === 'query_vec'
-                          ? '查詢向量搜尋（餘弦相似度）'
-                          : p === 'hyde_vec'
-                            ? 'HyDE 假設文件向量搜尋（餘弦相似度）'
-                            : p === 'bm25'
-                              ? 'BM25 全文關鍵字搜尋'
-                              : 'Multi-Query 擴展查詢向量搜尋'}
-                      </p>
-                      {pathInputText && (
-                        <p className="text-[10px] text-wb-60 font-mono break-all whitespace-pre-wrap line-clamp-2">
-                          {pathInputText}
-                        </p>
-                      )}
-                    </div>
-                    {hasData && (
-                      <ChevronUp
-                        className={`h-3 w-3 text-wb-30 shrink-0 mt-0.5 transition-transform ${expanded ? '' : 'rotate-180'}`}
-                      />
-                    )}
-                  </button>
-                  {!hasData && (
-                    <div className="px-2 py-1 border-t border-wb-10">
-                      {p === 'bm25' ? (
-                        <p className="text-[10px] text-amber-600">
-                          關鍵字搜尋無匹配（需完整詞彙命中，中文常見）
-                        </p>
-                      ) : (
+                      <TraceBadge text={p} color={pathColor(p)} />
+                      <span
+                        className={`text-[11px] tabular-nums font-semibold shrink-0 ${hasData ? 'text-wb-70' : 'text-wb-30'}`}
+                      >
+                        {count ?? 0} 筆
+                      </span>
+                      <div className="flex-1 min-w-0 space-y-0.5">
                         <p className="text-[10px] text-wb-30">
-                          向量搜尋無結果（分數未達門檻或無相關文件）
+                          {p === 'query_vec'
+                            ? '查詢向量搜尋（餘弦相似度）'
+                            : p === 'hyde_vec'
+                              ? 'HyDE 假設文件向量搜尋（餘弦相似度）'
+                              : p === 'bm25'
+                                ? 'BM25 全文關鍵字搜尋'
+                                : 'Multi-Query 擴展查詢向量搜尋'}
                         </p>
-                      )}
-                    </div>
-                  )}
-                  {expanded && docs && docs.length > 0 && (
-                    <div className="border-t border-wb-10 px-2 py-1.5">
-                      <p className="text-[9px] text-wb-25 mb-1">
-                        {p === 'bm25'
-                          ? 'BM25 相關分（越高越匹配關鍵字）'
-                          : '向量餘弦相似度（0–1，越高越相關）'}
-                      </p>
-                      <div className="space-y-0.5">
-                        {docs.map((doc, i) => (
-                          <div key={doc.id} className="flex items-center gap-1.5 text-[10px]">
-                            <span className="shrink-0 text-wb-30 tabular-nums w-4">{i + 1}.</span>
-                            <span className="flex-1 text-wb-70 truncate">{doc.name ?? doc.id}</span>
-                            <span
-                              className={`shrink-0 font-mono tabular-nums ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-40'}`}
-                            >
-                              {doc.score.toFixed(3)}
-                            </span>
-                          </div>
-                        ))}
+                        {pathInputText && (
+                          <p className="text-[10px] text-wb-60 font-mono break-all whitespace-pre-wrap line-clamp-2">
+                            {pathInputText}
+                          </p>
+                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                      {hasData && (
+                        <ChevronUp
+                          className={`h-3 w-3 text-wb-30 shrink-0 mt-0.5 transition-transform ${expanded ? '' : 'rotate-180'}`}
+                        />
+                      )}
+                    </button>
+                    {!hasData && (
+                      <div className="px-2 py-1 border-t border-wb-10">
+                        {p === 'bm25' ? (
+                          <p className="text-[10px] text-amber-600">
+                            關鍵字搜尋無匹配（需完整詞彙命中，中文常見）
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-wb-30">
+                            向量搜尋無結果（分數未達門檻或無相關文件）
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {expanded && docs && docs.length > 0 && (
+                      <div className="border-t border-wb-10 px-2 py-1.5">
+                        <p className="text-[9px] text-wb-25 mb-1">
+                          {p === 'bm25'
+                            ? 'BM25 相關分（越高越匹配關鍵字）'
+                            : '向量餘弦相似度（0–1，越高越相關）'}
+                        </p>
+                        <div className="space-y-0.5">
+                          {docs.map((doc, i) => (
+                            <div key={doc.id} className="flex items-center gap-1.5 text-[10px]">
+                              <span className="shrink-0 text-wb-30 tabular-nums w-4">{i + 1}.</span>
+                              <span className="flex-1 text-wb-70 truncate">
+                                {doc.name ?? doc.id}
+                              </span>
+                              <span
+                                className={`shrink-0 font-mono tabular-nums ${doc.score >= 0.5 ? 'text-emerald-600' : doc.score >= 0.2 ? 'text-amber-600' : 'text-wb-40'}`}
+                              >
+                                {doc.score.toFixed(3)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            ) : (
+              <p className="text-[11px] text-wb-40">無路徑資料（舊記錄或 trace 不完整）</p>
+            )}
           </div>
         </StageSection>
         <StageSection type="output">

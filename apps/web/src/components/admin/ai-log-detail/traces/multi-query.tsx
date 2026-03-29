@@ -1,10 +1,11 @@
 'use client'
 
 import { IOFlow, KVRow, StageDesc, StageSection } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function MultiQueryTrace({ trace, query }: { trace: PipelineTrace; query: string }) {
   const mq = trace.multi_query
+  const queries = ensureArray<string>(mq?.queries)
   return (
     <div>
       <StageDesc>
@@ -28,7 +29,7 @@ export function MultiQueryTrace({ trace, query }: { trace: PipelineTrace; query:
           {mq ? (
             <KVRow
               label="擴展策略"
-              value={`LLM 重寫為 ${mq.queries.length} 條語義不同的子查詢，提升向量召回率`}
+              value={`LLM 重寫為 ${queries.length} 條語義不同的子查詢，提升向量召回率`}
             />
           ) : (
             <p className="text-wb-40">無詳細資料（舊記錄）</p>
@@ -37,7 +38,7 @@ export function MultiQueryTrace({ trace, query }: { trace: PipelineTrace; query:
         <StageSection type="output">
           {mq ? (
             <ol className="space-y-1">
-              {mq.queries.map((q, i) => (
+              {queries.map((q, i) => (
                 <li key={i} className="flex gap-2">
                   <span className="shrink-0 text-wb-40 tabular-nums">{i + 1}.</span>
                   <span className="text-wb-80">{q}</span>

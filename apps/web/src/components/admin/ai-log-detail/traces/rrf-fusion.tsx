@@ -3,7 +3,7 @@
 import { ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { IOFlow, KVRow, StageDesc, StageSection, TraceBadge } from '../shared'
-import type { PipelineTrace } from '../types'
+import { ensureArray, type PipelineTrace } from '../types'
 
 export function RRFFusionTrace({ trace }: { trace: PipelineTrace | null }) {
   const r = trace?.retrieval
@@ -38,7 +38,7 @@ export function RRFFusionTrace({ trace }: { trace: PipelineTrace | null }) {
       }
     >()
     for (const [path, docs] of Object.entries(pathResults)) {
-      docs.forEach((doc, rank) => {
+      ensureArray<{ id: string; score: number; name?: string }>(docs).forEach((doc, rank) => {
         const contrib = 1 / (k + rank + 1)
         const existing = docMap.get(doc.id)
         if (existing) {
@@ -104,7 +104,9 @@ export function RRFFusionTrace({ trace }: { trace: PipelineTrace | null }) {
               <div className="space-y-1">
                 <p className="text-wb-30 text-[10px]">各路徑候選（點擊展開文件清單）：</p>
                 {pathEntries.map(([path, count]) => {
-                  const docs = pathResults[path] ?? []
+                  const docs = ensureArray<{ id: string; score: number; name?: string }>(
+                    pathResults[path]
+                  )
                   const isExpanded = expandedInputPath === path
                   const hasData = docs.length > 0
                   return (

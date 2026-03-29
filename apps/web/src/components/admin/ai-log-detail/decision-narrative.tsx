@@ -1,6 +1,7 @@
 'use client'
 
 import type { AILogDetail } from '@/lib/api/admin-ai'
+import { ensureArray } from './types'
 
 export function DecisionNarrative({
   pipeline,
@@ -59,8 +60,9 @@ export function DecisionNarrative({
   }
 
   const retrieval = pt?.retrieval
-  if (retrieval?.paths) {
-    parts.push(`${retrieval.paths.length}路搜尋`)
+  const retrievalPaths = ensureArray<string>(retrieval?.paths)
+  if (retrievalPaths.length > 0) {
+    parts.push(`${retrievalPaths.length}路搜尋`)
   }
 
   if (retrieval?.rrf) {
