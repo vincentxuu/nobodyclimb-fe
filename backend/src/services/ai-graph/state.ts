@@ -136,6 +136,7 @@ export const GraphStateAnnotation = Annotation.Root({
     reducer: (a, b) => [...(a ?? []), ...(b ?? [])],
   }),
   circuitBreaker: Annotation<PipelineContext["circuitBreaker"]>(),
+  climbed_route_ids: Annotation<string[] | null | undefined>(),
 
   // ---------- LangGraph 新增欄位 ----------
   /** Langfuse trace 實例，由 GraphService 注入，nodes 用來建立 span */
