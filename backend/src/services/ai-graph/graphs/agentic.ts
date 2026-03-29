@@ -2,6 +2,8 @@ import { END, START, StateGraph } from '@langchain/langgraph'
 import { agenticDecisionNode } from '../nodes/agentic-decision'
 import { agenticRetrieveNode } from '../nodes/agentic-retrieve'
 import { crossEncoderNode } from '../nodes/cross-encoder'
+import { embeddingNode } from '../nodes/embedding'
+import { filterBuildNode } from '../nodes/filter-build'
 import { hybridSearchNode } from '../nodes/hybrid-search'
 import { judgeNode } from '../nodes/judge'
 import { llmGenerationNode } from '../nodes/llm-generation'
@@ -28,6 +30,8 @@ export function buildAgenticGraph() {
     .addNode('semanticCache', semanticCacheNode)
     .addNode('toolSelection', toolSelectionNode)
     .addNode('textToSql', textToSqlNode)
+    .addNode('filterBuild', filterBuildNode)
+    .addNode('embedding', embeddingNode)
     .addNode('agenticDecision', agenticDecisionNode)
     .addNode('agenticRetrieve', agenticRetrieveNode)
     .addNode('hybridSearch', hybridSearchNode)
@@ -44,18 +48,20 @@ export function buildAgenticGraph() {
     END,
     toolSelection: 'toolSelection',
   })
-  // Agentic 策略：tool-selection 後向量搜尋路徑導向 agenticDecision（而非 filterBuild）
+  // Agentic 策略：先經過 filterBuild 建構結構化約束（crag、grade 等），再進入 agentic 迭代
   graph.addConditionalEdges('toolSelection', routeAfterToolSelection, {
-    textToSql: 'textToSql', // SQL 路徑
-    filterBuild: 'agenticDecision', // 向量搜尋路徑 → agentic decision
+    textToSql: 'textToSql',
+    filterBuild: 'filterBuild',
     llmGeneration: 'llmGeneration',
     END,
   })
   graph.addConditionalEdges('textToSql', routeAfterTextToSql, {
     llmGeneration: 'llmGeneration',
-    embedding: 'agenticDecision', // SQL 無結果 fallback → agentic decision
+    embedding: 'filterBuild', // SQL 無結果 fallback → filterBuild → embedding → agentic
     END,
   })
+  graph.addEdge('filterBuild', 'embedding')
+  graph.addEdge('embedding', 'agenticDecision')
   graph.addConditionalEdges('agenticDecision', routeAgenticDecision, {
     agenticRetrieve: 'agenticRetrieve',
     llmGeneration: 'llmGeneration',
