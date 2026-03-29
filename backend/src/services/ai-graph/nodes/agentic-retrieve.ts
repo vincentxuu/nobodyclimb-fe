@@ -82,6 +82,45 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
       .map((m) => documents.get(m.id))
       .filter((d): d is import('../../../types').AIDocument => d !== undefined)
 
+    // 查詢影片數量與最新影片連結（同 popularityRerankNode 邏輯）
+    const routeSourceIds = orderedDocs
+      .filter((d) => d.type === 'route')
+      .map((d) => d.source_id)
+      .slice(0, 500)
+
+    const videoCountMap = new Map<string, number>()
+    const latestVideoMap = new Map<string, string>()
+
+    if (routeSourceIds.length > 0) {
+      const placeholders = routeSourceIds.map(() => '?').join(', ')
+      const [vcResult, latestVideoResult] = await Promise.all([
+        env.DB.prepare(
+          `SELECT route_id, COUNT(*) as cnt FROM route_videos WHERE route_id IN (${placeholders}) GROUP BY route_id`
+        )
+          .bind(...routeSourceIds)
+          .all<{ route_id: string; cnt: number }>(),
+        env.DB.prepare(
+          `SELECT rv.route_id, v.youtube_id
+           FROM route_videos rv
+           JOIN videos v ON rv.video_id = v.id
+           WHERE rv.route_id IN (${placeholders}) AND v.youtube_id IS NOT NULL
+           ORDER BY rv.route_id, COALESCE(v.published_at, rv.created_at) DESC`
+        )
+          .bind(...routeSourceIds)
+          .all<{ route_id: string; youtube_id: string }>(),
+      ])
+      for (const row of vcResult.results) {
+        videoCountMap.set(row.route_id, row.cnt)
+      }
+      const seenRoutes = new Set<string>()
+      for (const row of latestVideoResult.results) {
+        if (!seenRoutes.has(row.route_id)) {
+          latestVideoMap.set(row.route_id, `https://youtube.com/watch?v=${row.youtube_id}`)
+          seenRoutes.add(row.route_id)
+        }
+      }
+    }
+
     const docsText =
       orderedDocs.length > 0
         ? orderedDocs
@@ -93,6 +132,10 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
                   : ({} as AIDocumentMetadata)
                 if (meta.crag_id) {
                   text += `\n路線連結：/crag/${meta.crag_id}/route/${d.source_id}`
+                }
+                const vc = videoCountMap.get(d.source_id) ?? 0
+                if (vc > 0) {
+                  text += `\n影片數量：${vc}`
                 }
                 return text
               }
@@ -116,6 +159,8 @@ export async function agenticRetrieveNode(state: GraphState): Promise<Partial<Gr
             url: queryService.buildUrl(doc),
             score:
               merged.find((m) => m.id === doc.source_id || documents.get(m.id) === doc)?.score ?? 0,
+            latestVideoUrl:
+              doc.type === 'route' ? latestVideoMap.get(doc.source_id) : undefined,
           }) as AISource
       )
       .filter((s): s is AISource => s !== null)
