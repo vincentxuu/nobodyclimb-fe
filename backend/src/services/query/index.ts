@@ -265,6 +265,70 @@ export class QueryService {
     this.setPipelineCtx(pipelineCtx)
 
     try {
+      // React Agent 策略
+      if (pipelineCfg.rag_strategy === 'react') {
+        const { runReactAgent } = await import('../react-agent')
+        const reactResult = await withTimeout(
+          runReactAgent({
+            query: request.query,
+            chatHistory: recentHistory.map((h) => ({
+              role: h.role as 'user' | 'assistant',
+              content: h.content,
+            })),
+            userId: userId ?? null,
+            env: this.env,
+            queryService: this,
+            langfuseTrace,
+            waitUntilCtx: ctx,
+            stream: streamingMode,
+            onToken,
+          }),
+          pipelineCfg.pipeline_timeout_ms,
+          'pipeline'
+        )
+        // 寫入 query log
+        const reactSources: AISource[] = reactResult.sources.map((s, i) => ({
+          id: `react-${i}`,
+          type: 'route' as const,
+          title: s.title,
+          url: s.url,
+          excerpt: s.excerpt ?? '',
+          score: 0,
+        }))
+
+        const queryId = await this.logQuery({
+          userId: userId ?? null,
+          query,
+          response: reactResult.answer,
+          sources: reactSources,
+          latencyMs: Date.now() - startTime,
+          tokenCount: reactResult.totalTokens,
+          modelUsed: 'react-agent',
+          pipelineTrace: JSON.stringify({
+            strategy: 'react',
+            turn_count: reactResult.turnCount,
+            tool_call_count: reactResult.toolCallCount,
+            per_model_stats: reactResult.perModelStats,
+          }),
+        })
+
+        // KV cache 寫入
+        const response: AIAskResponse = {
+          answer: reactResult.answer,
+          sources: reactSources,
+          query_id: queryId,
+          suggested_questions: [],
+        }
+
+        if (!request.no_cache && ctx) {
+          ctx.waitUntil(
+            this.env.CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: 3600 })
+          )
+        }
+
+        return response
+      }
+
       if (pipelineCfg.use_langgraph_engine === true) {
         // 新引擎：LangGraph pipeline
         const result = await withTimeout(

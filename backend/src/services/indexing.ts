@@ -79,7 +79,12 @@ export class IndexingService {
   }
 
   // 建立岩場文件文字（actualRouteCount 為從 routes 表即時計算的路線數）
-  createCragDocument(crag: Crag, actualRouteCount?: number, areaNames?: string): string {
+  createCragDocument(
+    crag: Crag,
+    actualRouteCount?: number,
+    areaNames?: string,
+    topRoutes?: string
+  ): string {
     const parts = [
       `岩場名稱：${crag.name}`,
       `地區：${crag.region ?? '未知'}`,
@@ -110,6 +115,9 @@ export class IndexingService {
     }
     if (crag.access_info) {
       parts.push(`交通資訊：${crag.access_info}`)
+    }
+    if (topRoutes) {
+      parts.push(`代表路線：${topRoutes}`)
     }
 
     return parts.join('\n')
@@ -174,6 +182,24 @@ export class IndexingService {
     ).all<{ crag_id: string; area_names: string }>()
     const areasByCrag = new Map(areasResult.results.map((r) => [r.crag_id, r.area_names]))
 
+    // 預先取得每個岩場的代表路線（每岩場最多 5 條，優先有中文名稱的路線）
+    const topRoutesResult = await this.env.DB.prepare(`
+      SELECT crag_id, GROUP_CONCAT(route_label, '、') as top_routes
+      FROM (
+        SELECT crag_id,
+               COALESCE(name, name_en) || '（' || COALESCE(grade, '?') || '）' as route_label,
+               ROW_NUMBER() OVER (
+                 PARTITION BY crag_id
+                 ORDER BY CASE WHEN name IS NOT NULL THEN 0 ELSE 1 END, grade DESC
+               ) as rn
+        FROM routes
+        WHERE name IS NOT NULL OR name_en IS NOT NULL
+      )
+      WHERE rn <= 5
+      GROUP BY crag_id
+    `).all<{ crag_id: string; top_routes: string }>()
+    const topRoutesByCrag = new Map(topRoutesResult.results.map((r) => [r.crag_id, r.top_routes]))
+
     // 同時 JOIN routes 取得真實路線數，避免 description 欄位有舊的靜態數字
     const crags = await this.env.DB.prepare(`
       SELECT c.*, COUNT(r.id) as actual_route_count
@@ -205,7 +231,12 @@ export class IndexingService {
 
       return {
         sourceId: crag.id,
-        text: this.createCragDocument(crag, crag.actual_route_count, areasByCrag.get(crag.id)),
+        text: this.createCragDocument(
+          crag,
+          crag.actual_route_count,
+          areasByCrag.get(crag.id),
+          topRoutesByCrag.get(crag.id)
+        ),
         metadata,
       }
     })
@@ -285,6 +316,12 @@ export class IndexingService {
     }
   }
 
+  private static readonly CONTEXTUAL_MAX_TOKENS: Record<string, number> = {
+    route: 80,
+    crag: 120,
+    video: 100,
+  }
+
   // 為單一 chunk 呼叫 LLM 生成語意摘要（失敗時回傳空字串，讓主流程 fallback 到原始文字）
   private async generateContextSummary(
     text: string,
@@ -297,7 +334,7 @@ export class IndexingService {
     try {
       const result = await (this.env.AI.run as Function)(model, {
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 80,
+        max_tokens: IndexingService.CONTEXTUAL_MAX_TOKENS[type] ?? 80,
       })
       return extractResponseText(result as { response?: unknown })
     } catch {

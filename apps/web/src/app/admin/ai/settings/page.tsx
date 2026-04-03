@@ -371,6 +371,7 @@ const TABS: TabConfig[] = [
               { value: 'baseline', label: 'baseline — 單輪搜尋' },
               { value: 'agentic', label: 'agentic — 多輪動態搜尋' },
               { value: 'plan-execute', label: 'plan-execute — 子任務規劃 + 執行 + 合成' },
+              { value: 'react', label: 'react — ReAct Agent 動態工具選擇' },
               { value: 'auto', label: 'auto — 依複雜度自動選擇' },
             ],
           },
@@ -433,6 +434,37 @@ const TABS: TabConfig[] = [
             label: '啟用 Adaptive Replan',
             placeholder: '1',
             hint: '0 = 停用，1 = 啟用；子任務結果為空時自動生成替代子任務',
+          },
+        ],
+      },
+      {
+        title: 'React Agent 設定',
+        desc: 'ReAct Agent 動態工具選擇策略；僅 rag_strategy = react 時生效。每個 LLM 觸點可獨立配置 provider + model',
+        fields: [
+          {
+            key: 'react_max_turns',
+            label: '最大 Turn 數',
+            placeholder: '3',
+            hint: 'ReAct loop 最多執行幾輪 LLM 呼叫（1 turn = 1 次 orchestrator call），每輪 2-3s（1–5）',
+          },
+          {
+            key: 'react_token_budget',
+            label: 'Token 預算',
+            placeholder: '8000',
+            hint: '累計 token（input + output）上限，優先於 maxTurns 觸發停止（2000–20000）',
+          },
+          {
+            key: 'react_usd_to_twd',
+            label: 'USD → TWD 匯率',
+            placeholder: '32.0',
+            hint: 'LLM 成本換算匯率（用於 admin 成本 dashboard），月結時手動校正即可',
+          },
+          {
+            key: 'react_models',
+            label: '模型配置（JSON）',
+            placeholder:
+              '{"orchestrator":{"provider":"workers-ai","model":"@cf/meta/llama-4-scout-17b-16e-instruct"},...}',
+            hint: 'JSON 格式的 ModelMap，每個觸點（orchestrator/hyde/multiQuery/textToSql/rerank/judge/embedding）可獨立配置 provider（workers-ai/anthropic/openai/google/github）+ model + 可選 fallback chain。範例：{"orchestrator":{"provider":"workers-ai","model":"llama-4-scout","fallback":{"provider":"github","model":"gpt-4o-mini"}}}。留空使用預設值',
           },
         ],
       },

@@ -248,7 +248,8 @@ export interface Env {
   OPENAI_API_KEY?: string
   ANTHROPIC_API_KEY?: string
   GOOGLE_AI_API_KEY?: string
-  // AI Provider 選擇（cloudflare | openai | anthropic | google），預設 cloudflare
+  GITHUB_TOKEN?: string
+  // AI Provider 選擇（cloudflare | openai | anthropic | google | github），預設 cloudflare
   LLM_PROVIDER?: string
   EMBEDDING_PROVIDER?: string
 }

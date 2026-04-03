@@ -82,7 +82,7 @@ export async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig
     // Agentic 模式
     rag_strategy: (() => {
       const v = cfg['rag_strategy'] ?? 'baseline'
-      return ['baseline', 'agentic', 'plan-execute', 'auto'].includes(v) ? v : 'baseline'
+      return ['baseline', 'agentic', 'plan-execute', 'react', 'auto'].includes(v) ? v : 'baseline'
     })(),
     agentic_max_steps: num(cfg['agentic_max_steps'], 3, 1, 5),
     agentic_min_docs_to_answer: num(cfg['agentic_min_docs_to_answer'], 3, 1, 10),
