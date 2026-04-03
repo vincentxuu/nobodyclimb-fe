@@ -1,6 +1,6 @@
 import { getMemoriesSummary } from '../../repositories/memory'
 import type { Env } from '../../types'
-import { SYSTEM_PROMPT } from '../../utils/ai-prompts'
+import { buildReactAgentBasePrompt } from '../../utils/ai-prompts'
 import type { LangfuseParent } from '../../utils/langfuse'
 import { createProvider } from '../ai-graph/providers'
 import type { ProviderName as LegacyProviderName } from '../ai-graph/providers/types'
@@ -223,20 +223,8 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
     personalizationPromise,
   ])
 
-  // 2. Build personalized system prompt
-  const ascentContext = buildAscentContext(ascents)
-  const abilityLevel = estimateAbilityLevel(ascents)
-  const systemPrompt = buildPersonalizedSystemPrompt(
-    memorySummary,
-    ascentContext,
-    abilityLevel,
-    SYSTEM_PROMPT
-  )
-
-  // 3. Create provider for orchestrator
+  // 2. Create provider + tracker + registry + context
   const orchestratorProvider = createProviderForConfig(models.orchestrator.provider, env)
-
-  // 4. Create tracker + registry + context
   const tracker = new DefaultTokenTracker(reactCfg.usdToTwd)
   const registry = createToolRegistry()
   const cache = new KVAgentCache(env.CACHE)
@@ -251,6 +239,17 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
     cache,
     availableTools: registry.getToolNames(),
   }
+
+  // 3. Build personalized system prompt（工具說明動態生成，基於 registry + ctx）
+  const ascentContext = buildAscentContext(ascents)
+  const abilityLevel = estimateAbilityLevel(ascents)
+  const toolsSection = registry.toSystemPromptSection(toolCtx)
+  const systemPrompt = buildPersonalizedSystemPrompt(
+    memorySummary,
+    ascentContext,
+    abilityLevel,
+    buildReactAgentBasePrompt(toolsSection)
+  )
 
   // 5. Run ReAct loop
   const result = await runReactLoop(

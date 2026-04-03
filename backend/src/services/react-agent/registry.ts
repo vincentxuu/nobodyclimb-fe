@@ -36,4 +36,15 @@ export class ToolRegistry {
       parameters: tool.parameters,
     }))
   }
+
+  /**
+   * 動態生成 system prompt 的工具說明區塊。
+   * 每個 tool 的描述來自 tool.prompt(ctx)，可根據 context（如是否登入）調整內容。
+   * 供 buildReactAgentBasePrompt() 使用。
+   */
+  toSystemPromptSection(ctx: ToolContext): string {
+    return this.getTools()
+      .map((tool) => `- **${tool.name}**：${tool.prompt(ctx)}`)
+      .join('\n')
+  }
 }

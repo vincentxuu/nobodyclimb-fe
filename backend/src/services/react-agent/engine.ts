@@ -128,9 +128,24 @@ export async function runReactLoop(
       },
     })
 
-    // 沒有 tool calls → end_turn（最後回答）
+    // 沒有 tool calls
     if (response.stopReason === 'end_turn' || response.toolCalls.length === 0) {
-      // 如果是 streaming 的最後一輪，由外層處理
+      // 第一輪就沒呼叫工具，且還有剩餘輪次 → 注入警告強制重試，避免模型直接幻覺作答
+      if (turn === 1 && turn < maxTurns && registry.getToolNames().length > 0) {
+        console.warn('[react-engine] Turn 1 returned no tool calls — injecting retry prompt')
+        endSpan(turnSpan, { output: { warning: 'no_tool_calls_turn1', injecting_retry: true } })
+        if (response.content) {
+          messages.push({ role: 'assistant', content: response.content })
+        }
+        messages.push({
+          role: 'user',
+          content:
+            '你必須先呼叫工具取得資料，才能回答路線或岩場問題。請立即呼叫適合的工具（例如 search_routes、recommend、search_crags），不可直接回答。',
+        })
+        continue
+      }
+
+      // 後續輪次沒有 tool calls → 最終答案
       endSpan(turnSpan, { output: { answer: response.content } })
       return {
         answer: response.content ?? '',
