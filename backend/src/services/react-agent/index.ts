@@ -30,6 +30,12 @@ const DEFAULT_MODEL_MAP: ModelMap = {
     model: '@cf/meta/llama-4-scout-17b-16e-instruct',
     temperature: 0.3,
     maxTokens: 1024,
+    fallback: {
+      provider: 'workers-ai',
+      model: '@cf/meta/llama-3.1-8b-instruct',
+      temperature: 0.3,
+      maxTokens: 1024,
+    },
   },
   hyde: { provider: 'workers-ai', model: '@cf/meta/llama-3.1-8b-instruct' },
   multiQuery: { provider: 'workers-ai', model: '@cf/meta/llama-3.1-8b-instruct' },
@@ -37,6 +43,25 @@ const DEFAULT_MODEL_MAP: ModelMap = {
   rerank: { provider: 'workers-ai', model: '@cf/baai/bge-reranker-v2-m3' },
   judge: { provider: 'workers-ai', model: '@cf/meta/llama-3.1-8b-instruct' },
   embedding: { provider: 'workers-ai', model: '@cf/baai/bge-m3' },
+}
+
+type PartialModelConfig = Partial<ModelConfig> & {
+  fallback?: PartialModelConfig
+}
+
+function normalizeModelConfig(
+  value: PartialModelConfig | undefined,
+  fallback: ModelConfig
+): ModelConfig {
+  return {
+    provider: value?.provider ?? fallback.provider,
+    model: value?.model ?? fallback.model,
+    temperature: value?.temperature ?? fallback.temperature,
+    maxTokens: value?.maxTokens ?? fallback.maxTokens,
+    fallback: value?.fallback
+      ? normalizeModelConfig(value.fallback, fallback.fallback ?? fallback)
+      : fallback.fallback,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -51,15 +76,15 @@ export async function loadModelMap(db: D1Database): Promise<ModelMap> {
   if (!row?.value) return DEFAULT_MODEL_MAP
 
   try {
-    const parsed = JSON.parse(row.value) as Partial<ModelMap>
+    const parsed = JSON.parse(row.value) as Partial<Record<keyof ModelMap, PartialModelConfig>>
     return {
-      orchestrator: parsed.orchestrator ?? DEFAULT_MODEL_MAP.orchestrator,
-      hyde: parsed.hyde ?? DEFAULT_MODEL_MAP.hyde,
-      multiQuery: parsed.multiQuery ?? DEFAULT_MODEL_MAP.multiQuery,
-      textToSql: parsed.textToSql ?? DEFAULT_MODEL_MAP.textToSql,
-      rerank: parsed.rerank ?? DEFAULT_MODEL_MAP.rerank,
-      judge: parsed.judge ?? DEFAULT_MODEL_MAP.judge,
-      embedding: parsed.embedding ?? DEFAULT_MODEL_MAP.embedding,
+      orchestrator: normalizeModelConfig(parsed.orchestrator, DEFAULT_MODEL_MAP.orchestrator),
+      hyde: normalizeModelConfig(parsed.hyde, DEFAULT_MODEL_MAP.hyde),
+      multiQuery: normalizeModelConfig(parsed.multiQuery, DEFAULT_MODEL_MAP.multiQuery),
+      textToSql: normalizeModelConfig(parsed.textToSql, DEFAULT_MODEL_MAP.textToSql),
+      rerank: normalizeModelConfig(parsed.rerank, DEFAULT_MODEL_MAP.rerank),
+      judge: normalizeModelConfig(parsed.judge, DEFAULT_MODEL_MAP.judge),
+      embedding: normalizeModelConfig(parsed.embedding, DEFAULT_MODEL_MAP.embedding),
     }
   } catch {
     return DEFAULT_MODEL_MAP

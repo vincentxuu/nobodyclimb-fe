@@ -39,6 +39,8 @@ export const sqlQueryTool: Tool = {
       params: {
         type: 'object',
         description: '查詢參數（如 crag_name, grade, route_type, user_id 等）',
+        properties: {},
+        additionalProperties: true,
       },
     },
     required: ['template'],

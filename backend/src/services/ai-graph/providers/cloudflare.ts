@@ -141,9 +141,12 @@ export class CloudflareProvider implements AIProvider {
       max_tokens: opts.maxTokens,
       temperature: opts.temperature,
       tools: tools.map((t) => ({
-        name: t.name,
-        description: t.description,
-        parameters: t.parameters,
+        type: 'function',
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: t.parameters,
+        },
       })),
     } as Parameters<typeof this.ai.run>[1])
 

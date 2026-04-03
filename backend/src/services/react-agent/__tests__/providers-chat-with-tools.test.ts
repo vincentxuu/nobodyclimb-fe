@@ -30,6 +30,35 @@ describe('CloudflareProvider.chatWithTools', () => {
     return new CloudflareProvider(mockAI as any)
   }
 
+  it('sends tools in function-calling shape expected by Workers AI', async () => {
+    const mockAI = {
+      run: vi.fn().mockResolvedValue({
+        response: '直接回答',
+        usage: { prompt_tokens: 80, completion_tokens: 30 },
+      }),
+    }
+    const provider = new CloudflareProvider(mockAI as any)
+
+    await provider.chatWithTools!(MESSAGES, SAMPLE_TOOLS)
+
+    expect(mockAI.run).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        messages: MESSAGES,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'search_routes',
+              description: '搜尋攀岩路線',
+              parameters: SAMPLE_TOOLS[0].parameters,
+            },
+          },
+        ],
+      })
+    )
+  })
+
   it('parses normal tool call', async () => {
     const provider = createProvider({
       tool_calls: [{ id: 'tc-1', name: 'search_routes', arguments: { query: '龍洞' } }],
