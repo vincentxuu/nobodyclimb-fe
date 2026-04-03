@@ -39,7 +39,7 @@ export const userProfileTool: Tool = {
     const [user, recentAscents, stats] = await Promise.all([
       db
         .prepare(
-          `SELECT u.id, COALESCE(u.display_name, u.username) AS name, ur.rank_id, ur.total_points, ur.daily_ai_limit
+          `SELECT u.id, COALESCE(u.display_name, u.username) AS name, ur.rank_id, ur.score, ur.daily_ai_limit
            FROM users u LEFT JOIN user_ranks ur ON u.id = ur.user_id
            WHERE u.id = ?`
         )
@@ -48,7 +48,7 @@ export const userProfileTool: Tool = {
           id: string
           name: string
           rank_id: string | null
-          total_points: number | null
+          score: number | null
           daily_ai_limit: number | null
         }>(),
       db
@@ -100,7 +100,7 @@ export const userProfileTool: Tool = {
   formatResult(raw: unknown): ToolResult {
     const data = raw as {
       error?: string
-      user?: { name: string; rank_id: string | null; total_points: number | null }
+      user?: { name: string; rank_id: string | null; score: number | null }
       recentAscents?: Array<{
         route_name: string
         grade: string
