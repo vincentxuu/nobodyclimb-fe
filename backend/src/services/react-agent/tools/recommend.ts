@@ -36,11 +36,12 @@ export const recommendTool: Tool = {
     // 取得用戶近期攀登記錄
     const ascents = await db
       .prepare(
-        `SELECT ra.route_name, ra.grade, ra.style, r.crag_name
+        `SELECT r.name AS route_name, r.grade, ra.ascent_type AS style, c.name AS crag_name
          FROM user_route_ascents ra
          LEFT JOIN routes r ON ra.route_id = r.id
+         LEFT JOIN crags c ON r.crag_id = c.id
          WHERE ra.user_id = ?
-         ORDER BY ra.climbed_at DESC
+         ORDER BY ra.ascent_date DESC
          LIMIT 10`
       )
       .bind(ctx.userId)

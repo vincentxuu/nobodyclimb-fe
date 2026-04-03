@@ -23,13 +23,21 @@ export interface OutputGuardResult {
   cleanedAnswer?: string
 }
 
+// 偵測 engine 內部的工具呼叫標記格式（模型輸出文字工具呼叫而非 API function call 時產生）
+const TOOL_CALL_MARKER_RE = /^\[呼叫工具:/
+
 export function runOutputGuards(answer: string): OutputGuardResult {
   // 1. 回答太短
   if (answer.length < 50) {
     return { passed: false, qualityFlag: 'too_short' }
   }
 
-  // 2. System prompt 洩漏偵測（複用 checkOutput）
+  // 2. 工具呼叫標記洩漏（LLM 輸出 "[呼叫工具: ...]" 文字而非真正呼叫工具，被 engine 誤當最終答案）
+  if (TOOL_CALL_MARKER_RE.test(answer.trim())) {
+    return { passed: false, qualityFlag: 'too_short' }
+  }
+
+  // 3. System prompt 洩漏偵測（複用 checkOutput）
   const outputCheck = checkOutput(answer)
   if (outputCheck.trace.system_prompt_leaked) {
     return {

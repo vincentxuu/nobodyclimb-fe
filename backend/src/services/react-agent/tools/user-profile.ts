@@ -39,7 +39,7 @@ export const userProfileTool: Tool = {
     const [user, recentAscents, stats] = await Promise.all([
       db
         .prepare(
-          `SELECT u.id, u.name, ur.rank_id, ur.total_points, ur.daily_ai_limit
+          `SELECT u.id, COALESCE(u.display_name, u.username) AS name, ur.rank_id, ur.total_points, ur.daily_ai_limit
            FROM users u LEFT JOIN user_ranks ur ON u.id = ur.user_id
            WHERE u.id = ?`
         )
@@ -53,11 +53,12 @@ export const userProfileTool: Tool = {
         }>(),
       db
         .prepare(
-          `SELECT ra.route_name, ra.grade, ra.style, ra.rating, ra.climbed_at, r.crag_name
+          `SELECT r.name AS route_name, r.grade, ra.ascent_type AS style, ra.rating, ra.ascent_date AS climbed_at, c.name AS crag_name
            FROM user_route_ascents ra
            LEFT JOIN routes r ON ra.route_id = r.id
+           LEFT JOIN crags c ON r.crag_id = c.id
            WHERE ra.user_id = ?
-           ORDER BY ra.climbed_at DESC
+           ORDER BY ra.ascent_date DESC
            LIMIT 10`
         )
         .bind(ctx.userId)
@@ -72,9 +73,10 @@ export const userProfileTool: Tool = {
       db
         .prepare(
           `SELECT COUNT(*) as total_ascents,
-                  COUNT(DISTINCT crag_name) as unique_crags
+                  COUNT(DISTINCT c.id) as unique_crags
            FROM user_route_ascents ra
            LEFT JOIN routes r ON ra.route_id = r.id
+           LEFT JOIN crags c ON r.crag_id = c.id
            WHERE ra.user_id = ?`
         )
         .bind(ctx.userId)
