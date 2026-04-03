@@ -139,8 +139,7 @@ export async function runReactLoop(
         }
         messages.push({
           role: 'user',
-          content:
-            '你必須先呼叫工具取得資料，才能回答路線或岩場問題。請立即呼叫適合的工具（例如 search_routes、recommend、search_crags），不可直接回答。',
+          content: `你必須先呼叫工具取得資料，才能回答路線或岩場問題。請立即呼叫適合的工具（例如 ${registry.getToolNames().join('、')}），不可直接回答。`,
         })
         continue
       }
