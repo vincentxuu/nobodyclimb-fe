@@ -1,4 +1,13 @@
-import { AIProvider, ChatMessage, EmbeddingOptions, LLMCallOptions, LLMResponse } from './types'
+import {
+  AIProvider,
+  ChatMessage,
+  ChatWithToolsOptions,
+  EmbeddingOptions,
+  LLMCallOptions,
+  LLMResponse,
+  ToolSchema,
+  ToolUseResponse,
+} from './types'
 
 export class GoogleProvider implements AIProvider {
   readonly name = 'google'
@@ -126,5 +135,84 @@ export class GoogleProvider implements AIProvider {
     )
     const data = (await res.json()) as { embeddings: Array<{ values: number[] }> }
     return data.embeddings.map((e) => e.values)
+  }
+
+  async chatWithTools(
+    messages: ChatMessage[],
+    tools: ToolSchema[],
+    opts: ChatWithToolsOptions = {}
+  ): Promise<ToolUseResponse> {
+    const model = opts.model ?? this.defaultModel
+    const systemInstruction = opts.system ?? messages.find((m) => m.role === 'system')?.content
+    const contents = messages
+      .filter((m) => m.role !== 'system')
+      .map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }))
+
+    const body: Record<string, unknown> = {
+      contents,
+      generationConfig: {
+        maxOutputTokens: opts.maxTokens,
+        temperature: opts.temperature ?? 0.7,
+      },
+    }
+    if (systemInstruction) {
+      body.systemInstruction = { parts: [{ text: systemInstruction }] }
+    }
+    if (tools.length) {
+      body.tools = [
+        {
+          functionDeclarations: tools.map((t) => ({
+            name: t.name,
+            description: t.description,
+            parameters: t.parameters,
+          })),
+        },
+      ]
+    }
+
+    const res = await fetch(`${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new Error(`Google AI error: ${res.status} ${await res.text()}`)
+
+    const data = (await res.json()) as {
+      candidates: Array<{
+        content: {
+          parts: Array<{
+            text?: string
+            functionCall?: { name: string; args: Record<string, unknown> }
+          }>
+        }
+      }>
+      usageMetadata: {
+        promptTokenCount: number
+        candidatesTokenCount: number
+      }
+    }
+
+    const parts = data.candidates[0]?.content?.parts ?? []
+    const textParts = parts.filter((p) => p.text).map((p) => p.text!)
+    const toolCalls = parts
+      .filter((p) => p.functionCall)
+      .map((p, idx) => ({
+        id: `google-tc-${idx}`,
+        name: p.functionCall!.name,
+        input: p.functionCall!.args ?? {},
+      }))
+
+    return {
+      content: textParts.join('') || undefined,
+      toolCalls,
+      stopReason: toolCalls.length > 0 ? 'tool_use' : 'end_turn',
+      usage: {
+        input: data.usageMetadata?.promptTokenCount ?? 0,
+        output: data.usageMetadata?.candidatesTokenCount ?? 0,
+      },
+    }
   }
 }

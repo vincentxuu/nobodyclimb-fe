@@ -1,6 +1,7 @@
 import { Env } from '../../../types'
 import { AnthropicProvider } from './anthropic'
 import { CloudflareProvider } from './cloudflare'
+import { GitHubModelsProvider } from './github'
 import { GoogleProvider } from './google'
 import { OpenAIProvider } from './openai'
 import { AIProvider, ProviderName } from './types'
@@ -19,6 +20,7 @@ export interface ProviderConfig {
 export function createProvider(name: ProviderName, env: Env): AIProvider {
   switch (name) {
     case 'cloudflare':
+    case 'workers-ai':
       return new CloudflareProvider(env.AI)
     case 'openai':
       if (!env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
@@ -29,6 +31,9 @@ export function createProvider(name: ProviderName, env: Env): AIProvider {
     case 'google':
       if (!env.GOOGLE_AI_API_KEY) throw new Error('GOOGLE_AI_API_KEY is not set')
       return new GoogleProvider(env.GOOGLE_AI_API_KEY)
+    case 'github':
+      if (!env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN is not set')
+      return new GitHubModelsProvider(env.GITHUB_TOKEN)
     default:
       throw new Error(`Unknown provider: ${name}`)
   }

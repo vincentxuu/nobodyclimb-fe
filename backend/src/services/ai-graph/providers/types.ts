@@ -32,6 +32,27 @@ export interface EmbeddingOptions {
   model?: string
 }
 
+/** ReAct agent 用的 tool call 統一回傳格式 */
+export interface ToolUseResponse {
+  content?: string
+  toolCalls: Array<{ id: string; name: string; input: unknown }>
+  stopReason: 'tool_use' | 'end_turn'
+  usage: { input: number; output: number }
+}
+
+export interface ChatWithToolsOptions {
+  model?: string
+  maxTokens?: number
+  temperature?: number
+  system?: string
+}
+
+export interface ToolSchema {
+  name: string
+  description: string
+  parameters: Record<string, unknown>
+}
+
 export interface AIProvider {
   name: string
   /** 呼叫 LLM 生成，支援 tool calling */
@@ -45,6 +66,18 @@ export interface AIProvider {
   embed(text: string, opts?: EmbeddingOptions): Promise<number[]>
   /** 批次向量嵌入 */
   embedBatch(texts: string[], opts?: EmbeddingOptions): Promise<number[][]>
+  /** ReAct agent 用：tool_use 回傳多個 tool calls 的統一格式（可選，未實作的 provider 會 throw） */
+  chatWithTools?(
+    messages: ChatMessage[],
+    tools: ToolSchema[],
+    opts?: ChatWithToolsOptions
+  ): Promise<ToolUseResponse>
 }
 
-export type ProviderName = 'cloudflare' | 'openai' | 'anthropic' | 'google'
+export type ProviderName =
+  | 'cloudflare'
+  | 'workers-ai'
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'github'

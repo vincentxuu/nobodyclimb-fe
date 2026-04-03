@@ -1,4 +1,12 @@
-import { AIProvider, ChatMessage, LLMCallOptions, LLMResponse } from './types'
+import {
+  AIProvider,
+  ChatMessage,
+  ChatWithToolsOptions,
+  LLMCallOptions,
+  LLMResponse,
+  ToolSchema,
+  ToolUseResponse,
+} from './types'
 
 export class AnthropicProvider implements AIProvider {
   readonly name = 'anthropic'
@@ -116,5 +124,68 @@ export class AnthropicProvider implements AIProvider {
   }
   async embedBatch(_texts: string[]): Promise<number[][]> {
     throw new Error('AnthropicProvider does not support embedding.')
+  }
+
+  async chatWithTools(
+    messages: ChatMessage[],
+    tools: ToolSchema[],
+    opts: ChatWithToolsOptions = {}
+  ): Promise<ToolUseResponse> {
+    const system = opts.system ?? messages.find((m) => m.role === 'system')?.content
+    const nonSystem = messages.filter((m) => m.role !== 'system')
+    const body: Record<string, unknown> = {
+      model: opts.model ?? this.defaultModel,
+      max_tokens: opts.maxTokens ?? 1024,
+      messages: nonSystem,
+    }
+    if (system) body.system = system
+    if (opts.temperature !== undefined) body.temperature = opts.temperature
+    if (tools.length) {
+      body.tools = tools.map((t) => ({
+        name: t.name,
+        description: t.description,
+        input_schema: t.parameters,
+      }))
+    }
+    const res = await fetch(`${this.baseUrl}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new Error(`Anthropic error: ${res.status} ${await res.text()}`)
+    const data = (await res.json()) as {
+      content: Array<{
+        type: string
+        text?: string
+        id?: string
+        name?: string
+        input?: Record<string, unknown>
+      }>
+      stop_reason: string
+      usage: { input_tokens: number; output_tokens: number }
+    }
+
+    const textParts = data.content.filter((b) => b.type === 'text').map((b) => b.text ?? '')
+    const toolCalls = data.content
+      .filter((b) => b.type === 'tool_use')
+      .map((b) => ({
+        id: b.id ?? `anth-${b.name}`,
+        name: b.name!,
+        input: b.input ?? {},
+      }))
+
+    return {
+      content: textParts.join('') || undefined,
+      toolCalls,
+      stopReason: data.stop_reason === 'tool_use' ? 'tool_use' : 'end_turn',
+      usage: {
+        input: data.usage.input_tokens,
+        output: data.usage.output_tokens,
+      },
+    }
   }
 }

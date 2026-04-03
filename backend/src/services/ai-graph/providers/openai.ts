@@ -1,4 +1,13 @@
-import { AIProvider, ChatMessage, EmbeddingOptions, LLMCallOptions, LLMResponse } from './types'
+import {
+  AIProvider,
+  ChatMessage,
+  ChatWithToolsOptions,
+  EmbeddingOptions,
+  LLMCallOptions,
+  LLMResponse,
+  ToolSchema,
+  ToolUseResponse,
+} from './types'
 
 export class OpenAIProvider implements AIProvider {
   readonly name = 'openai'
@@ -112,5 +121,98 @@ export class OpenAIProvider implements AIProvider {
     if (!res.ok) throw new Error(`OpenAI embedBatch error: ${res.status} ${await res.text()}`)
     const data = (await res.json()) as { data: Array<{ embedding: number[]; index: number }> }
     return data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding)
+  }
+
+  async chatWithTools(
+    messages: ChatMessage[],
+    tools: ToolSchema[],
+    opts: ChatWithToolsOptions = {}
+  ): Promise<ToolUseResponse> {
+    return openAIChatWithTools(
+      this.baseUrl,
+      this.apiKey,
+      'Bearer',
+      opts.model ?? this.defaultModel,
+      messages,
+      tools,
+      opts
+    )
+  }
+}
+
+/**
+ * 共用的 OpenAI-compatible chatWithTools 實作
+ * OpenAI 與 GitHub Models 共用（API 格式相容）
+ */
+export async function openAIChatWithTools(
+  baseUrl: string,
+  apiKey: string,
+  authScheme: 'Bearer' | 'token',
+  model: string,
+  messages: ChatMessage[],
+  tools: ToolSchema[],
+  opts: ChatWithToolsOptions = {}
+): Promise<ToolUseResponse> {
+  const apiMessages = [...messages]
+  if (opts.system) {
+    apiMessages.unshift({ role: 'system', content: opts.system })
+  }
+
+  const body: Record<string, unknown> = {
+    model,
+    messages: apiMessages,
+    max_tokens: opts.maxTokens,
+    temperature: opts.temperature ?? 0.7,
+  }
+  if (tools.length) {
+    body.tools = tools.map((t) => ({
+      type: 'function',
+      function: { name: t.name, description: t.description, parameters: t.parameters },
+    }))
+    body.tool_choice = 'auto'
+  }
+
+  const authHeader = authScheme === 'token' ? `token ${apiKey}` : `Bearer ${apiKey}`
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`OpenAI-compatible error: ${res.status} ${await res.text()}`)
+
+  const data = (await res.json()) as {
+    choices: Array<{
+      message: {
+        content: string | null
+        tool_calls?: Array<{
+          id: string
+          function: { name: string; arguments: string }
+        }>
+      }
+      finish_reason: string
+    }>
+    usage: { prompt_tokens: number; completion_tokens: number }
+  }
+
+  const choice = data.choices[0]
+  const toolCalls = (choice.message.tool_calls ?? []).map((tc) => {
+    let input: unknown = {}
+    try {
+      input = JSON.parse(tc.function.arguments)
+    } catch {
+      input = {}
+    }
+    return { id: tc.id, name: tc.function.name, input }
+  })
+
+  return {
+    content: choice.message.content ?? undefined,
+    toolCalls,
+    stopReason:
+      choice.finish_reason === 'tool_calls' || toolCalls.length > 0 ? 'tool_use' : 'end_turn',
+    usage: {
+      input: data.usage.prompt_tokens,
+      output: data.usage.completion_tokens,
+    },
   }
 }

@@ -1,7 +1,16 @@
 // 封裝現有的 Cloudflare Workers AI binding 呼叫
 
 import { Env } from '../../../types'
-import { AIProvider, ChatMessage, EmbeddingOptions, LLMCallOptions, LLMResponse } from './types'
+import {
+  AIProvider,
+  ChatMessage,
+  ChatWithToolsOptions,
+  EmbeddingOptions,
+  LLMCallOptions,
+  LLMResponse,
+  ToolSchema,
+  ToolUseResponse,
+} from './types'
 
 export class CloudflareProvider implements AIProvider {
   readonly name = 'cloudflare'
@@ -110,5 +119,77 @@ export class CloudflareProvider implements AIProvider {
     const data = (result as { data?: number[][] }).data
     if (!data) throw new Error('CloudflareProvider embedBatch: unexpected response shape')
     return data
+  }
+
+  /**
+   * Workers AI chatWithTools — 防禦性解析 tool_use 格式
+   * Workers AI 的 function calling 回傳格式可能不穩定（多空格、string input、markdown 包裹 JSON）
+   */
+  async chatWithTools(
+    messages: ChatMessage[],
+    tools: ToolSchema[],
+    opts: ChatWithToolsOptions = {}
+  ): Promise<ToolUseResponse> {
+    const model = opts.model ?? this.defaultModel
+    const apiMessages = [...messages]
+    if (opts.system) {
+      apiMessages.unshift({ role: 'system', content: opts.system })
+    }
+
+    const response = await this.ai.run(model, {
+      messages: apiMessages,
+      max_tokens: opts.maxTokens,
+      temperature: opts.temperature,
+      tools: tools.map((t) => ({
+        name: t.name,
+        description: t.description,
+        parameters: t.parameters,
+      })),
+    } as Parameters<typeof this.ai.run>[1])
+
+    const raw = response as Record<string, unknown>
+    const content = (raw.response as string) ?? ''
+    const usage = (raw.usage as { prompt_tokens?: number; completion_tokens?: number }) ?? {}
+
+    // Workers AI tool_calls 可能出現在不同欄位
+    const rawToolCalls =
+      (raw.tool_calls as Array<Record<string, unknown>>) ??
+      (raw.toolCalls as Array<Record<string, unknown>>) ??
+      []
+
+    const toolCalls = rawToolCalls
+      .map((tc, idx) => {
+        try {
+          const name = ((tc.name as string) ?? (tc.function as Record<string, unknown>)?.name ?? '')
+            .trim()
+            .replace(/\s+/g, '_')
+          let input: unknown =
+            tc.arguments ?? tc.input ?? (tc.function as Record<string, unknown>)?.arguments
+          if (typeof input === 'string') {
+            // 嘗試解析 markdown 包裹的 JSON 或純 JSON string
+            const cleaned = input.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')
+            try {
+              input = JSON.parse(cleaned)
+            } catch {
+              input = {}
+            }
+          }
+          if (!name) return null
+          return { id: tc.id ? String(tc.id) : `wai-tc-${idx}`, name, input: input ?? {} }
+        } catch {
+          return null
+        }
+      })
+      .filter((tc): tc is NonNullable<typeof tc> => tc !== null)
+
+    return {
+      content: toolCalls.length > 0 ? undefined : content,
+      toolCalls,
+      stopReason: toolCalls.length > 0 ? 'tool_use' : 'end_turn',
+      usage: {
+        input: usage.prompt_tokens ?? 0,
+        output: usage.completion_tokens ?? 0,
+      },
+    }
   }
 }
