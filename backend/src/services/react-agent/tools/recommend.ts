@@ -103,8 +103,8 @@ export const recommendTool: Tool = {
         if (gradeNum === 0) return true // 無法解析 grade 的保留
         return gradeNum >= minGrade && gradeNum <= maxGrade
       })
-      // 只有過濾後還有足夠結果才套用，避免結果全空
-      if (gradeFiltered.length >= 2) {
+      // 只有過濾後還有結果才套用，避免結果全空
+      if (gradeFiltered.length >= 1) {
         filtered = gradeFiltered
       }
     }
