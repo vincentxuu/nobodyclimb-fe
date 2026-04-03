@@ -66,6 +66,12 @@ export const sqlQueryTool: Tool = {
       template: string
       params?: Record<string, unknown>
     }
+
+    // 個人查詢需要 userId，未登入時直接回錯誤
+    if (template.startsWith('MY_') && !ctx.userId) {
+      return { rows: [], template, error: '用戶未登入，無法使用個人查詢模板' }
+    }
+
     const service = new TextToSqlService(ctx.env.DB)
 
     // 個人查詢自動注入 user_id

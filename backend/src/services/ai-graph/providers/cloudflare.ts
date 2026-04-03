@@ -183,7 +183,7 @@ export class CloudflareProvider implements AIProvider {
       .filter((tc): tc is NonNullable<typeof tc> => tc !== null)
 
     return {
-      content: toolCalls.length > 0 ? undefined : content,
+      content: content || undefined,
       toolCalls,
       stopReason: toolCalls.length > 0 ? 'tool_use' : 'end_turn',
       usage: {

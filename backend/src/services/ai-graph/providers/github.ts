@@ -57,13 +57,19 @@ export class GitHubModelsProvider implements AIProvider {
       }>
       usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number }
     }
+    if (!data.choices?.length) throw new Error('GitHub Models: empty choices array')
     const choice = data.choices[0].message
-    const toolCall = choice.tool_calls?.[0]?.function
-      ? {
-          name: choice.tool_calls[0].function.name,
-          arguments: JSON.parse(choice.tool_calls[0].function.arguments),
-        }
-      : undefined
+    let toolCall: { name: string; arguments: Record<string, unknown> } | undefined
+    if (choice.tool_calls?.[0]?.function) {
+      const fn = choice.tool_calls[0].function
+      let args: Record<string, unknown> = {}
+      try {
+        args = JSON.parse(fn.arguments) as Record<string, unknown>
+      } catch {
+        args = {}
+      }
+      toolCall = { name: fn.name, arguments: args }
+    }
     return { content: choice.content ?? '', usage: data.usage, toolCall }
   }
 
@@ -85,14 +91,15 @@ export class GitHubModelsProvider implements AIProvider {
       }),
     })
     if (!res.ok) throw new Error(`GitHub Models stream error: ${res.status}`)
+    if (!res.body) throw new Error('GitHub Models stream: empty response body')
     let fullContent = ''
-    const reader = res.body!.getReader()
+    const reader = res.body.getReader()
     const decoder = new TextDecoder()
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
       const lines = decoder
-        .decode(value)
+        .decode(value, { stream: true })
         .split('\n')
         .filter((l) => l.startsWith('data: '))
       for (const line of lines) {

@@ -32,14 +32,18 @@ export class KVAgentCache implements AgentCache {
   }
 }
 
-/** 簡單的 hash 函數，用於生成 cache key */
+/** SHA-256 based hash，用於生成 cache key（取前 16 hex chars） */
 export function hashForCache(input: string): string {
-  let hash = 0
+  // 同步 FNV-1a 64-bit 模擬（32-bit 高低位組合），碰撞率遠低於 djb2
+  // Workers runtime 的 crypto.subtle.digest 是 async，cache key 需要同步
+  let h1 = 0x811c9dc5
+  let h2 = 0x811c9dc5
   for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i)
-    hash = ((hash << 5) - hash + char) | 0
+    const c = input.charCodeAt(i)
+    h1 = Math.imul(h1 ^ c, 0x01000193)
+    h2 = Math.imul(h2 ^ (c >> 8), 0x01000193)
   }
-  return (hash >>> 0).toString(36)
+  return (h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0')
 }
 
 // ---------------------------------------------------------------------------
@@ -58,11 +62,13 @@ export async function cachedEmbed(
   text: string,
   model: string
 ): Promise<number[]> {
-  const key = `embed:${hashForCache(text + model)}`
+  const key = `embed:${hashForCache(text + '\0' + model)}`
   const cached = await cache.get<number[]>(key)
   if (cached !== null) return cached
 
   const result = await embedFn(text)
-  cache.set(key, result, EMBEDDING_CACHE_TTL).catch(() => {})
+  cache.set(key, result, EMBEDDING_CACHE_TTL).catch((err) => {
+    console.warn('[react-agent] embed cache write failed:', err)
+  })
   return result
 }

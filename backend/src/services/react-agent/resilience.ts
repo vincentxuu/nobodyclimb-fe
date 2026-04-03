@@ -27,12 +27,12 @@ export function isRetryableError(err: unknown): boolean {
     ) {
       return true
     }
-    // HTTP status code in error message
-    for (const code of NON_RETRYABLE_STATUS_CODES) {
-      if (msg.includes(`${code}`)) return false
-    }
-    for (const code of RETRYABLE_STATUS_CODES) {
-      if (msg.includes(`${code}`)) return true
+    // HTTP status code in error message（使用 word boundary 避免誤判，如 1500ms 匹配 500）
+    const statusMatch = msg.match(/\b(\d{3})\b/)
+    if (statusMatch) {
+      const code = parseInt(statusMatch[1], 10)
+      if (NON_RETRYABLE_STATUS_CODES.has(code)) return false
+      if (RETRYABLE_STATUS_CODES.has(code)) return true
     }
   }
   // Check for Response-like objects with status

@@ -79,14 +79,14 @@ export function classifyQuery(query: string): QueryCategory {
     return 'system'
   }
 
-  // 3. 檢查是否需要 tool（優先於通用知識）
-  if (NEEDS_TOOL_KEYWORDS.some((kw) => trimmed.includes(kw))) {
-    return 'needs_tool'
-  }
-
-  // 4. 通用攀岩知識
+  // 3. 通用攀岩知識（先於 needs_tool，避免「路線」等廣泛關鍵字誤判）
   if (GENERAL_KNOWLEDGE_PATTERNS.some((p) => p.test(trimmed))) {
     return 'general_knowledge'
+  }
+
+  // 4. 檢查是否需要 tool
+  if (NEEDS_TOOL_KEYWORDS.some((kw) => trimmed.includes(kw))) {
+    return 'needs_tool'
   }
 
   // 5. 預設進 ReAct loop（寧可多花一次 orchestrator call，不可漏回答）

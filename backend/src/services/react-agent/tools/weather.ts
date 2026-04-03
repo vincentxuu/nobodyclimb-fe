@@ -57,9 +57,11 @@ export const weatherTool: Tool = {
       return { error: '天氣 API 未設定' }
     }
 
-    const url = `https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-091?Authorization=${apiKey}&format=JSON&locationName=${encodeURIComponent(cragRow.name)}`
+    const url = `https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-091?format=JSON&locationName=${encodeURIComponent(cragRow.name)}`
     try {
-      const res = await fetch(url)
+      const res = await fetch(url, {
+        headers: { Authorization: apiKey },
+      })
       if (!res.ok) {
         return { cragName: cragRow.name, error: `天氣 API 回應 ${res.status}` }
       }

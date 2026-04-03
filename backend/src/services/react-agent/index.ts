@@ -161,6 +161,9 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
         ],
         { model: models.hyde.model, maxTokens: 512, temperature: 0.3 }
       )
+      // 通用知識也過 output guards
+      const guardResult = runOutputGuards(response.content)
+      const answer = guardResult.cleanedAnswer ?? response.content
       const tracker = new DefaultTokenTracker()
       tracker.record(
         models.hyde.provider,
@@ -169,15 +172,18 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
         response.usage?.completion_tokens ?? 0
       )
       return {
-        answer: response.content,
+        answer,
         sources: [],
         totalTokens: tracker.getTotalTokens(),
         turnCount: 0,
         toolCallCount: 0,
         perModelStats: tracker.getPerModelStats(),
       }
-    } catch {
-      // 分類錯誤或 hyde 失敗 → fall through 到 ReAct loop
+    } catch (err) {
+      console.warn(
+        '[react-agent] general_knowledge hyde failed, falling through to ReAct loop:',
+        err
+      )
     }
   }
 

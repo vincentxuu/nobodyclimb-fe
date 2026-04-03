@@ -1,5 +1,13 @@
 import type { Tool, ToolContext, ToolResult } from '../types'
 
+/** YDS grade → sortable numeric（5.10a=100, 5.12d=123） */
+function gradeToNumeric(grade: string | null): number {
+  if (!grade) return 0
+  const match = grade.match(/5\.(\d+)([a-d])?/)
+  if (!match) return 0
+  return parseInt(match[1], 10) * 10 + (match[2] ? 'abcd'.indexOf(match[2]) : 0)
+}
+
 export const userProfileTool: Tool = {
   name: 'user_profile',
   tags: ['user', 'personal'],
@@ -64,20 +72,26 @@ export const userProfileTool: Tool = {
       db
         .prepare(
           `SELECT COUNT(*) as total_ascents,
-                  MAX(grade) as highest_grade,
                   COUNT(DISTINCT crag_name) as unique_crags
            FROM user_route_ascents ra
            LEFT JOIN routes r ON ra.route_id = r.id
            WHERE ra.user_id = ?`
         )
         .bind(ctx.userId)
-        .first<{ total_ascents: number; highest_grade: string; unique_crags: number }>(),
+        .first<{ total_ascents: number; unique_crags: number }>(),
     ])
+
+    // 從完攀記錄中用 numeric 排序找最高難度（避免 SQL MAX 的 lexicographic 問題）
+    const allGrades = (recentAscents.results ?? []).map((a) => a.grade).filter(Boolean)
+    const highestGrade =
+      allGrades.length > 0
+        ? allGrades.reduce((best, g) => (gradeToNumeric(g) > gradeToNumeric(best) ? g : best))
+        : null
 
     return {
       user,
       recentAscents: recentAscents.results ?? [],
-      stats,
+      stats: { ...stats, highest_grade: highestGrade },
     }
   },
 

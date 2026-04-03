@@ -51,9 +51,9 @@ export const recommendTool: Tool = {
       .prepare('SELECT DISTINCT route_id FROM user_route_ascents WHERE user_id = ?')
       .bind(ctx.userId)
       .all<{ route_id: string }>()
-    const _climbedRouteIds = (climbedRoutes.results ?? []).map((r) => r.route_id)
+    const climbedRouteIds = new Set((climbedRoutes.results ?? []).map((r) => r.route_id))
 
-    // 用 QueryService 搜尋推薦路線（排除已攀登）
+    // 用 QueryService 搜尋推薦路線
     const query = crag ? `推薦適合我的 ${crag} 攀岩路線` : '推薦適合我的攀岩路線'
 
     // 查 crag_id
@@ -68,14 +68,19 @@ export const recommendTool: Tool = {
     const result = await ctx.queryService.search({
       query,
       type: 'route',
-      limit: 10,
+      limit: 20, // 多撈一些，post-filter 後取 10
       filters: cragId ? { crag_id: cragId } : undefined,
     })
 
+    // 排除已攀登路線
+    const filtered = (result.results ?? [])
+      .filter((r: { id?: string }) => !r.id || !climbedRouteIds.has(r.id))
+      .slice(0, 10)
+
     return {
       recentAscents: ascents.results ?? [],
-      recommendations: result.results,
-      count: result.count,
+      recommendations: filtered,
+      count: filtered.length,
     }
   },
 
