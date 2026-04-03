@@ -453,6 +453,18 @@ export interface AILogDetail {
       skipped?: boolean
       error?: string
     }>
+    // React Agent 策略
+    strategy?: string
+    turn_count?: number
+    tool_call_count?: number
+    per_model_stats?: Array<{
+      provider: string
+      model: string
+      prompt_tokens: number
+      completion_tokens: number
+      cost_usd: number
+      cost_twd: number
+    }>
   } | null
 }
 
