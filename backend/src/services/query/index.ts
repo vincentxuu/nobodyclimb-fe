@@ -31,6 +31,7 @@ import { buildAscentContext, estimateAbilityLevel, getRecentAscents } from '../p
 import { createPipelineContext } from '../pipeline/context'
 import { PipelineEngine } from '../pipeline/engine'
 import type { AgenticStepTrace, PipelineConfig, StageTokenUsage } from '../pipeline/types'
+import { parseSuggestedQuestions } from '../pipeline/utils'
 import {
   checkSemanticCache,
   flagResponse,
@@ -313,12 +314,16 @@ export class QueryService {
             }),
           })
 
+          // 解析 suggested_questions（與 pipeline 路徑一致）
+          const { answer: parsedReactAnswer, suggested_questions: reactSuggestions } =
+            parseSuggestedQuestions(reactResult.answer)
+
           // KV cache 寫入
           const response: AIAskResponse = {
-            answer: reactResult.answer,
+            answer: parsedReactAnswer,
             sources: reactSources,
             query_id: queryId,
-            suggested_questions: [],
+            suggested_questions: reactSuggestions,
           }
 
           if (!request.no_cache && ctx) {

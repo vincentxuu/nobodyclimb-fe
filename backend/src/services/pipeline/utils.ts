@@ -9,10 +9,12 @@ export function parseSuggestedQuestions(raw: string): {
   suggested_questions: string[]
 } {
   const SEP = '---SUGGESTIONS---'
-  const idx = raw.indexOf(SEP)
+  // 有些模型會把 --- 當 markdown 水平線換行後才輸出 SUGGESTIONS---，這裡正規化
+  const normalized = raw.replace(/---\s*\n\s*SUGGESTIONS---/, SEP)
+  const idx = normalized.indexOf(SEP)
   if (idx !== -1) {
-    const rawAnswer = raw.slice(0, idx).trim()
-    const suggestionsBlock = raw.slice(idx + SEP.length).trim()
+    const rawAnswer = normalized.slice(0, idx).trim()
+    const suggestionsBlock = normalized.slice(idx + SEP.length).trim()
     const suggested_questions = suggestionsBlock
       .split('\n')
       .map((line) => line.replace(/^\d+\.\s*/, '').trim())
@@ -36,7 +38,7 @@ export function parseSuggestedQuestions(raw: string): {
     return { answer: answer || rawAnswer, suggested_questions }
   }
 
-  const lines = raw.trim().split('\n')
+  const lines = normalized.trim().split('\n')
   const questions: string[] = []
   let cutIndex = lines.length
   for (let i = lines.length - 1; i >= 0; i--) {

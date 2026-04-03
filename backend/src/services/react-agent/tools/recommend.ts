@@ -1,5 +1,14 @@
 import type { Tool, ToolContext, ToolResult } from '../types'
 
+function gradeToNumeric(grade: string | null | undefined): number {
+  if (!grade) return 0
+  const match = grade.match(/5\.(\d+)([a-d])?/)
+  if (!match) return 0
+  const base = parseInt(match[1], 10) * 10
+  const suffix = match[2] ? 'abcd'.indexOf(match[2]) : 0
+  return base + suffix
+}
+
 export const recommendTool: Tool = {
   name: 'recommend',
   tags: ['recommendation', 'personal'],
@@ -73,10 +82,34 @@ export const recommendTool: Tool = {
       filters: cragId ? { crag_id: cragId } : undefined,
     })
 
+    // 從近期攀登紀錄推算用戶程度（最高 grade）
+    const gradeNumerics = (ascents.results ?? [])
+      .map((a) => gradeToNumeric(a.grade))
+      .filter((n) => n > 0)
+    const userMaxGrade = gradeNumerics.length > 0 ? Math.max(...gradeNumerics) : null
+
     // 排除已攀登路線
-    const filtered = (result.results ?? [])
-      .filter((r: { id?: string }) => !r.id || !climbedRouteIds.has(r.id))
-      .slice(0, 10)
+    let filtered = (result.results ?? []).filter(
+      (r: { id?: string }) => !r.id || !climbedRouteIds.has(r.id)
+    )
+
+    // 根據用戶程度過濾難度範圍：推薦同級到上一個大級（最多 +10 數值）
+    // 例如用戶最高 5.10c（102）→ 推薦 5.10c～5.11c（102～112），排除 5.12+
+    if (userMaxGrade !== null) {
+      const minGrade = userMaxGrade
+      const maxGrade = userMaxGrade + 10
+      const gradeFiltered = filtered.filter((r: { excerpt?: string }) => {
+        const gradeNum = gradeToNumeric(r.excerpt?.match(/5\.\d+[a-d]?/)?.[0])
+        if (gradeNum === 0) return true // 無法解析 grade 的保留
+        return gradeNum >= minGrade && gradeNum <= maxGrade
+      })
+      // 只有過濾後還有足夠結果才套用，避免結果全空
+      if (gradeFiltered.length >= 2) {
+        filtered = gradeFiltered
+      }
+    }
+
+    filtered = filtered.slice(0, 10)
 
     return {
       recentAscents: ascents.results ?? [],
