@@ -18,7 +18,7 @@ import { runReactLoop } from './engine'
 import { runAsyncJudge, runOutputGuards } from './guards'
 import { createToolRegistry } from './tools'
 import { DefaultTokenTracker } from './tracker'
-import type { ModelMap, ProviderName, ReactAgentResult, ToolContext } from './types'
+import type { ModelConfig, ModelMap, ProviderName, ReactAgentResult, ToolContext } from './types'
 
 // ---------------------------------------------------------------------------
 // Default Model Map
