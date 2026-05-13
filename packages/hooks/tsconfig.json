@@ -12,7 +12,13 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "..",
+    "baseUrl": ".",
+    "paths": {
+      "@nobodyclimb/api-client": ["../api-client/src/index.ts"],
+      "@nobodyclimb/types": ["../types/src/index.ts"],
+      "@nobodyclimb/constants": ["../constants/src/index.ts"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
