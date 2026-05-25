@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useSpring, useTransform } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface ScoreDisplayProps {
@@ -9,6 +10,7 @@ interface ScoreDisplayProps {
 }
 
 export function ScoreDisplay({ score, className }: ScoreDisplayProps) {
+  const t = useTranslations('GamesPage')
   // 使用 spring 動畫讓數字滾動更順暢
   const springScore = useSpring(score, {
     stiffness: 100,
@@ -19,7 +21,7 @@ export function ScoreDisplay({ score, className }: ScoreDisplayProps) {
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <span className="text-sm text-[#535353]">分數</span>
+      <span className="text-sm text-[#535353]">{t('score')}</span>
       <motion.span
         className="text-2xl font-bold text-[#1B1A1A]"
         animate={{

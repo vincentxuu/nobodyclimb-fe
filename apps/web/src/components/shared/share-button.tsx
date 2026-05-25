@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, Link2, MessageCircle, Share } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,6 +37,7 @@ export function ShareButton({
   size = 'sm',
   iconSize,
 }: ShareButtonProps) {
+  const t = useTranslations('SharedUI')
   const [copied, setCopied] = useState(false)
   const { toast } = useToast()
 
@@ -49,15 +51,15 @@ export function ShareButton({
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
       toast({
-        title: '已複製連結',
-        description: '分享連結已複製到剪貼簿',
+        title: t('shareCopiedTitle'),
+        description: t('shareCopiedDescription'),
       })
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
       console.error('Failed to copy link:', error)
       toast({
-        title: '複製失敗',
-        description: '無法複製連結，請手動複製',
+        title: t('shareCopyFailedTitle'),
+        description: t('shareCopyFailedDescription'),
         variant: 'destructive',
       })
     }
@@ -111,7 +113,7 @@ export function ShareButton({
           <>
             <DropdownMenuItem onClick={handleNativeShare}>
               <Share className="mr-2 h-4 w-4" />
-              <span>分享...</span>
+              <span>{t('shareNative')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -121,12 +123,12 @@ export function ShareButton({
           {copied ? (
             <>
               <Check className="mr-2 h-4 w-4 text-green-600" />
-              <span className="text-green-600">已複製</span>
+              <span className="text-green-600">{t('shareCopied')}</span>
             </>
           ) : (
             <>
               <Link2 className="mr-2 h-4 w-4" />
-              <span>複製連結</span>
+              <span>{t('shareCopyLink')}</span>
             </>
           )}
         </DropdownMenuItem>
@@ -135,17 +137,17 @@ export function ShareButton({
 
         <DropdownMenuItem onClick={handleShareFacebook}>
           <Share className="mr-2 h-4 w-4 text-blue-600" />
-          <span>分享到 Facebook</span>
+          <span>{t('shareTo', { platform: 'Facebook' })}</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleShareTwitter}>
           <Share className="mr-2 h-4 w-4 text-sky-500" />
-          <span>分享到 X (Twitter)</span>
+          <span>{t('shareTo', { platform: 'X (Twitter)' })}</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleShareLine}>
           <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
-          <span>分享到 LINE</span>
+          <span>{t('shareTo', { platform: 'LINE' })}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -12,6 +12,7 @@ import {
   Video,
 } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { PageTransition } from '@/components/shared/page-transition'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
@@ -34,6 +35,7 @@ const staggerContainer = {
 
 // Hero Section
 function HeroSection() {
+  const t = useTranslations('AboutPage')
   return (
     <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
       {/* 背景 */}
@@ -48,7 +50,7 @@ function HeroSection() {
         >
           <Image
             src="/logo/Nobodylimb-white.svg"
-            alt="小人物攀岩"
+            alt={t('brandLogoAlt')}
             width={280}
             height={80}
             className="mx-auto"
@@ -67,7 +69,7 @@ function HeroSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="max-w-xl text-lg text-white/80 md:text-xl"
         >
-          每個 Nobody 都有屬於自己的攀岩故事
+          {t('heroTagline')}
         </motion.p>
       </div>
     </section>
@@ -76,6 +78,7 @@ function HeroSection() {
 
 // Our Story Section
 function StorySection() {
+  const t = useTranslations('AboutPage')
   return (
     <section className="bg-white py-16 md:py-24">
       <div className="container mx-auto px-4">
@@ -87,19 +90,12 @@ function StorySection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">故事起源</h2>
+            <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">{t('storyTitle')}</h2>
             <div className="my-4 h-1 w-12 bg-[#1B1A1A]" />
             <div className="space-y-4 text-[#3F3D3D]">
-              <p className="text-lg leading-relaxed">
-                「小人物攀岩」緣起於一個 Nobody 對攀岩的熱愛。
-              </p>
-              <p className="leading-relaxed">
-                在攀岩的路上，我們都是小人物。不論你是剛踏入岩館的新手，還是征戰各大岩場的老手，每個人都有屬於自己的故事、自己的掙扎、自己的突破。
-              </p>
-              <p className="leading-relaxed">
-                我們希望打造一個平台，讓每位攀岩愛好者都能找到資訊、分享故事、建立連結。因為在這裡，每個
-                Nobody 都值得被看見。
-              </p>
+              <p className="text-lg leading-relaxed">{t('storyParagraph1')}</p>
+              <p className="leading-relaxed">{t('storyParagraph2')}</p>
+              <p className="leading-relaxed">{t('storyParagraph3')}</p>
             </div>
           </motion.div>
 
@@ -111,7 +107,7 @@ function StorySection() {
             transition={{ duration: 0.6 }}
             className="flex aspect-[4/3] items-center justify-center"
           >
-            <Image src="/logo512.png" alt="小人物攀岩 Logo" width={240} height={240} />
+            <Image src="/logo512.png" alt={t('brandLogoAlt')} width={240} height={240} />
           </motion.div>
         </div>
       </div>
@@ -121,23 +117,27 @@ function StorySection() {
 
 // Mission Section
 function MissionSection() {
+  const t = useTranslations('AboutPage')
   const missions = [
     {
+      id: 'promote',
       icon: MountainSnow,
-      title: '推廣攀岩',
-      description: '降低入門門檻，提供完整的岩場資訊與攻略，讓更多人認識並愛上攀岩運動。',
+      title: t('missionPromoteTitle'),
+      description: t('missionPromoteDescription'),
       color: 'bg-brand-accent', // 黃色
     },
     {
+      id: 'community',
       icon: Users,
-      title: '建立社群',
-      description: '連結台灣各地的攀岩愛好者，創造交流與分享的空間，一起成長進步。',
+      title: t('missionCommunityTitle'),
+      description: t('missionCommunityDescription'),
       color: 'bg-brand-accent-hover/60', // 橘色淡化
     },
     {
+      id: 'record',
       icon: BookOpen,
-      title: '記錄故事',
-      description: '透過人物誌與部落格，記錄每位攀岩者的珍貴回憶與獨特經歷。',
+      title: t('missionRecordTitle'),
+      description: t('missionRecordDescription'),
       color: 'bg-brand-red/50', // 紅色淡化
     },
   ]
@@ -152,7 +152,7 @@ function MissionSection() {
           transition={{ duration: 0.5 }}
           className="mb-12 text-center"
         >
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">我們的使命</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">{t('missionTitle')}</h2>
           <div className="mx-auto my-4 h-1 w-12 bg-brand-accent" />
         </motion.div>
 
@@ -165,7 +165,7 @@ function MissionSection() {
         >
           {missions.map((mission) => (
             <motion.div
-              key={mission.title}
+              key={mission.id}
               variants={fadeInUp}
               className="rounded-lg bg-white p-8 text-center shadow-sm transition-shadow hover:shadow-md"
             >
@@ -186,41 +186,48 @@ function MissionSection() {
 
 // Features Section
 function FeaturesSection() {
+  const t = useTranslations('AboutPage')
   const features = [
     {
+      id: 'crag',
       icon: MapPin,
-      title: '岩場探索',
-      description: '台灣各地天然岩場的完整資訊與路線資料',
+      title: t('featureCragTitle'),
+      description: t('featureCragDescription'),
       href: '/crag',
     },
     {
+      id: 'biography',
       icon: Users,
-      title: '人物誌',
-      description: '記錄攀岩者們的故事與心路歷程',
+      title: t('featureBiographyTitle'),
+      description: t('featureBiographyDescription'),
       href: '/biography',
     },
     {
+      id: 'videos',
       icon: Video,
-      title: '攀岩影片',
-      description: '精選攀岩教學與紀錄影片',
+      title: t('featureVideosTitle'),
+      description: t('featureVideosDescription'),
       href: '/videos',
     },
     {
+      id: 'gallery',
       icon: Camera,
-      title: '攝影集',
-      description: '捕捉攀岩的精彩瞬間',
+      title: t('featureGalleryTitle'),
+      description: t('featureGalleryDescription'),
       href: '/gallery',
     },
     {
+      id: 'blog',
       icon: FileText,
-      title: '部落格',
-      description: '攀岩知識、心得與攻略分享',
+      title: t('featureBlogTitle'),
+      description: t('featureBlogDescription'),
       href: '/blog',
     },
     {
+      id: 'gym',
       icon: Building2,
-      title: '岩館資訊',
-      description: '全台室內攀岩館完整指南',
+      title: t('featureGymTitle'),
+      description: t('featureGymDescription'),
       href: '/gym',
     },
   ]
@@ -235,11 +242,9 @@ function FeaturesSection() {
           transition={{ duration: 0.5 }}
           className="mb-12 text-center"
         >
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">平台功能</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">{t('featuresTitle')}</h2>
           <div className="mx-auto my-4 h-1 w-12 bg-[#1B1A1A]" />
-          <p className="mx-auto max-w-2xl text-[#6D6C6C]">
-            從入門到進階，提供你攀岩旅程所需的一切資源
-          </p>
+          <p className="mx-auto max-w-2xl text-[#6D6C6C]">{t('featuresSubtitle')}</p>
         </motion.div>
 
         <motion.div
@@ -250,7 +255,7 @@ function FeaturesSection() {
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           {features.map((feature) => (
-            <motion.div key={feature.title} variants={fadeInUp}>
+            <motion.div key={feature.id} variants={fadeInUp}>
               <Link
                 href={feature.href}
                 className="group flex items-start gap-4 rounded-lg border border-[#E5E5E5] bg-white p-6 transition-all hover:border-brand-accent hover:shadow-md"
@@ -283,15 +288,16 @@ function StatsSkeleton() {
 
 // Stats Section
 function StatsSection() {
+  const t = useTranslations('AboutPage')
   const { stats, isLoading } = useAboutStats()
 
   const statsConfig = [
-    { key: 'gyms' as const, label: '間岩館', suffix: '+' },
-    { key: 'crags' as const, label: '個岩場', suffix: '+' },
-    { key: 'routes' as const, label: '條路線', suffix: '+' },
-    { key: 'biographies' as const, label: '篇人物誌', suffix: '+' },
-    { key: 'posts' as const, label: '篇文章', suffix: '+' },
-    { key: 'videos' as const, label: '部影片', suffix: '+' },
+    { key: 'gyms' as const, label: t('statGyms'), suffix: '+' },
+    { key: 'crags' as const, label: t('statCrags'), suffix: '+' },
+    { key: 'routes' as const, label: t('statRoutes'), suffix: '+' },
+    { key: 'biographies' as const, label: t('statBiographies'), suffix: '+' },
+    { key: 'posts' as const, label: t('statPosts'), suffix: '+' },
+    { key: 'videos' as const, label: t('statVideos'), suffix: '+' },
   ]
 
   return (
@@ -333,6 +339,7 @@ function StatsSection() {
 
 // CTA Section
 function CTASection() {
+  const t = useTranslations('AboutPage')
   return (
     <section className="bg-[#F5F5F5] py-16 md:py-24">
       <div className="container mx-auto px-4 text-center">
@@ -345,20 +352,18 @@ function CTASection() {
         >
           <Image
             src="/logo/Nobodylimb-black.svg"
-            alt="小人物攀岩"
+            alt={t('brandLogoAlt')}
             width={280}
             height={80}
             className="mb-8"
           />
-          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">成為小人物的一份子</h2>
+          <h2 className="text-3xl font-bold text-[#1B1A1A] md:text-4xl">{t('ctaTitle')}</h2>
           <div className="mx-auto my-4 h-1 w-12 bg-[#1B1A1A]" />
-          <p className="mx-auto mb-8 max-w-xl text-[#6D6C6C]">
-            加入我們的社群，和其他攀岩愛好者一起分享、學習、成長
-          </p>
+          <p className="mx-auto mb-8 max-w-xl text-[#6D6C6C]">{t('ctaDescription')}</p>
 
           <Link href="/auth/register">
             <Button className="h-12 bg-[#1B1A1A] px-8 text-base text-white hover:bg-[#3F3D3D]">
-              立即加入
+              {t('ctaButton')}
             </Button>
           </Link>
         </motion.div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 
@@ -13,6 +14,7 @@ interface ProtectedRouteProps {
  * 確保只有已登入用戶可以訪問包裝的內容
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const t = useTranslations('SharedUI')
   const { status } = useAuthStore()
   const router = useRouter()
 
@@ -30,7 +32,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">載入中...</p>
+          <p className="text-muted-foreground">{t('loading')}</p>
         </div>
       </div>
     )
@@ -42,7 +44,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       <div className="flex min-h-[calc(100vh-14rem)] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">重定向中...</p>
+          <p className="text-muted-foreground">{t('redirecting')}</p>
         </div>
       </div>
     )

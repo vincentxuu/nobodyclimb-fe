@@ -44,6 +44,7 @@ export default function MobileMenu() {
   const { status, signOut, user } = useAuthStore()
   const t = useTranslations('MobileMenu')
   const tNav = useTranslations('Navbar')
+  const tCommon = useTranslations('CommonUI')
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -114,10 +115,10 @@ export default function MobileMenu() {
                     <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full xs:h-10 xs:w-10">
                       <AvatarWithFallback
                         src={user?.avatar}
-                        alt="用戶頭像"
+                        alt={tCommon('userAvatarAlt')}
                         size="w-8 h-8 xs:w-10 xs:h-10"
                         fallback={
-                          <div role="img" aria-label="用戶頭像">
+                          <div role="img" aria-label={tCommon('userAvatarAlt')}>
                             {generateAvatarElement(avatarStyle, 'w-8 h-8 xs:w-10 xs:h-10')}
                           </div>
                         }
@@ -125,7 +126,7 @@ export default function MobileMenu() {
                     </div>
                     <div className="flex-1">
                       <p className="font-['Noto_Sans_TC'] text-sm font-semibold text-[#1B1A1A]">
-                        {user?.username || '用戶'}
+                        {user?.username || tCommon('defaultUsername')}
                       </p>
                     </div>
                   </div>

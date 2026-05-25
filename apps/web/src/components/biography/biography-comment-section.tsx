@@ -313,9 +313,9 @@ export function BiographyCommentSection({
                   onClick={() => router.push('/auth/login')}
                   className="text-brand-600 hover:underline"
                 >
-                  登入
+                  {t('login')}
                 </button>{' '}
-                後才能留言
+                {t('commentLoginPrompt')}
               </p>
             )}
 

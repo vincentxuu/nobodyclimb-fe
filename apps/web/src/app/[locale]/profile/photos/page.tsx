@@ -37,7 +37,7 @@ const PhotoCard = ({ photo, onEdit, onDelete, isDeleting }: PhotoCardProps) => {
       <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
         <Image
           src={photo.image_url}
-          alt={photo.caption || '照片'}
+          alt={photo.caption || t('photoAlt')}
           fill
           className="object-cover"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

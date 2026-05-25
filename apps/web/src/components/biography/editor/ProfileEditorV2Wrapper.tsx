@@ -1,6 +1,7 @@
 'use client'
 
 import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { biographyService } from '@/lib/api/services'
 import { SYSTEM_TAG_DIMENSION_LIST } from '@/lib/constants/biography-tags'
@@ -19,6 +20,7 @@ interface ProfileEditorV2WrapperProps {
  * 負責資料獲取、狀態管理和儲存邏輯
  */
 export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProps) {
+  const t = useTranslations('ProfileSetup')
   const { user } = useAuthStore()
   const [biography, setBiography] = useState<BiographyV2 | null>(null)
   const [loading, setLoading] = useState(true)
@@ -128,7 +130,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
         }
       } catch (err) {
         console.error('Failed to load biography:', err)
-        setError('載入人物誌失敗')
+        setError(t('loadBiographyFailed'))
         // 建立空白的人物誌
         setBiography(createEmptyBiographyV2(user.id))
       } finally {
@@ -137,7 +139,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
     }
 
     loadBiography()
-  }, [user?.id])
+  }, [user?.id, t])
 
   // 處理資料變更
   const handleChange = useCallback((updates: Partial<BiographyV2>) => {
@@ -210,36 +212,39 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
   }, [])
 
   // 處理儲存
-  const handleSave = useCallback(async (bio: BiographyV2) => {
-    // 防護：確保 bio 存在
-    if (!bio) {
-      console.warn('handleSave called with undefined biography, skipping save')
-      return
-    }
-
-    try {
-      setError(null)
-
-      // 編輯期間使用輕量 autosave 端點，避免大 payload 導致 timeout
-      const response = await biographyService.autosaveV2(bio)
-
-      if (!response.success) {
-        throw new Error('儲存失敗')
+  const handleSave = useCallback(
+    async (bio: BiographyV2) => {
+      // 防護：確保 bio 存在
+      if (!bio) {
+        console.warn('handleSave called with undefined biography, skipping save')
+        return
       }
 
-      // 更新本地狀態
-      setBiography(bio)
-    } catch (err) {
-      console.error('Failed to save biography:', err)
-      const message = err instanceof Error ? err.message : ''
-      setError(
-        message.toLowerCase().includes('timeout') ? '儲存逾時，請稍後再試' : '儲存失敗，請稍後再試'
-      )
-      throw err
-    } finally {
-      // no-op: autosave should not block editing
-    }
-  }, [])
+      try {
+        setError(null)
+
+        // 編輯期間使用輕量 autosave 端點，避免大 payload 導致 timeout
+        const response = await biographyService.autosaveV2(bio)
+
+        if (!response.success) {
+          throw new Error('儲存失敗')
+        }
+
+        // 更新本地狀態
+        setBiography(bio)
+      } catch (err) {
+        console.error('Failed to save biography:', err)
+        const message = err instanceof Error ? err.message : ''
+        setError(
+          message.toLowerCase().includes('timeout') ? t('saveTimeout') : t('saveFailedRetry')
+        )
+        throw err
+      } finally {
+        // no-op: autosave should not block editing
+      }
+    },
+    [t]
+  )
 
   // 處理發布
   const handlePublish = useCallback(async () => {
@@ -272,7 +277,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
   if (!user) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[#6D6C6C]">請先登入以編輯人物誌</p>
+        <p className="text-[#6D6C6C]">{t('loginRequiredToEdit')}</p>
       </div>
     )
   }
@@ -286,7 +291,7 @@ export function ProfileEditorV2Wrapper({ className }: ProfileEditorV2WrapperProp
           onClick={() => window.location.reload()}
           className="rounded-lg bg-[#1B1A1A] px-4 py-2 text-white hover:bg-[#333]"
         >
-          重新載入
+          {t('reload')}
         </button>
       </div>
     )

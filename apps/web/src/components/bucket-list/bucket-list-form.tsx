@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Trash2, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -42,6 +43,7 @@ export function BucketListForm({
   isLoading = false,
   className,
 }: BucketListFormProps) {
+  const t = useTranslations('BucketList')
   const isEditing = !!item
 
   const {
@@ -81,7 +83,7 @@ export function BucketListForm({
     const currentMilestones = milestones || []
     const newMilestone: Milestone = {
       id: `milestone-${Date.now()}`,
-      title: `里程碑 ${currentMilestones.length + 1}`,
+      title: t('milestoneDefaultTitle', { index: currentMilestones.length + 1 }),
       percentage: Math.min(100, (currentMilestones.length + 1) * 20),
       completed: false,
       completed_at: null,
@@ -111,15 +113,15 @@ export function BucketListForm({
       {/* 基本資訊 */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-[#1B1A1A]">
-          {isEditing ? '編輯目標' : '新增目標'}
+          {isEditing ? t('editGoal') : t('addGoal')}
         </h3>
 
         {/* 目標標題 */}
         <div>
-          <Label htmlFor="title">目標標題 *</Label>
+          <Label htmlFor="title">{t('titleLabel')}</Label>
           <Input
             id="title"
-            placeholder="例如：完攀龍洞校門口"
+            placeholder={t('titlePlaceholder')}
             {...register('title')}
             className="mt-1"
             state={errors.title ? 'error' : 'default'}
@@ -129,7 +131,7 @@ export function BucketListForm({
 
         {/* 分類 */}
         <div>
-          <Label>分類</Label>
+          <Label>{t('categoryLabel')}</Label>
           <Select
             value={category || 'other'}
             onValueChange={(value) =>
@@ -137,12 +139,12 @@ export function BucketListForm({
             }
           >
             <SelectTrigger className="mt-1">
-              <SelectValue placeholder="選擇分類" />
+              <SelectValue placeholder={t('categoryPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {BUCKET_LIST_CATEGORIES.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
+                  {t(`categoryLabels.${cat.value}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -151,10 +153,10 @@ export function BucketListForm({
 
         {/* 詳細描述 */}
         <div>
-          <Label htmlFor="description">詳細描述</Label>
+          <Label htmlFor="description">{t('descriptionLabel')}</Label>
           <Textarea
             id="description"
-            placeholder="描述你想達成的目標..."
+            placeholder={t('descriptionPlaceholder')}
             {...register('description')}
             className="mt-1 min-h-[100px]"
           />
@@ -166,15 +168,15 @@ export function BucketListForm({
 
       {/* 目標細節 */}
       <div className="space-y-4">
-        <h4 className="font-medium text-[#1B1A1A]">目標細節（選填）</h4>
+        <h4 className="font-medium text-[#1B1A1A]">{t('goalDetailsSection')}</h4>
 
         <div className="grid gap-4 sm:grid-cols-3">
           {/* 目標難度 */}
           <div>
-            <Label htmlFor="target_grade">目標難度</Label>
+            <Label htmlFor="target_grade">{t('targetGradeLabel')}</Label>
             <Input
               id="target_grade"
-              placeholder="例如：5.12a / V6"
+              placeholder={t('targetGradePlaceholder')}
               {...register('target_grade')}
               className="mt-1"
             />
@@ -182,10 +184,10 @@ export function BucketListForm({
 
           {/* 目標地點 */}
           <div>
-            <Label htmlFor="target_location">目標地點</Label>
+            <Label htmlFor="target_location">{t('targetLocationLabel')}</Label>
             <Input
               id="target_location"
-              placeholder="例如：龍洞"
+              placeholder={t('targetLocationPlaceholder')}
               {...register('target_location')}
               className="mt-1"
             />
@@ -193,7 +195,7 @@ export function BucketListForm({
 
           {/* 預計完成日期 */}
           <div>
-            <Label htmlFor="target_date">預計完成日期</Label>
+            <Label htmlFor="target_date">{t('targetDateLabel')}</Label>
             <div className="relative mt-1">
               <input
                 id="target_date"
@@ -213,8 +215,8 @@ export function BucketListForm({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-medium text-[#1B1A1A]">進度追蹤</h4>
-            <p className="text-sm text-gray-500">開啟後可追蹤目標完成進度</p>
+            <h4 className="font-medium text-[#1B1A1A]">{t('progressTrackingTitle')}</h4>
+            <p className="text-sm text-gray-500">{t('progressTrackingHint')}</p>
           </div>
           <Switch
             checked={enableProgress}
@@ -233,7 +235,7 @@ export function BucketListForm({
           <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
             {/* 進度模式選擇 */}
             <div>
-              <Label>追蹤方式</Label>
+              <Label>{t('trackingMethodLabel')}</Label>
               {errors.progress_mode && (
                 <p className="mt-1 text-sm text-red-500">{errors.progress_mode.message}</p>
               )}
@@ -251,8 +253,8 @@ export function BucketListForm({
                       : 'border-transparent bg-white hover:border-gray-200'
                   )}
                 >
-                  <div className="font-medium">百分比進度</div>
-                  <div className="mt-1 text-xs text-gray-500">手動調整進度百分比</div>
+                  <div className="font-medium">{t('manualModeTitle')}</div>
+                  <div className="mt-1 text-xs text-gray-500">{t('manualModeHint')}</div>
                 </button>
                 <button
                   type="button"
@@ -263,7 +265,7 @@ export function BucketListForm({
                       setValue('milestones', [
                         {
                           id: '1',
-                          title: '里程碑 1',
+                          title: t('milestoneDefaultTitle', { index: 1 }),
                           percentage: 20,
                           completed: false,
                           completed_at: null,
@@ -271,7 +273,7 @@ export function BucketListForm({
                         },
                         {
                           id: '2',
-                          title: '里程碑 2',
+                          title: t('milestoneDefaultTitle', { index: 2 }),
                           percentage: 40,
                           completed: false,
                           completed_at: null,
@@ -279,7 +281,7 @@ export function BucketListForm({
                         },
                         {
                           id: '3',
-                          title: '里程碑 3',
+                          title: t('milestoneDefaultTitle', { index: 3 }),
                           percentage: 60,
                           completed: false,
                           completed_at: null,
@@ -287,7 +289,7 @@ export function BucketListForm({
                         },
                         {
                           id: '4',
-                          title: '里程碑 4',
+                          title: t('milestoneDefaultTitle', { index: 4 }),
                           percentage: 80,
                           completed: false,
                           completed_at: null,
@@ -295,7 +297,7 @@ export function BucketListForm({
                         },
                         {
                           id: '5',
-                          title: '達成目標',
+                          title: t('milestoneGoalTitle'),
                           percentage: 100,
                           completed: false,
                           completed_at: null,
@@ -311,8 +313,8 @@ export function BucketListForm({
                       : 'border-transparent bg-white hover:border-gray-200'
                   )}
                 >
-                  <div className="font-medium">里程碑模式</div>
-                  <div className="mt-1 text-xs text-gray-500">設定多個階段性目標</div>
+                  <div className="font-medium">{t('milestoneModeTitle')}</div>
+                  <div className="mt-1 text-xs text-gray-500">{t('milestoneModeHint')}</div>
                 </button>
               </div>
             </div>
@@ -320,7 +322,9 @@ export function BucketListForm({
             {/* 手動進度 */}
             {progressMode === 'manual' && (
               <div>
-                <Label htmlFor="progress">目前進度：{watch('progress')}%</Label>
+                <Label htmlFor="progress">
+                  {t('currentProgress', { progress: watch('progress') })}
+                </Label>
                 <input
                   type="range"
                   id="progress"
@@ -335,7 +339,7 @@ export function BucketListForm({
             {/* 里程碑編輯 */}
             {progressMode === 'milestone' && (
               <div className="space-y-3">
-                <Label>里程碑設定</Label>
+                <Label>{t('milestoneSettingsLabel')}</Label>
                 {errors.milestones && (
                   <p className="text-sm text-red-500">{errors.milestones.message}</p>
                 )}
@@ -345,7 +349,7 @@ export function BucketListForm({
                     <Input
                       value={milestone.title}
                       onChange={(e) => updateMilestone(milestone.id, 'title', e.target.value)}
-                      placeholder="里程碑名稱"
+                      placeholder={t('milestoneNamePlaceholder')}
                       className="flex-1"
                     />
                     <Input
@@ -376,7 +380,7 @@ export function BucketListForm({
                   className="mt-2"
                 >
                   <Plus className="mr-1 h-4 w-4" />
-                  新增里程碑
+                  {t('addMilestone')}
                 </Button>
               </div>
             )}
@@ -387,8 +391,8 @@ export function BucketListForm({
       {/* 公開設定 */}
       <div className="flex items-center justify-between">
         <div>
-          <Label>公開目標</Label>
-          <p className="text-sm text-gray-500">其他人可以看到這個目標</p>
+          <Label>{t('publicGoalLabel')}</Label>
+          <p className="text-sm text-gray-500">{t('publicGoalHint')}</p>
         </div>
         <Switch
           checked={watch('is_public')}
@@ -399,7 +403,7 @@ export function BucketListForm({
       {/* 表單錯誤提示 */}
       {Object.keys(errors).length > 0 && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm font-medium text-red-800">請修正以下錯誤：</p>
+          <p className="text-sm font-medium text-red-800">{t('fixErrorsBelow')}</p>
           <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
             {Object.entries(errors).map(([key, error]) => {
               if (error && 'message' in error && error.message) {
@@ -414,10 +418,10 @@ export function BucketListForm({
       {/* 按鈕 */}
       <div className="flex justify-end gap-3 border-t pt-4">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
-          取消
+          {t('cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? '儲存中...' : isEditing ? '儲存變更' : '新增目標'}
+          {isLoading ? t('saving') : isEditing ? t('saveChanges') : t('addGoal')}
         </Button>
       </div>
     </form>
@@ -438,6 +442,7 @@ export function QuickAddForm({
   isLoading?: boolean
   className?: string
 }) {
+  const t = useTranslations('BucketList')
   const [title, setTitle] = React.useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -452,12 +457,12 @@ export function QuickAddForm({
       <Input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="輸入目標名稱..."
+        placeholder={t('quickAddPlaceholder')}
         className="flex-1"
         autoFocus
       />
       <Button type="submit" disabled={!title.trim() || isLoading}>
-        {isLoading ? '新增中...' : '新增'}
+        {isLoading ? t('adding') : t('add')}
       </Button>
       <button
         type="button"

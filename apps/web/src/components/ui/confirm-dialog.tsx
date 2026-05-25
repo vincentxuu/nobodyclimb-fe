@@ -1,6 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from './button'
 
 interface ConfirmDialogProps {
@@ -21,11 +22,13 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmText = '確認',
-  cancelText = '取消',
+  confirmText,
+  cancelText,
   isLoading = false,
   variant = 'default',
 }: ConfirmDialogProps) {
+  const t = useTranslations('CommonUI')
+
   if (!isOpen) return null
 
   const confirmButtonClass =
@@ -65,10 +68,10 @@ export function ConfirmDialog({
             disabled={isLoading}
             className="border-[#B6B3B3] text-[#3F3D3D] hover:bg-[#F5F5F5]"
           >
-            {cancelText}
+            {cancelText ?? t('cancel')}
           </Button>
           <Button onClick={onConfirm} disabled={isLoading} className={confirmButtonClass}>
-            {isLoading ? '處理中...' : confirmText}
+            {isLoading ? t('processing') : (confirmText ?? t('confirm'))}
           </Button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import type { Question } from '@/lib/games/rope-system/types'
 import { cn } from '@/lib/utils'
@@ -23,6 +24,7 @@ export function ChoiceQuestion({
   userAnswer,
   className,
 }: ChoiceQuestionProps) {
+  const t = useTranslations('GamesPage')
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
 
   // 重置選擇狀態
@@ -87,14 +89,14 @@ export function ChoiceQuestion({
       {/* 情境描述 */}
       {question.scenario && (
         <div className="rounded-lg bg-[#F5F5F5] p-4">
-          <div className="mb-1 text-sm font-medium text-[#535353]">情境</div>
+          <div className="mb-1 text-sm font-medium text-[#535353]">{t('scenarioLabel')}</div>
           <div className="text-[#1B1A1A]">{question.scenario}</div>
         </div>
       )}
 
       {/* 題目 */}
       <div className="space-y-2">
-        <div className="text-sm font-medium text-[#535353]">問題</div>
+        <div className="text-sm font-medium text-[#535353]">{t('questionLabel')}</div>
         <h2 className="text-lg font-medium text-[#1B1A1A]">{question.question}</h2>
       </div>
 
@@ -102,7 +104,7 @@ export function ChoiceQuestion({
       {question.imageUrl && (
         <div className="overflow-hidden rounded-lg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={question.imageUrl} alt="題目圖片" className="h-auto w-full" />
+          <img src={question.imageUrl} alt={t('questionImageAlt')} className="h-auto w-full" />
         </div>
       )}
 

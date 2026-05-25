@@ -2,6 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Textarea } from '@/components/ui/textarea'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
@@ -24,18 +25,19 @@ export default function ClimbingExperienceSection({
   isMobile,
   onChange,
 }: ClimbingExperienceSectionProps) {
+  const t = useTranslations('ProfileUI')
   return (
     <div className="space-y-4">
       <ProfileFormField
-        label="你與攀岩的相遇"
-        hint="描述第一次接觸攀岩的情景，是什麼讓你想繼續？"
+        label={t('meetClimbingLabel')}
+        hint={t('meetClimbingHint')}
         isMobile={isMobile}
       >
         {isEditing ? (
           <Textarea
             value={climbingReason}
             onChange={(e) => onChange('climbingReason', e.target.value)}
-            placeholder="例如：2022 年的秋天，朋友帶我去岩館，第一次嘗試就愛上了那種專注在每一個動作的感覺..."
+            placeholder={t('meetClimbingPlaceholder')}
             className="min-h-[120px] resize-none border-subtle text-sm md:text-base"
           />
         ) : (
@@ -44,15 +46,15 @@ export default function ClimbingExperienceSection({
       </ProfileFormField>
 
       <ProfileFormField
-        label="攀岩對你來說是什麼"
-        hint="攀岩在你生活中扮演什麼角色？帶給你什麼？"
+        label={t('climbingMeaningLabel')}
+        hint={t('climbingMeaningHint')}
         isMobile={isMobile}
       >
         {isEditing ? (
           <Textarea
             value={climbingMeaning}
             onChange={(e) => onChange('climbingMeaning', e.target.value)}
-            placeholder="例如：攀岩是我最好的減壓方式，在牆上的時候可以完全忘記工作的煩惱..."
+            placeholder={t('climbingMeaningPlaceholder')}
             className="min-h-[120px] resize-none border-subtle text-sm md:text-base"
           />
         ) : (
@@ -61,15 +63,15 @@ export default function ClimbingExperienceSection({
       </ProfileFormField>
 
       <ProfileFormField
-        label="給剛開始攀岩的自己"
-        hint="如果能回到起點，你會對自己說什麼？"
+        label={t('adviceToSelfLabel')}
+        hint={t('adviceToSelfHint')}
         isMobile={isMobile}
       >
         {isEditing ? (
           <Textarea
             value={adviceForBeginners}
             onChange={(e) => onChange('adviceForBeginners', e.target.value)}
-            placeholder="例如：不要急著提升難度，好好享受每一次攀爬的過程，受傷了就好好休息..."
+            placeholder={t('adviceToSelfPlaceholder')}
             className="min-h-[120px] resize-none border-subtle text-sm md:text-base"
           />
         ) : (
@@ -88,8 +90,8 @@ export default function ClimbingExperienceSection({
           className="flex items-center justify-between rounded-lg border border-subtle p-4 transition-colors hover:bg-gray-50"
         >
           <div>
-            <p className="font-medium text-gray-900">我的攀岩人生清單</p>
-            <p className="mt-1 text-sm text-gray-500">設定目標、追蹤進度、記錄完成故事</p>
+            <p className="font-medium text-gray-900">{t('bucketListLinkTitle')}</p>
+            <p className="mt-1 text-sm text-gray-500">{t('bucketListLinkSubtitle')}</p>
           </div>
           <ChevronRight className="h-5 w-5 text-gray-400" />
         </Link>

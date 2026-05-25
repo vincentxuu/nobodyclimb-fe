@@ -3,29 +3,31 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useMobileNav } from './MobileNavContext'
 
 interface MenuItem {
-  name: string
+  key: string
   href: string
 }
 
 const menuItems: MenuItem[] = [
-  { name: '人物誌', href: '/profile' },
-  { name: '推薦', href: '/profile/recommendations' },
-  { name: 'AI 記憶', href: '/profile/ai-memory' },
-  { name: '清單', href: '/profile/bucket-list' },
-  { name: '攀爬紀錄', href: '/profile/ascents' },
-  { name: '成就', href: '/profile/stats' },
-  { name: '文章', href: '/profile/articles' },
-  { name: '照片', href: '/profile/photos' },
-  { name: '收藏', href: '/profile/bookmarks' },
-  { name: '設定', href: '/profile/settings' },
+  { key: 'navBiographyShort', href: '/profile' },
+  { key: 'navRecommendationsShort', href: '/profile/recommendations' },
+  { key: 'navAiMemory', href: '/profile/ai-memory' },
+  { key: 'navBucketListShort', href: '/profile/bucket-list' },
+  { key: 'navAscents', href: '/profile/ascents' },
+  { key: 'navStatsShort', href: '/profile/stats' },
+  { key: 'navArticlesShort', href: '/profile/articles' },
+  { key: 'navPhotosShort', href: '/profile/photos' },
+  { key: 'navBookmarksShort', href: '/profile/bookmarks' },
+  { key: 'navSettingsShort', href: '/profile/settings' },
 ]
 
 export default function MobileNavigationBar() {
   const pathname = usePathname()
   const { isMobile } = useMobileNav()
+  const t = useTranslations('ProfileUI')
 
   if (!isMobile) {
     return null
@@ -51,7 +53,7 @@ export default function MobileNavigationBar() {
                   isActive ? 'font-semibold text-[#1B1A1A]' : 'font-medium text-[#6D6C6C]'
                 }`}
               >
-                {item.name}
+                {t(item.key)}
                 {isActive && (
                   <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#1B1A1A]" />
                 )}

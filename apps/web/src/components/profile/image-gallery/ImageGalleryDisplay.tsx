@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { ImageLayout, ProfileImage } from '../types'
 
 interface ImageGalleryDisplayProps {
@@ -9,6 +10,8 @@ interface ImageGalleryDisplayProps {
 }
 
 export default function ImageGalleryDisplay({ images, layout }: ImageGalleryDisplayProps) {
+  const t = useTranslations('ProfileGallery')
+
   if (images.length === 0) {
     return null
   }
@@ -48,7 +51,7 @@ export default function ImageGalleryDisplay({ images, layout }: ImageGalleryDisp
           <div className={`relative w-full ${getAspectRatio()}`}>
             <Image
               src={image.url}
-              alt={image.caption || '攀岩照片'}
+              alt={image.caption || t('photoAlt')}
               fill
               className="object-cover"
               sizes={

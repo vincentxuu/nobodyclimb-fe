@@ -1,5 +1,6 @@
 import { Eye, Play } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import { Card } from '@/components/ui/card'
 import type { Video } from '@/lib/types'
@@ -11,6 +12,8 @@ interface VideoCardProps {
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
+  const t = useTranslations('VideosPage')
+
   const formatDuration = (duration: string) => {
     return duration
   }
@@ -50,7 +53,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
         {/* 精選標籤 */}
         {video.featured && (
           <div className="absolute left-2 top-2 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white">
-            精選
+            {t('featured')}
           </div>
         )}
       </div>

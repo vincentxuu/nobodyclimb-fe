@@ -1,6 +1,7 @@
 'use client'
 
 import { ImagePlus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { ImageLayout, ProfileImage } from '../types'
 import ImageGalleryDisplay from './ImageGalleryDisplay'
 import ImageUploader from './ImageUploader'
@@ -34,6 +35,7 @@ export default function ProfileImageSection({
   onLayoutChange,
   onReorder,
 }: ProfileImageSectionProps) {
+  const t = useTranslations('ProfileGallery')
   const sortedImages = [...images].sort((a, b) => a.order - b.order)
 
   // 查看模式
@@ -43,7 +45,7 @@ export default function ProfileImageSection({
       return (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <ImagePlus className="mb-2 h-10 w-10 text-gray-400" />
-          <p className="text-sm text-gray-500">點擊右上角「編輯資料」按鈕來上傳您的攀岩照片</p>
+          <p className="text-sm text-gray-500">{t('emptyStatePrompt')}</p>
         </div>
       )
     }
@@ -64,7 +66,7 @@ export default function ProfileImageSection({
       {/* 已上傳的圖片（可拖拽排序） */}
       {sortedImages.length > 0 && (
         <div>
-          <p className="mb-2 text-xs text-gray-500">拖拽圖片可調整順序</p>
+          <p className="mb-2 text-xs text-gray-500">{t('dragToReorderHint')}</p>
           <SortableImageGrid
             images={sortedImages}
             layout={imageLayout}

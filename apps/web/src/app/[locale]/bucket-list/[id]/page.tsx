@@ -256,8 +256,8 @@ export default function BucketListDetailPage({ params }: BucketListDetailPagePro
         <div className="mb-4 md:mb-8">
           <Breadcrumb
             items={[
-              { label: '首頁', href: '/' },
-              { label: '人物誌', href: '/biography' },
+              { label: t('breadcrumbHome'), href: '/' },
+              { label: t('breadcrumbBiography'), href: '/biography' },
               ...(biography
                 ? [
                     {

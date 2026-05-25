@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, Globe, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import { ClimbingFootprintsEditor } from '@/components/biography/climbing-footprints-editor'
 import { Label } from '@/components/ui/label'
@@ -45,6 +46,7 @@ export default function ClimbingFootprintsSection({
   isMobile,
 }: ClimbingFootprintsSectionProps) {
   const { toast } = useToast()
+  const t = useTranslations('ProfileUI')
   const [records, setRecords] = useState<ClimbingLocationRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,15 +61,15 @@ export default function ClimbingFootprintsSection({
       if (response.success && response.data) {
         setRecords(response.data)
       } else {
-        setError(response.error || '載入失敗')
+        setError(response.error || t('loadFailed'))
       }
     } catch (err) {
       console.error('Failed to load climbing locations:', err)
-      setError('無法載入攀岩足跡')
+      setError(t('footprintsLoadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadLocations()
@@ -146,21 +148,23 @@ export default function ClimbingFootprintsSection({
 
         // 顯示成功訊息
         const actions = []
-        if (toCreate.length > 0) actions.push(`新增 ${toCreate.length} 個`)
-        if (toUpdate.length > 0) actions.push(`更新 ${toUpdate.length} 個`)
-        if (toDelete.length > 0) actions.push(`刪除 ${toDelete.length} 個`)
+        if (toCreate.length > 0) actions.push(t('footprintsAddedCount', { count: toCreate.length }))
+        if (toUpdate.length > 0)
+          actions.push(t('footprintsUpdatedCount', { count: toUpdate.length }))
+        if (toDelete.length > 0)
+          actions.push(t('footprintsDeletedCount', { count: toDelete.length }))
 
         if (actions.length > 0) {
           toast({
-            title: '攀岩足跡已更新',
-            description: actions.join('、'),
+            title: t('footprintsUpdated'),
+            description: actions.join(t('listSeparator')),
           })
         }
       } catch (err) {
         console.error('Failed to update climbing locations:', err)
         toast({
-          title: '更新失敗',
-          description: '請稍後再試',
+          title: t('updateFailed'),
+          description: t('tryAgainLater'),
           variant: 'destructive',
         })
         // 重新載入以恢復正確狀態
@@ -169,13 +173,13 @@ export default function ClimbingFootprintsSection({
         setIsSaving(false)
       }
     },
-    [records, loadLocations, toast]
+    [records, loadLocations, toast, t]
   )
 
   // Group locations by country
   const locationsByCountry = locations.reduce(
     (acc, loc) => {
-      const country = loc.country || '未知'
+      const country = loc.country || t('unknownCountry')
       if (!acc[country]) {
         acc[country] = []
       }
@@ -194,9 +198,9 @@ export default function ClimbingFootprintsSection({
       <div className="space-y-4">
         <div>
           <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
-            攀岩足跡
+            {t('footprintsTitle')}
           </Label>
-          <p className="mt-1 text-xs text-gray-500">記錄你去過的攀岩地點和旅程</p>
+          <p className="mt-1 text-xs text-gray-500">{t('footprintsSubtitle')}</p>
         </div>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -211,9 +215,9 @@ export default function ClimbingFootprintsSection({
       <div className="space-y-4">
         <div>
           <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
-            攀岩足跡
+            {t('footprintsTitle')}
           </Label>
-          <p className="mt-1 text-xs text-gray-500">記錄你去過的攀岩地點和旅程</p>
+          <p className="mt-1 text-xs text-gray-500">{t('footprintsSubtitle')}</p>
         </div>
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center">
           <AlertCircle className="mx-auto mb-2 h-6 w-6 text-red-500" />
@@ -222,7 +226,7 @@ export default function ClimbingFootprintsSection({
             onClick={loadLocations}
             className="mt-2 text-sm text-red-600 underline hover:text-red-800"
           >
-            重試
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -234,14 +238,14 @@ export default function ClimbingFootprintsSection({
       {/* Section Title */}
       <div>
         <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
-          攀岩足跡
+          {t('footprintsTitle')}
         </Label>
-        <p className="mt-1 text-xs text-gray-500">記錄你去過的攀岩地點和旅程</p>
+        <p className="mt-1 text-xs text-gray-500">{t('footprintsSubtitle')}</p>
       </div>
       {/* Stats Badge */}
       {totalLocations > 0 && (
         <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-          {countryCount} 國 · {totalLocations} 地點
+          {t('footprintsStats', { countries: countryCount, locations: totalLocations })}
         </span>
       )}
 
@@ -255,7 +259,7 @@ export default function ClimbingFootprintsSection({
             className="flex items-center gap-2 text-sm text-gray-500"
           >
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>儲存中...</span>
+            <span>{t('saving')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -266,7 +270,7 @@ export default function ClimbingFootprintsSection({
           {totalLocations === 0 ? (
             <div className="py-4 text-center text-gray-500">
               <Globe className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-              <p className="text-sm">還沒有記錄攀岩足跡</p>
+              <p className="text-sm">{t('footprintsEmpty')}</p>
             </div>
           ) : (
             <div className="space-y-3">

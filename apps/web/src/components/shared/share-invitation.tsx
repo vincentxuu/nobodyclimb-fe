@@ -2,9 +2,10 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronRight, Pen, X } from 'lucide-react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Link } from '@/i18n/navigation'
 import { useGuestSession } from '@/lib/hooks/useGuestSession'
 import { useAuthStore } from '@/store/authStore'
 
@@ -17,6 +18,7 @@ interface ShareInvitationProps {
  * 當訪客達到分享資格時，顯示底部浮動提示邀請分享故事
  */
 export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
+  const t = useTranslations('SharedUI')
   const { status } = useAuthStore()
   const { isEligibleToShare, justBecameEligible, session } = useGuestSession()
   const [isVisible, setIsVisible] = useState(false)
@@ -75,7 +77,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
             <button
               onClick={handleDismiss}
               className="absolute right-3 top-3 rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-              aria-label="關閉"
+              aria-label={t('close')}
             >
               <X className="h-4 w-4" />
             </button>
@@ -88,10 +90,8 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
 
               {/* 內容 */}
               <div className="flex-1 pr-6">
-                <h3 className="text-lg font-bold text-gray-900">想分享你的攀岩故事嗎？</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  每個攀岩者都有獨特的故事，匿名分享也可以
-                </p>
+                <h3 className="text-lg font-bold text-gray-900">{t('shareInvitationTitle')}</h3>
+                <p className="mt-1 text-sm text-gray-600">{t('shareInvitationSubtitle')}</p>
 
                 {/* 按鈕 */}
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -105,7 +105,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
                         onStartShare?.()
                       }}
                     >
-                      開始分享
+                      {t('shareInvitationStart')}
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                   </Link>
@@ -116,7 +116,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
                       className="border-gray-300 text-gray-700 hover:bg-gray-100"
                       onClick={handleDismiss}
                     >
-                      登入後分享
+                      {t('shareInvitationLoginToShare')}
                     </Button>
                   </Link>
                 </div>
@@ -127,7 +127,7 @@ export function ShareInvitation({ onStartShare }: ShareInvitationProps) {
             {session && (
               <div className="mt-3 border-t border-gray-200 pt-3">
                 <p className="text-xs text-gray-500">
-                  你已瀏覽 {session.biographyViews} 個攀岩者故事
+                  {t('shareInvitationViewedCount', { count: session.biographyViews })}
                 </p>
               </div>
             )}

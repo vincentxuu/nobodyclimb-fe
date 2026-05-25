@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { adaptGymToDetail } from '@/lib/adapters/gym-adapter'
 import { fetchGymById } from '@/lib/api/server-fetch'
 import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
@@ -91,13 +92,14 @@ export async function generateMetadata({
   params: Promise<{ id: string; locale: string }>
 }): Promise<Metadata> {
   const { id, locale } = await params
+  const t = await getTranslations('GymPage')
   const apiGym = await fetchGymById(id)
   const gym = apiGym ? adaptGymToDetail(apiGym) : null
 
   if (!gym) {
     return {
-      title: '找不到岩館',
-      description: '您要找的岩館不存在',
+      title: t('metaNotFoundTitle'),
+      description: t('metaNotFoundDescription'),
     }
   }
 

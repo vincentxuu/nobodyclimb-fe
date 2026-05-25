@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
 
 interface InstagramEmbedProps {
@@ -44,6 +45,7 @@ export default function InstagramEmbed({
   captioned: _captioned = true,
   className = '',
 }: InstagramEmbedProps) {
+  const t = useTranslations('Misc')
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -89,8 +91,8 @@ export default function InstagramEmbed({
     return (
       <div className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-6">
         <div className="text-center">
-          <p className="text-sm font-medium text-red-800">無效的 Instagram URL</p>
-          <p className="mt-1 text-xs text-red-600">請確認 URL 格式正確</p>
+          <p className="text-sm font-medium text-red-800">{t('instagramInvalidUrl')}</p>
+          <p className="mt-1 text-xs text-red-600">{t('instagramCheckUrlFormat')}</p>
         </div>
       </div>
     )
@@ -103,7 +105,7 @@ export default function InstagramEmbed({
         <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-6">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-            <p className="mt-3 text-sm text-gray-600">載入 Instagram 貼文中...</p>
+            <p className="mt-3 text-sm text-gray-600">{t('instagramLoading')}</p>
           </div>
         </div>
       )}
@@ -112,14 +114,14 @@ export default function InstagramEmbed({
       {hasError && (
         <div className="flex items-center justify-center rounded-lg border border-yellow-200 bg-yellow-50 p-6">
           <div className="text-center">
-            <p className="text-sm font-medium text-yellow-800">無法載入 Instagram 貼文</p>
+            <p className="text-sm font-medium text-yellow-800">{t('instagramLoadFailed')}</p>
             <a
               href={url}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 inline-block text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
-              在 Instagram 上查看 →
+              {t('instagramViewOnInstagram')}
             </a>
           </div>
         </div>

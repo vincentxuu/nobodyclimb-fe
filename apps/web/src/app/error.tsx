@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
@@ -19,6 +20,7 @@ interface ErrorPageProps {
  * - 資料獲取錯誤
  */
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
+  const t = useTranslations('Misc')
   const isDevelopment = process.env.NODE_ENV === 'development'
 
   useEffect(() => {
@@ -35,10 +37,8 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           </div>
         </div>
 
-        <h1 className="mb-2 text-2xl font-bold">頁面發生錯誤</h1>
-        <p className="mb-6 text-muted-foreground">
-          抱歉，載入此頁面時發生問題。請嘗試重新載入或返回首頁。
-        </p>
+        <h1 className="mb-2 text-2xl font-bold">{t('errorPageTitle')}</h1>
+        <p className="mb-6 text-muted-foreground">{t('errorPageDescription')}</p>
 
         {/* 開發環境顯示錯誤詳情 */}
         {isDevelopment && (
@@ -54,12 +54,12 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button onClick={reset} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
-            重試
+            {t('errorPageRetry')}
           </Button>
           <Button asChild className="gap-2">
             <Link href="/">
               <Home className="h-4 w-4" />
-              返回首頁
+              {t('errorPageBackHome')}
             </Link>
           </Button>
         </div>

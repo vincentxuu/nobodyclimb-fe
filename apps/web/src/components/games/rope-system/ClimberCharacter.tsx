@@ -2,6 +2,7 @@
 
 import { motion, useAnimation, type Variants } from 'framer-motion'
 import { AlertTriangle, PartyPopper, PersonStanding, User } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import { ANIMATION_DURATION } from '@/lib/games/rope-system/constants'
 import type { CharacterState } from '@/lib/games/rope-system/types'
@@ -59,6 +60,7 @@ export function ClimberCharacter({
   onFallComplete,
   className,
 }: ClimberCharacterProps) {
+  const t = useTranslations('GamesPage')
   const controls = useAnimation()
 
   // 根據狀態播放動畫
@@ -154,7 +156,7 @@ export function ClimberCharacter({
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1B1A1A] shadow-lg">
           <User className="h-6 w-6 text-white" />
         </div>
-        <div className="mt-1 text-center text-xs text-[#535353]">確保站</div>
+        <div className="mt-1 text-center text-xs text-[#535353]">{t('belayStation')}</div>
       </div>
     </div>
   )

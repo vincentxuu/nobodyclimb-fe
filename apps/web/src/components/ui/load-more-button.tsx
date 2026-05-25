@@ -1,6 +1,7 @@
 'use client'
 
 import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 interface LoadMoreButtonProps {
@@ -24,15 +25,17 @@ export function LoadMoreButton({
   onClick,
   loading = false,
   hasMore = true,
-  text = '看更多',
-  loadingText = '載入中...',
-  noMoreText = '已顯示全部',
+  text,
+  loadingText,
+  noMoreText,
   className,
 }: LoadMoreButtonProps) {
+  const t = useTranslations('CommonUI')
+
   if (!hasMore) {
     return (
       <div className={`py-8 text-center ${className ?? ''}`}>
-        <p className="text-text-subtle">{noMoreText}</p>
+        <p className="text-text-subtle">{noMoreText ?? t('noMoreData')}</p>
       </div>
     )
   }
@@ -48,10 +51,10 @@ export function LoadMoreButton({
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {loadingText}
+            {loadingText ?? t('loading')}
           </>
         ) : (
-          text
+          (text ?? t('loadMore'))
         )}
       </Button>
     </div>

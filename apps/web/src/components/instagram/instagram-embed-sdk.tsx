@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useEffect, useRef } from 'react'
 
 interface InstagramEmbedSDKProps {
@@ -46,6 +47,7 @@ export default function InstagramEmbedSDK({
   captioned = true,
   className = '',
 }: InstagramEmbedSDKProps) {
+  const t = useTranslations('Misc')
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -109,8 +111,8 @@ export default function InstagramEmbedSDK({
     return (
       <div className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-6">
         <div className="text-center">
-          <p className="text-sm font-medium text-red-800">無效的 Instagram URL</p>
-          <p className="mt-1 text-xs text-red-600">請確認 URL 格式正確</p>
+          <p className="text-sm font-medium text-red-800">{t('instagramInvalidUrl')}</p>
+          <p className="mt-1 text-xs text-red-600">{t('instagramCheckUrlFormat')}</p>
         </div>
       </div>
     )
@@ -217,7 +219,7 @@ export default function InstagramEmbedSDK({
                   lineHeight: '18px',
                 }}
               >
-                在 Instagram 查看這則貼文
+                {t('instagramViewThisPost')}
               </div>
             </div>
             <div style={{ padding: '12.5% 0' }} />

@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { notificationService } from '@/lib/api/services'
@@ -96,6 +97,7 @@ const getNotificationLink = (notification: Notification): string | null => {
 }
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
+  const t = useTranslations('SharedUI')
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -230,7 +232,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-        aria-label="通知"
+        aria-label={t('notificationTitle')}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -262,7 +264,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-4 border-b">
-                <h3 className="text-lg font-semibold">通知</h3>
+                <h3 className="text-lg font-semibold">{t('notificationTitle')}</h3>
                 <div className="flex items-center gap-3">
                   {unreadCount > 0 && (
                     <button
@@ -270,13 +272,13 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                       className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
                     >
                       <CheckCheck className="h-4 w-4" />
-                      全部已讀
+                      {t('notificationMarkAllRead')}
                     </button>
                   )}
                   <button
                     onClick={() => setIsOpen(false)}
                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                    aria-label="關閉通知"
+                    aria-label={t('notificationClose')}
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -296,7 +298,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   ) : notifications.length === 0 ? (
                     <div className="py-16 text-center text-gray-500">
                       <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-lg">還沒有通知</p>
+                      <p className="text-lg">{t('notificationEmpty')}</p>
                     </div>
                   ) : (
                     <div>
@@ -375,7 +377,9 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                                         notification.actor_name
                                       )}
                                     </p>
-                                    <p className="text-sm text-gray-600 mt-1">開始追蹤你了</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {t('notificationStartedFollowing')}
+                                    </p>
                                   </>
                                 ) : (
                                   <>
@@ -406,8 +410,8 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                                   <button
                                     onClick={() => handleMarkAsRead(notification.id)}
                                     className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-full transition-colors"
-                                    title="標記為已讀"
-                                    aria-label="標記為已讀"
+                                    title={t('notificationMarkRead')}
+                                    aria-label={t('notificationMarkRead')}
                                   >
                                     <Check className="h-4 w-4" />
                                   </button>
@@ -415,8 +419,8 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                                 <button
                                   onClick={() => handleDelete(notification.id)}
                                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                  title="刪除"
-                                  aria-label="刪除通知"
+                                  title={t('notificationDelete')}
+                                  aria-label={t('notificationDeleteAria')}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -435,7 +439,11 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                             disabled={isLoading}
                             className="w-full"
                           >
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : '載入更多'}
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              t('notificationLoadMore')
+                            )}
                           </Button>
                         </div>
                       )}

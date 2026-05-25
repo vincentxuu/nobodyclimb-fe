@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, ArrowLeft, Flame, PartyPopper, PersonStanding } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo } from 'react'
 import { ANIMATION_DURATION, ROUTES } from '@/lib/games/rope-system/constants'
 import { useGameSounds } from '@/lib/games/rope-system/sounds'
@@ -29,6 +30,7 @@ interface GameCanvasProps {
 }
 
 export function GameCanvas({ mode, questions, category, exam, className }: GameCanvasProps) {
+  const t = useTranslations('GamesPage')
   // Store state
   const {
     currentIndex,
@@ -146,7 +148,7 @@ export function GameCanvas({ mode, questions, category, exam, className }: GameC
   }, [currentQuestion])
 
   // 取得標題
-  const title = category?.name || exam?.name || '攀岩系統練習'
+  const title = category?.name || exam?.name || t('title')
 
   return (
     <div className={cn('flex min-h-screen flex-col bg-[#F5F5F5]', className)}>
@@ -159,7 +161,7 @@ export function GameCanvas({ mode, questions, category, exam, className }: GameC
               className="flex items-center gap-2 text-[#535353] hover:text-[#1B1A1A]"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span className="hidden sm:inline">離開</span>
+              <span className="hidden sm:inline">{t('leave')}</span>
             </Link>
             <h1 className="font-medium text-[#1B1A1A]">{title}</h1>
           </div>
@@ -239,7 +241,7 @@ export function GameCanvas({ mode, questions, category, exam, className }: GameC
                   onClick={handleContinue}
                   className="w-full rounded-lg bg-[#1B1A1A] py-3 font-medium text-white hover:bg-[#292827]"
                 >
-                  下一題 →
+                  {t('nextQuestion')} →
                 </motion.button>
               )}
             </div>

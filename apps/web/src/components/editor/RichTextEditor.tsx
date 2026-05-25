@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import { useEffect, useMemo } from 'react'
 
 // Dynamically import ReactQuill (CSS 透過 layout.tsx CDN 載入)
@@ -77,9 +78,11 @@ const editorStyles = `
 export function RichTextEditor({
   value,
   onChange,
-  placeholder = '請輸入文章內容...',
+  placeholder,
   className = '',
 }: RichTextEditorProps) {
+  const t = useTranslations('CommonUI')
+
   // Inject global styles for the editor
   useEffect(() => {
     const styleId = 'rich-text-editor-styles'
@@ -136,7 +139,7 @@ export function RichTextEditor({
         onChange={onChange}
         modules={modules}
         formats={formats}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('articleContentPlaceholder')}
       />
     </div>
   )

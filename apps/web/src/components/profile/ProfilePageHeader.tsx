@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 interface ProfilePageHeaderProps {
@@ -15,6 +16,7 @@ export default function ProfilePageHeader({
   onEdit,
   isMobile,
 }: ProfilePageHeaderProps) {
+  const t = useTranslations('ProfileUI')
   return (
     <div className="mb-6 flex items-center justify-between md:mb-8">
       <h1 className={`${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'} font-medium text-[#1B1A1A]`}>
@@ -26,7 +28,7 @@ export default function ProfilePageHeader({
           onClick={onEdit}
           className="border-[#1B1A1A] text-sm text-[#1B1A1A] hover:bg-[#F5F5F5] md:text-base"
         >
-          編輯資料
+          {t('editProfile')}
         </Button>
       )}
     </div>

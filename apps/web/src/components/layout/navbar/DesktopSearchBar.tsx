@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useUIStore } from '@/store/uiStore'
 
 /**
@@ -11,6 +12,7 @@ import { useUIStore } from '@/store/uiStore'
  */
 export default function DesktopSearchBar() {
   const router = useRouter()
+  const t = useTranslations('CommonUI')
   const { isSearchOpen, closeSearch, searchQuery, setSearchQuery } = useUIStore()
 
   const handleSearch = (e: React.FormEvent) => {
@@ -37,7 +39,7 @@ export default function DesktopSearchBar() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="請輸入關鍵字"
+            placeholder={t('searchPlaceholder')}
             className="h-[40px] w-[240px] rounded-[4px] bg-[#F5F5F5] px-4 py-3 font-['Noto_Sans_CJK_TC'] text-base font-normal leading-6 tracking-[0.01em] placeholder:text-[#B6B3B3] focus:outline-none"
             autoFocus
           />

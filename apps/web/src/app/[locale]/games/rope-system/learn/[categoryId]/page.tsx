@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { HelpCircle, Loader2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 import { GameCanvas } from '@/components/games/rope-system'
 import { CATEGORIES, ROUTES } from '@/lib/games/rope-system/constants'
@@ -10,6 +11,7 @@ import { fetchQuestionsByCategory } from '@/lib/games/rope-system/questions-data
 import type { Question } from '@/lib/games/rope-system/types'
 
 export default function LearnModePage() {
+  const t = useTranslations('GamesPage')
   const params = useParams()
   const router = useRouter()
   const categoryId = params.categoryId as string
@@ -53,8 +55,8 @@ export default function LearnModePage() {
           <div className="mb-4 flex justify-center">
             <HelpCircle className="h-12 w-12 text-[#535353]" />
           </div>
-          <h1 className="mb-2 text-xl font-bold text-[#1B1A1A]">找不到該類別</h1>
-          <p className="text-[#535353]">請確認網址是否正確</p>
+          <h1 className="mb-2 text-xl font-bold text-[#1B1A1A]">{t('notFoundCategory')}</h1>
+          <p className="text-[#535353]">{t('checkUrl')}</p>
         </div>
       </div>
     )
@@ -66,7 +68,7 @@ export default function LearnModePage() {
       <div className="flex min-h-screen items-center justify-center">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
           <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-[#FFE70C]" />
-          <p className="text-[#535353]">正在載入題目...</p>
+          <p className="text-[#535353]">{t('loadingQuestions')}</p>
         </motion.div>
       </div>
     )

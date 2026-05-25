@@ -4,6 +4,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, X } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import React, { useState } from 'react'
 import { ProfileImage } from '../types'
 
@@ -20,6 +21,7 @@ export default function SortableImageCard({
   onDelete,
   onCaptionChange,
 }: SortableImageCardProps) {
+  const t = useTranslations('ProfileGallery')
   const [isHovered, setIsHovered] = useState(false)
   const [isEditingCaption, setIsEditingCaption] = useState(false)
   const [captionValue, setCaptionValue] = useState(image.caption || '')
@@ -70,7 +72,7 @@ export default function SortableImageCard({
 
         <Image
           src={image.url}
-          alt={image.caption || '攀岩照片'}
+          alt={image.caption || t('photoAlt')}
           fill
           className={`object-cover transition-opacity duration-300 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -90,7 +92,7 @@ export default function SortableImageCard({
             transition-opacity hover:bg-red-600
             ${isHovered ? 'opacity-100' : 'opacity-0'}
           `}
-          aria-label="刪除圖片"
+          aria-label={t('deleteImage')}
         >
           <X className="h-4 w-4" />
         </button>
@@ -104,7 +106,7 @@ export default function SortableImageCard({
             transition-opacity active:cursor-grabbing
             ${isHovered ? 'opacity-100' : 'opacity-0'}
           `}
-          aria-label="拖拽排序"
+          aria-label={t('dragToSort')}
         >
           <GripVertical className="h-4 w-4" />
         </div>
@@ -125,7 +127,7 @@ export default function SortableImageCard({
             onBlur={handleCaptionBlur}
             onKeyDown={handleCaptionKeyDown}
             className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-primary focus:outline-none"
-            placeholder="輸入圖片說明..."
+            placeholder={t('captionPlaceholder')}
             autoFocus
             maxLength={100}
           />
@@ -134,7 +136,7 @@ export default function SortableImageCard({
             onClick={() => setIsEditingCaption(true)}
             className="w-full rounded px-2 py-1 text-left text-sm text-gray-500 hover:bg-gray-100"
           >
-            {captionValue || '點擊新增說明...'}
+            {captionValue || t('addCaptionPrompt')}
           </button>
         )}
       </div>

@@ -2,10 +2,12 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronUp } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import React, { useEffect, useState } from 'react'
 
 export const BackToTop: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false)
+  const t = useTranslations('CommonUI')
 
   // 監聽滾動事件，決定按鈕顯示與否
   useEffect(() => {
@@ -40,7 +42,7 @@ export const BackToTop: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ duration: 0.3 }}
-          aria-label="回到頂部"
+          aria-label={t('backToTop')}
         >
           <ChevronUp className="h-5 w-5 md:h-6 md:w-6" />
         </motion.button>

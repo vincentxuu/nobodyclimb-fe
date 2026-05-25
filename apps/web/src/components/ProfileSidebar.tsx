@@ -14,6 +14,7 @@ import {
   UserCircle,
 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useCallback } from 'react'
 import { RankBadge } from '@/components/rank/RankBadge'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
@@ -21,59 +22,59 @@ import { useMyQuota } from '@/lib/api/ai'
 import { useAuthStore } from '@/store/authStore'
 
 interface MenuItem {
-  name: string
+  key: string
   href: string
   icon: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number | string }>
 }
 
 const menuItems: MenuItem[] = [
   {
-    name: '我的人物誌',
+    key: 'navMyBiography',
     href: '/profile',
     icon: UserCircle,
   },
   {
-    name: 'AI 推薦',
+    key: 'navAiRecommendations',
     href: '/profile/recommendations',
     icon: Sparkles,
   },
   {
-    name: 'AI 記憶',
+    key: 'navAiMemory',
     href: '/profile/ai-memory',
     icon: Brain,
   },
   {
-    name: '人生清單',
+    key: 'navBucketList',
     href: '/profile/bucket-list',
     icon: Target,
   },
   {
-    name: '攀爬紀錄',
+    key: 'navAscents',
     href: '/profile/ascents',
     icon: MountainSnow,
   },
   {
-    name: '我的成就',
+    key: 'navMyStats',
     href: '/profile/stats',
     icon: BarChart3,
   },
   {
-    name: '我的文章',
+    key: 'navMyArticles',
     href: '/profile/articles',
     icon: FileText,
   },
   {
-    name: '我的照片',
+    key: 'navMyPhotos',
     href: '/profile/photos',
     icon: ImageIcon,
   },
   {
-    name: '收藏文章',
+    key: 'navBookmarks',
     href: '/profile/bookmarks',
     icon: Bookmark,
   },
   {
-    name: '帳號設定',
+    key: 'navAccountSettings',
     href: '/profile/settings',
     icon: Settings,
   },
@@ -84,6 +85,7 @@ const ProfileSidebar = () => {
   const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
   const { data: quota } = useMyQuota()
+  const t = useTranslations('ProfileUI')
 
   // 優化點擊處理函數
   const handleNavigate = useCallback(
@@ -96,7 +98,7 @@ const ProfileSidebar = () => {
   )
 
   // 取得顯示名稱（優先使用 displayName，其次 username）
-  const displayName = user?.displayName || user?.username || '用戶'
+  const displayName = user?.displayName || user?.username || t('defaultUserName')
   const email = user?.email || ''
   const avatarUrl = user?.avatar
 
@@ -142,7 +144,7 @@ const ProfileSidebar = () => {
               }`}
             >
               <item.icon className="h-5 w-5" />
-              <span className="text-[16px] font-medium tracking-[0.02em]">{item.name}</span>
+              <span className="text-[16px] font-medium tracking-[0.02em]">{t(item.key)}</span>
             </div>
           )
         })}

@@ -1,9 +1,12 @@
+'use client'
+
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, MapPin, User, X } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import { AvatarWithFallback } from '@/components/ui/avatar-with-fallback'
+import { Link } from '@/i18n/navigation'
 
 interface GalleryPhoto {
   id: string
@@ -31,6 +34,8 @@ interface PhotoPopupProps {
 }
 
 const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev }) => {
+  const t = useTranslations('GalleryUpload')
+
   // Prevent background scroll when popup is open
   React.useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -124,7 +129,8 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
               {/* Upload Date */}
               {photo.uploadDate && (
                 <div className="text-xs text-neutral-400">
-                  <span className="font-medium text-neutral-300">上傳日期:</span> {photo.uploadDate}
+                  <span className="font-medium text-neutral-300">{t('uploadDateLabel')}</span>{' '}
+                  {photo.uploadDate}
                 </div>
               )}
             </div>
@@ -137,7 +143,7 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
           <button
             onClick={onClose}
             className="absolute right-3 top-3 z-10 rounded-full bg-black bg-opacity-50 p-2 text-white transition-colors hover:bg-opacity-75 md:right-4 md:top-4"
-            aria-label="Close photo"
+            aria-label={t('closePhotoLabel')}
           >
             <X size={20} />
           </button>
@@ -146,7 +152,7 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
           <button
             onClick={onPrev}
             className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black bg-opacity-50 p-2 text-white transition-colors hover:bg-opacity-75"
-            aria-label="Previous photo"
+            aria-label={t('prevPhotoLabel')}
           >
             <ChevronLeft size={24} />
           </button>
@@ -155,7 +161,7 @@ const PhotoPopup: React.FC<PhotoPopupProps> = ({ photo, onClose, onNext, onPrev 
           <button
             onClick={onNext}
             className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black bg-opacity-50 p-2 text-white transition-colors hover:bg-opacity-75"
-            aria-label="Next photo"
+            aria-label={t('nextPhotoLabel')}
           >
             <ChevronRight size={24} />
           </button>

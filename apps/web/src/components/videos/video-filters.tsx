@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import type { VideoCategory } from '@/lib/types'
@@ -9,21 +10,23 @@ interface VideoFiltersProps {
 }
 
 const VideoFilters: React.FC<VideoFiltersProps> = ({ selectedCategory, onCategoryChange }) => {
-  const categories: Array<{ value: VideoCategory | 'all'; label: string }> = [
-    { value: 'all', label: '全部' },
+  const t = useTranslations('VideosPage')
+
+  const categories: Array<{ value: VideoCategory | 'all'; labelKey: string }> = [
+    { value: 'all', labelKey: 'categoryAll' },
     // 攀岩類型
-    { value: '戶外上攀', label: '戶外上攀' },
-    { value: '戶外抱石', label: '戶外抱石' },
-    { value: '室內上攀', label: '室內上攀' },
-    { value: '室內抱石', label: '室內抱石' },
-    { value: '賽事', label: '賽事' },
+    { value: '戶外上攀', labelKey: 'categoryOutdoorLead' },
+    { value: '戶外抱石', labelKey: 'categoryOutdoorBoulder' },
+    { value: '室內上攀', labelKey: 'categoryIndoorLead' },
+    { value: '室內抱石', labelKey: 'categoryIndoorBoulder' },
+    { value: '賽事', labelKey: 'categoryCompetition' },
     // 內容類型
-    { value: '教學影片', label: '教學影片' },
-    { value: '訓練', label: '訓練' },
-    { value: '紀錄片', label: '紀錄片' },
-    { value: '裝備評測', label: '裝備評測' },
-    { value: '挑戰影片', label: '挑戰影片' },
-    { value: '訪談', label: '訪談' },
+    { value: '教學影片', labelKey: 'categoryTutorial' },
+    { value: '訓練', labelKey: 'categoryTraining' },
+    { value: '紀錄片', labelKey: 'categoryDocumentary' },
+    { value: '裝備評測', labelKey: 'categoryGearReview' },
+    { value: '挑戰影片', labelKey: 'categoryChallenge' },
+    { value: '訪談', labelKey: 'categoryInterview' },
   ]
 
   return (
@@ -36,7 +39,7 @@ const VideoFilters: React.FC<VideoFiltersProps> = ({ selectedCategory, onCategor
           onClick={() => onCategoryChange(category.value)}
           className="text-xs"
         >
-          {category.label}
+          {t(category.labelKey)}
         </Button>
       ))}
     </div>

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { AdvancedStoryEditor } from '@/components/biography/advanced-story-editor'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ export default function AdvancedStoriesSection({
   isMobile,
   onSave,
 }: AdvancedStoriesSectionProps) {
+  const t = useTranslations('ProfileUI')
   const [isExpanded, setIsExpanded] = useState(false)
   const progress = calculateStoryProgress(biography)
 
@@ -31,9 +33,9 @@ export default function AdvancedStoriesSection({
       {/* Section Title */}
       <div>
         <Label className={`font-medium text-strong ${isMobile ? 'text-sm' : 'text-base'}`}>
-          小故事
+          {t('storiesTitle')}
         </Label>
-        <p className="mt-1 text-xs text-gray-500">記錄你的攀岩故事與成長歷程</p>
+        <p className="mt-1 text-xs text-gray-500">{t('storiesSubtitle')}</p>
       </div>
       {/* Progress Info */}
       <div className="flex items-center justify-between">
@@ -47,7 +49,7 @@ export default function AdvancedStoriesSection({
             onClick={() => setIsExpanded(!isExpanded)}
             className="text-sm text-gray-600"
           >
-            {isExpanded ? '收起' : '展開編輯'}
+            {isExpanded ? t('collapse') : t('expandEdit')}
             <ChevronRight
               className={`ml-1 h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
             />
@@ -59,7 +61,7 @@ export default function AdvancedStoriesSection({
       {!isExpanded && (
         <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-sm text-gray-600">完成進度</span>
+            <span className="text-sm text-gray-600">{t('completionProgress')}</span>
             <span className="text-sm font-medium text-gray-900">{progress.percentage}%</span>
           </div>
           {/* Progress Bar */}
@@ -99,9 +101,7 @@ export default function AdvancedStoriesSection({
             })}
           </div>
           {isEditing && (
-            <p className="mt-3 text-center text-xs text-gray-500">
-              點擊「展開編輯」開始填寫你的攀岩故事
-            </p>
+            <p className="mt-3 text-center text-xs text-gray-500">{t('storiesExpandHint')}</p>
           )}
         </div>
       )}

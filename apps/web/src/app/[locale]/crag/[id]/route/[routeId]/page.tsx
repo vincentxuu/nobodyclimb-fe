@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { assembleRouteDetailData } from '@/lib/adapters/crag-adapter'
 import { fetchCragAreas, fetchCragById, fetchCragRouteById } from '@/lib/api/server-fetch'
 import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
@@ -142,15 +143,17 @@ function generateBreadcrumbJsonLd(data: RouteDetailData) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string; routeId: string }>
+  params: Promise<{ id: string; routeId: string; locale: string }>
 }): Promise<Metadata> {
-  const { id, routeId } = await params
+  const { id, routeId, locale } = await params
   const data = await getRouteData(id, routeId)
+
+  const t = await getTranslations({ locale, namespace: 'CragPage' })
 
   if (!data) {
     return {
-      title: '找不到路線',
-      description: '您要找的攀岩路線不存在',
+      title: t('metadataRouteNotFound'),
+      description: t('metadataRouteNotFoundDesc'),
     }
   }
 

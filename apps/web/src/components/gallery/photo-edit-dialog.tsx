@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2, MapPin, X } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +21,7 @@ interface PhotoEditDialogProps {
 }
 
 const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClose, onSuccess }) => {
+  const t = useTranslations('GalleryUpload')
   const [caption, setCaption] = useState('')
   const [locationCountry, setLocationCountry] = useState('')
   const [locationCity, setLocationCity] = useState('')
@@ -57,11 +59,11 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClos
         onSuccess(response.data)
         onClose()
       } else {
-        setError('更新失敗，請稍後再試')
+        setError(t('errorUpdateFailed'))
       }
     } catch (err) {
       console.error('Failed to update photo:', err)
-      setError('更新失敗，請稍後再試')
+      setError(t('errorUpdateFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -93,7 +95,7 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClos
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b px-6 py-4 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-neutral-800">編輯照片資訊</h2>
+            <h2 className="text-lg font-semibold text-neutral-800">{t('editDialogTitle')}</h2>
             <button
               onClick={handleClose}
               disabled={isSubmitting}
@@ -110,7 +112,7 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClos
               <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-neutral-100">
                 <Image
                   src={photo.image_url}
-                  alt={photo.caption || '照片'}
+                  alt={photo.caption || t('photoAlt')}
                   fill
                   className="object-contain"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -121,13 +123,13 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClos
             {/* Caption */}
             <div className="mb-4">
               <Label htmlFor="caption" className="mb-1.5 block text-sm font-medium">
-                說明
+                {t('captionLabel')}
               </Label>
               <Textarea
                 id="caption"
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                placeholder="為照片添加說明..."
+                placeholder={t('captionPlaceholder')}
                 className="resize-none"
                 rows={3}
                 disabled={isSubmitting}
@@ -138,23 +140,23 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClos
             <div className="mb-4">
               <Label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium">
                 <MapPin size={14} />
-                拍攝地點
+                {t('locationLabel')}
               </Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
-                  placeholder="國家"
+                  placeholder={t('locationCountryPlaceholder')}
                   value={locationCountry}
                   onChange={(e) => setLocationCountry(e.target.value)}
                   disabled={isSubmitting}
                 />
                 <Input
-                  placeholder="城市"
+                  placeholder={t('locationCityPlaceholder')}
                   value={locationCity}
                   onChange={(e) => setLocationCity(e.target.value)}
                   disabled={isSubmitting}
                 />
                 <Input
-                  placeholder="地點"
+                  placeholder={t('locationSpotPlaceholder')}
                   value={locationSpot}
                   onChange={(e) => setLocationSpot(e.target.value)}
                   disabled={isSubmitting}
@@ -178,16 +180,16 @@ const PhotoEditDialog: React.FC<PhotoEditDialogProps> = ({ isOpen, photo, onClos
                 onClick={handleClose}
                 disabled={isSubmitting}
               >
-                取消
+                {t('cancelButton')}
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    儲存中...
+                    {t('savingButton')}
                   </>
                 ) : (
-                  '儲存變更'
+                  t('saveChangesButton')
                 )}
               </Button>
             </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -18,64 +19,67 @@ interface EmptyStateCardProps {
 }
 
 // 針對不同場景的鼓勵文案
-export const EMPTY_STATE_MESSAGES = {
-  // 人物誌相關
-  biography: {
-    noStories: {
-      title: '你的故事值得被分享',
-      description: '每位攀岩者都有獨特的經歷，分享你的故事，讓更多人認識你。',
-      actionLabel: '開始寫故事',
+export function useEmptyStateMessages() {
+  const t = useTranslations('Onboarding')
+  return {
+    // 人物誌相關
+    biography: {
+      noStories: {
+        title: t('emptyBiographyNoStoriesTitle'),
+        description: t('emptyBiographyNoStoriesDescription'),
+        actionLabel: t('emptyBiographyNoStoriesAction'),
+      },
+      noOneLiners: {
+        title: t('emptyBiographyNoOneLinersTitle'),
+        description: t('emptyBiographyNoOneLinersDescription'),
+        actionLabel: t('emptyBiographyNoOneLinersAction'),
+      },
+      noTags: {
+        title: t('emptyBiographyNoTagsTitle'),
+        description: t('emptyBiographyNoTagsDescription'),
+        actionLabel: t('emptyBiographyNoTagsAction'),
+      },
+      noAvatar: {
+        title: t('emptyBiographyNoAvatarTitle'),
+        description: t('emptyBiographyNoAvatarDescription'),
+        actionLabel: t('emptyBiographyNoAvatarAction'),
+      },
     },
-    noOneLiners: {
-      title: '用一句話介紹自己',
-      description: '簡短的自我介紹，讓其他岩友快速認識你。',
-      actionLabel: '填寫一句話',
+    // 社群相關
+    social: {
+      noFollowing: {
+        title: t('emptySocialNoFollowingTitle'),
+        description: t('emptySocialNoFollowingDescription'),
+        actionLabel: t('emptySocialNoFollowingAction'),
+      },
+      noLikes: {
+        title: t('emptySocialNoLikesTitle'),
+        description: t('emptySocialNoLikesDescription'),
+        actionLabel: t('emptySocialNoLikesAction'),
+      },
+      noComments: {
+        title: t('emptySocialNoCommentsTitle'),
+        description: t('emptySocialNoCommentsDescription'),
+        actionLabel: t('emptySocialNoCommentsAction'),
+      },
     },
-    noTags: {
-      title: '選擇你的攀岩標籤',
-      description: '讓大家知道你喜歡的攀岩類型和風格。',
-      actionLabel: '選擇標籤',
+    // 書籤相關
+    bookmarks: {
+      noBookmarks: {
+        title: t('emptyBookmarksNoBookmarksTitle'),
+        description: t('emptyBookmarksNoBookmarksDescription'),
+        actionLabel: t('emptyBookmarksNoBookmarksAction'),
+      },
     },
-    noAvatar: {
-      title: '上傳一張照片',
-      description: '讓其他岩友認識你，一張攀岩照片最能代表你！',
-      actionLabel: '上傳照片',
+    // 通用
+    generic: {
+      noContent: {
+        title: t('emptyGenericNoContentTitle'),
+        description: t('emptyGenericNoContentDescription'),
+        actionLabel: t('emptyGenericNoContentAction'),
+      },
     },
-  },
-  // 社群相關
-  social: {
-    noFollowing: {
-      title: '探索更多小人物',
-      description: '追蹤你感興趣的攀岩者，獲取他們的最新動態。',
-      actionLabel: '探索人物誌',
-    },
-    noLikes: {
-      title: '為喜歡的內容按讚',
-      description: '瀏覽其他岩友的故事，為你喜歡的內容點個讚吧！',
-      actionLabel: '瀏覽故事',
-    },
-    noComments: {
-      title: '留下你的想法',
-      description: '與其他岩友互動，分享你的經驗和建議。',
-      actionLabel: '瀏覽內容',
-    },
-  },
-  // 書籤相關
-  bookmarks: {
-    noBookmarks: {
-      title: '收藏你喜歡的內容',
-      description: '將感興趣的故事、路線或岩場加入收藏，方便之後查看。',
-      actionLabel: '探索內容',
-    },
-  },
-  // 通用
-  generic: {
-    noContent: {
-      title: '這裡還沒有內容',
-      description: '開始探索或創建你的第一個內容吧！',
-      actionLabel: '開始探索',
-    },
-  },
+  }
 }
 
 export function EmptyStateCard({

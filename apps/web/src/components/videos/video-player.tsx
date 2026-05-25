@@ -1,4 +1,5 @@
 import { ExternalLink, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import React, { useEffect } from 'react'
 import type { Video } from '@/lib/types'
 
@@ -8,6 +9,8 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onClose }) => {
+  const t = useTranslations('VideosPage')
+
   // 防止背景滾動
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -46,7 +49,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onClose }) => {
         <button
           onClick={onClose}
           className="absolute -top-12 right-0 text-white hover:text-neutral-300 transition-colors"
-          aria-label="關閉影片"
+          aria-label={t('closeVideo')}
         >
           <X className="h-8 w-8" />
         </button>
@@ -71,7 +74,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onClose }) => {
             <div className="flex items-center gap-4 text-sm text-neutral-300">
               <span>{video.channel}</span>
               <span>•</span>
-              <span>{video.viewCount} 觀看次數</span>
+              <span>{t('viewCount', { count: video.viewCount })}</span>
               <span>•</span>
               <span>{video.publishedAt}</span>
             </div>
@@ -81,7 +84,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, onClose }) => {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-sm text-neutral-300 hover:text-white transition-colors"
             >
-              <ExternalLink className="h-4 w-4" />在 YouTube 上觀看
+              <ExternalLink className="h-4 w-4" />
+              {t('watchOnYoutube')}
             </a>
           </div>
           {video.description && (

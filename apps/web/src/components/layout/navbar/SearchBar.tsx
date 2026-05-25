@@ -1,6 +1,7 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useUIStore } from '@/store/uiStore'
 
 /**
@@ -8,13 +9,14 @@ import { useUIStore } from '@/store/uiStore'
  * 只在桌面版顯示，點擊後打開搜尋框
  */
 export default function SearchBar() {
+  const t = useTranslations('CommonUI')
   const { toggleSearch } = useUIStore()
 
   return (
     <div className="relative px-4">
       <button
         onClick={toggleSearch}
-        aria-label="搜尋"
+        aria-label={t('search')}
         className="text-[#1B1A1A] transition-colors duration-200 hover:text-[#8E8C8C]"
       >
         <Search className="h-5 w-5 stroke-[1.5px]" />

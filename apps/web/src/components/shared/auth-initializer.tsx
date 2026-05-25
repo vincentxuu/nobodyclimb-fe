@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useRef } from 'react'
 import { toast } from '@/components/ui/use-toast'
 import { storyPromptService } from '@/lib/api/services'
@@ -20,6 +21,7 @@ const BIOGRAPHY_PROMPT_KEY = 'nobodyclimb_biography_prompt_shown'
  * 使用 @nobodyclimb/hooks 的 hydrate 方法恢復認證狀態
  */
 export function AuthInitializer() {
+  const t = useTranslations('SharedUI')
   const status = useAuthStore((state) => state.status)
   const hydrate = useAuthStore((state) => state.hydrate)
   const { openStoryPrompt } = useUIStore()
@@ -54,8 +56,8 @@ export function AuthInitializer() {
           sessionStorage.setItem(BIOGRAPHY_PROMPT_KEY, 'true')
           setTimeout(() => {
             toast({
-              title: '歡迎加入 NobodyClimb！',
-              description: '建立你的人物誌，讓更多岩友認識你吧！',
+              title: t('authWelcomeTitle'),
+              description: t('authWelcomeDescription'),
             })
           }, STORY_PROMPT_SHOW_DELAY)
         }
@@ -67,7 +69,7 @@ export function AuthInitializer() {
         console.error('檢查故事推薦失敗:', error)
       }
     }
-  }, [openStoryPrompt])
+  }, [openStoryPrompt, t])
 
   // 在組件掛載時使用 hydrate 恢復認證狀態
   useEffect(() => {

@@ -11,6 +11,7 @@ import {
   Users,
   Wrench,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -56,6 +57,7 @@ export function StoryCard({
   onReadMore,
   className,
 }: StoryCardProps) {
+  const t = useTranslations('StoryDetail')
   const [isExpanded, setIsExpanded] = useState(false)
 
   // 判斷內容是否需要截斷
@@ -113,7 +115,7 @@ export function StoryCard({
           }}
           className="mt-3 text-sm text-brand-dark font-medium hover:underline"
         >
-          繼續閱讀
+          {t('readMore')}
         </button>
       )}
 
@@ -126,7 +128,7 @@ export function StoryCard({
           }}
           className="mt-3 text-sm text-[#6D6C6C] font-medium hover:underline"
         >
-          收合
+          {t('collapse')}
         </button>
       )}
     </div>

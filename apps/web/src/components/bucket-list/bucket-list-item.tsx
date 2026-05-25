@@ -16,6 +16,7 @@ import {
   Trash2,
   Trophy,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import * as React from 'react'
 import { ContentActions } from '@/components/biography/display/ContentActions'
 import { ReferenceButton } from '@/components/biography/reference-button'
@@ -26,19 +27,16 @@ import type { BucketListCategory, BucketListItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ProgressBar, ProgressTracker } from './progress-tracker'
 
-// 分類圖標和標籤映射 - 使用專案統一色系
-const categoryConfig: Record<
-  BucketListCategory,
-  { icon: React.ElementType; label: string; color: string }
-> = {
-  outdoor_route: { icon: Tent, label: '戶外路線', color: 'bg-gray-100 text-brand-dark' },
-  indoor_grade: { icon: Home, label: '室內難度', color: 'bg-gray-100 text-brand-dark' },
-  competition: { icon: Trophy, label: '比賽目標', color: 'bg-gray-100 text-brand-dark' },
-  training: { icon: Dumbbell, label: '訓練目標', color: 'bg-gray-100 text-brand-dark' },
-  adventure: { icon: Plane, label: '冒險挑戰', color: 'bg-gray-100 text-brand-dark' },
-  skill: { icon: Award, label: '技能學習', color: 'bg-gray-100 text-brand-dark' },
-  injury_recovery: { icon: Activity, label: '受傷復原', color: 'bg-gray-100 text-brand-dark' },
-  other: { icon: Target, label: '其他', color: 'bg-gray-100 text-brand-dark' },
+// 分類圖標和顏色映射 - 使用專案統一色系（標籤透過 i18n 取得）
+const categoryConfig: Record<BucketListCategory, { icon: React.ElementType; color: string }> = {
+  outdoor_route: { icon: Tent, color: 'bg-gray-100 text-brand-dark' },
+  indoor_grade: { icon: Home, color: 'bg-gray-100 text-brand-dark' },
+  competition: { icon: Trophy, color: 'bg-gray-100 text-brand-dark' },
+  training: { icon: Dumbbell, color: 'bg-gray-100 text-brand-dark' },
+  adventure: { icon: Plane, color: 'bg-gray-100 text-brand-dark' },
+  skill: { icon: Award, color: 'bg-gray-100 text-brand-dark' },
+  injury_recovery: { icon: Activity, color: 'bg-gray-100 text-brand-dark' },
+  other: { icon: Target, color: 'bg-gray-100 text-brand-dark' },
 }
 
 /* eslint-disable no-unused-vars */
@@ -71,11 +69,13 @@ export function BucketListItemCard({
   onClick,
   className,
 }: BucketListItemCardProps) {
+  const t = useTranslations('BucketList')
   const [showMenu, setShowMenu] = React.useState(false)
   const menuRef = React.useRef<HTMLDivElement>(null)
 
   const category = categoryConfig[item.category]
   const CategoryIcon = category.icon
+  const categoryLabel = t(`categoryLabels.${item.category}`)
   const isCompleted = item.status === 'completed'
   const isArchived = item.status === 'archived'
 
@@ -140,7 +140,7 @@ export function BucketListItemCard({
               )}
             >
               <CategoryIcon className="h-3 w-3" />
-              {category.label}
+              {categoryLabel}
             </span>
 
             {/* Title */}
@@ -184,7 +184,7 @@ export function BucketListItemCard({
             {isCompleted && (
               <span className="flex items-center gap-1 rounded-full bg-brand-accent/70 px-2 py-0.5 text-xs font-medium text-brand-dark">
                 <Check className="h-3 w-3" />
-                已完成
+                {t('completed')}
               </span>
             )}
 
@@ -214,7 +214,7 @@ export function BucketListItemCard({
                         className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
                       >
                         <Check className="h-4 w-4" />
-                        標記完成
+                        {t('markComplete')}
                       </button>
                     )}
                     <button
@@ -227,7 +227,7 @@ export function BucketListItemCard({
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
                     >
                       <Edit className="h-4 w-4" />
-                      編輯
+                      {t('edit')}
                     </button>
                     <button
                       type="button"
@@ -239,7 +239,7 @@ export function BucketListItemCard({
                       className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
-                      刪除
+                      {t('delete')}
                     </button>
                   </div>
                 )}
@@ -275,7 +275,7 @@ export function BucketListItemCard({
         {/* Completion Story Preview */}
         {isCompleted && item.completion_story && variant === 'expanded' && (
           <div className="mt-3 rounded-md bg-brand-accent/10 p-3">
-            <p className="text-sm font-medium text-brand-dark">完成故事</p>
+            <p className="text-sm font-medium text-brand-dark">{t('completionStory')}</p>
             <p className="mt-1 text-sm text-gray-600 line-clamp-2">{item.completion_story}</p>
           </div>
         )}
@@ -283,7 +283,7 @@ export function BucketListItemCard({
         {/* Completed Date */}
         {isCompleted && item.completed_at && (
           <p className="mt-2 text-xs text-gray-500">
-            完成於 {new Date(item.completed_at).toLocaleDateString('zh-TW')}
+            {t('completedAt', { date: new Date(item.completed_at).toLocaleDateString('zh-TW') })}
           </p>
         )}
 
@@ -385,7 +385,7 @@ interface BucketListSectionProps {
 export function BucketListSection({
   title,
   items,
-  emptyText = '還沒有任何目標',
+  emptyText,
   showCount = true,
   isOwner = false,
   onEdit,
@@ -395,6 +395,8 @@ export function BucketListSection({
   onClick,
   className,
 }: BucketListSectionProps) {
+  const t = useTranslations('BucketList')
+  const resolvedEmptyText = emptyText ?? t('noGoalsYet')
   return (
     <div className={className}>
       <div className="mb-3 flex items-center justify-between">
@@ -405,7 +407,7 @@ export function BucketListSection({
       </div>
 
       {items.length === 0 ? (
-        <p className="py-8 text-center text-gray-500">{emptyText}</p>
+        <p className="py-8 text-center text-gray-500">{resolvedEmptyText}</p>
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
@@ -440,10 +442,11 @@ export function AddBucketListButton({
   onClick: () => void
   className?: string
 }) {
+  const t = useTranslations('BucketList')
   return (
     <Button variant="secondary" onClick={onClick} className={cn('w-full border-dashed', className)}>
       <Target className="mr-2 h-4 w-4" />
-      新增目標
+      {t('addGoal')}
     </Button>
   )
 }

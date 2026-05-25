@@ -13,6 +13,7 @@ import {
   User,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
@@ -47,17 +48,18 @@ const VALID_PANELS: EditPanelType[] = [
   'settings',
 ]
 
-// 類別名稱映射
-const CATEGORY_NAMES: Record<string, string> = {
-  growth: '成長突破',
-  psychology: '心理哲學',
-  community: '社群連結',
-  practical: '實用分享',
-  dreams: '夢想探索',
-  life: '生活整合',
+// 類別名稱對應的翻譯 key
+const CATEGORY_NAME_KEYS: Record<string, string> = {
+  growth: 'categoryGrowth',
+  psychology: 'categoryPsychology',
+  community: 'categoryCommunity',
+  practical: 'categoryPractical',
+  dreams: 'categoryDreams',
+  life: 'categoryLife',
 }
 
 export default function ProfileDashboard() {
+  const t = useTranslations('ProfileGallery')
   const { profileData, setProfileData } = useProfile()
   const isMobile = useIsMobile()
   const { toast } = useToast()
@@ -114,22 +116,22 @@ export default function ProfileDashboard() {
         }))
         toast({ title: successMessage })
       } else {
-        throw new Error(response.error || '上傳失敗')
+        throw new Error(response.error || t('uploadFailed'))
       }
     } catch (error) {
       console.error(`${errorMessage}:`, error)
-      toast({ title: errorMessage, description: '請稍後再試', variant: 'destructive' })
+      toast({ title: errorMessage, description: t('tryAgainLater'), variant: 'destructive' })
       throw error
     }
   }
 
   // 處理頭像上傳
   const handleAvatarUpload = (file: File) =>
-    handleImageUpload(file, 'avatarUrl', '頭像上傳成功', '頭像上傳失敗')
+    handleImageUpload(file, 'avatarUrl', t('avatarUploadSuccess'), t('avatarUploadFailed'))
 
   // 處理封面照片上傳
   const handleCoverImageUpload = (file: File) =>
-    handleImageUpload(file, 'coverImageUrl', '封面照片上傳成功', '封面照片上傳失敗')
+    handleImageUpload(file, 'coverImageUrl', t('coverUploadSuccess'), t('coverUploadFailed'))
 
   // 處理進階故事單一欄位儲存
   const handleAdvancedStorySave = useCallback(
@@ -144,13 +146,13 @@ export default function ProfileDashboard() {
 
       try {
         await biographyService.updateMyBiography({ [field]: value })
-        toast({ title: '故事已儲存' })
+        toast({ title: t('storySaved') })
       } catch {
-        toast({ title: '儲存失敗', variant: 'destructive' })
-        throw new Error('儲存失敗')
+        toast({ title: t('saveFailed'), variant: 'destructive' })
+        throw new Error(t('saveFailed'))
       }
     },
-    [setProfileData, toast]
+    [setProfileData, toast, t]
   )
 
   // 處理儲存
@@ -181,14 +183,14 @@ export default function ProfileDashboard() {
       const response = await biographyService.updateMyBiography(biographyData)
 
       if (response.success) {
-        toast({ title: '儲存成功', description: '您的個人資料已成功更新' })
+        toast({ title: t('saveSuccess'), description: t('saveSuccessDescription') })
         closePanel()
       } else {
-        throw new Error(response.error || '儲存失敗')
+        throw new Error(response.error || t('saveFailed'))
       }
     } catch (error) {
       console.error('儲存失敗:', error)
-      toast({ title: '儲存失敗', description: '請稍後再試', variant: 'destructive' })
+      toast({ title: t('saveFailed'), description: t('tryAgainLater'), variant: 'destructive' })
     }
   }
 
@@ -225,8 +227,8 @@ export default function ProfileDashboard() {
       <div className="rounded-sm bg-white p-4 md:p-6 lg:p-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-gray-900 md:text-2xl">我的人物誌</h1>
-          <p className="mt-1 text-sm text-gray-500">點擊卡片編輯各區塊內容</p>
+          <h1 className="text-xl font-semibold text-gray-900 md:text-2xl">{t('dashboardTitle')}</h1>
+          <p className="mt-1 text-sm text-gray-500">{t('dashboardSubtitle')}</p>
         </div>
 
         {/* Dashboard Grid */}
@@ -234,15 +236,15 @@ export default function ProfileDashboard() {
           {/* 頭像與封面 */}
           <ProfileDashboardCard
             icon={<ImageIcon className="h-5 w-5" />}
-            title="頭像與封面"
-            description="個人形象照片"
+            title={t('cardAvatarTitle')}
+            description={t('cardAvatarDescription')}
             onClick={() => openPanel('avatar')}
             isComplete={!!(profileData.avatarUrl || profileData.coverImageUrl)}
             preview={
               <div className="flex items-center gap-2 text-xs text-gray-500">
-                {profileData.avatarUrl ? '✓ 已設定頭像' : '○ 未設定頭像'}
+                {profileData.avatarUrl ? t('avatarSet') : t('avatarNotSet')}
                 <span className="mx-1">•</span>
-                {profileData.coverImageUrl ? '✓ 已設定封面' : '○ 未設定封面'}
+                {profileData.coverImageUrl ? t('coverSet') : t('coverNotSet')}
               </div>
             }
           />
@@ -250,13 +252,13 @@ export default function ProfileDashboard() {
           {/* 基本資料 */}
           <ProfileDashboardCard
             icon={<User className="h-5 w-5" />}
-            title="基本資料"
-            description="暱稱、一句話介紹"
+            title={t('cardBasicTitle')}
+            description={t('cardBasicDescription')}
             onClick={() => openPanel('basic')}
             isComplete={!!(profileData.name && profileData.title)}
             preview={
               <div className="truncate">
-                <span className="font-medium">{profileData.name || '未設定'}</span>
+                <span className="font-medium">{profileData.name || t('notSet')}</span>
                 {profileData.title && (
                   <span className="ml-2 text-gray-400">· {profileData.title}</span>
                 )}
@@ -267,13 +269,15 @@ export default function ProfileDashboard() {
           {/* 攀岩資訊 */}
           <ProfileDashboardCard
             icon={<Gauge className="h-5 w-5" />}
-            title="攀岩資訊"
-            description="年資、常去的地方、喜好"
+            title={t('cardClimbingTitle')}
+            description={t('cardClimbingDescription')}
             onClick={() => openPanel('climbing')}
             isComplete={!!(profileData.startYear && profileData.frequentGyms)}
             preview={
               <div className="truncate text-xs">
-                {profileData.startYear && <span>{profileData.startYear} 年開始攀岩</span>}
+                {profileData.startYear && (
+                  <span>{t('startedClimbingYear', { year: profileData.startYear })}</span>
+                )}
                 {profileData.frequentGyms && (
                   <span className="ml-2">· {profileData.frequentGyms}</span>
                 )}
@@ -284,8 +288,8 @@ export default function ProfileDashboard() {
           {/* 社群連結 */}
           <ProfileDashboardCard
             icon={<Link2 className="h-5 w-5" />}
-            title="社群連結"
-            description="Instagram、YouTube"
+            title={t('cardSocialTitle')}
+            description={t('cardSocialDescription')}
             onClick={() => openPanel('social')}
             progress={{ current: socialLinksCompleted, total: 2 }}
             preview={
@@ -296,7 +300,7 @@ export default function ProfileDashboard() {
                   </span>
                 )}
                 {profileData.socialLinks.youtube_channel && (
-                  <span className="rounded bg-gray-100 px-2 py-0.5">YouTube 已連結</span>
+                  <span className="rounded bg-gray-100 px-2 py-0.5">{t('youtubeLinked')}</span>
                 )}
               </div>
             }
@@ -305,8 +309,8 @@ export default function ProfileDashboard() {
           {/* 核心故事 */}
           <ProfileDashboardCard
             icon={<BookOpen className="h-5 w-5" />}
-            title="核心故事"
-            description="與攀岩的相遇、攀岩的意義"
+            title={t('cardCoreStoriesTitle')}
+            description={t('cardCoreStoriesDescription')}
             onClick={() => openPanel('core-stories')}
             progress={{ current: coreStoriesCompleted, total: 3 }}
           />
@@ -314,8 +318,8 @@ export default function ProfileDashboard() {
           {/* 小故事 - 大卡片 */}
           <ProfileDashboardCard
             icon={<Sparkles className="h-5 w-5" />}
-            title="小故事"
-            description="記錄你的攀岩故事與成長歷程"
+            title={t('cardAdvancedStoriesTitle')}
+            description={t('cardAdvancedStoriesDescription')}
             onClick={() => openPanel('advanced-stories')}
             size="large"
             progress={{ current: advancedProgress.completed, total: advancedProgress.total }}
@@ -330,7 +334,8 @@ export default function ProfileDashboard() {
                         : 'bg-gray-100 text-gray-600'
                     }`}
                   >
-                    {CATEGORY_NAMES[category] || category} {progress.completed}/{progress.total}
+                    {CATEGORY_NAME_KEYS[category] ? t(CATEGORY_NAME_KEYS[category]) : category}{' '}
+                    {progress.completed}/{progress.total}
                   </span>
                 ))}
               </div>
@@ -340,30 +345,30 @@ export default function ProfileDashboard() {
           {/* 攀岩足跡 */}
           <ProfileDashboardCard
             icon={<MapPin className="h-5 w-5" />}
-            title="攀岩足跡"
-            description="記錄去過的攀岩地點"
+            title={t('cardFootprintsTitle')}
+            description={t('cardFootprintsDescription')}
             onClick={() => openPanel('footprints')}
           />
 
           {/* 攀爬紀錄 */}
           <ProfileDashboardCard
             icon={<MountainSnow className="h-5 w-5" />}
-            title="攀爬紀錄"
-            description="查看與管理你的完攀紀錄"
+            title={t('cardAscentsTitle')}
+            description={t('cardAscentsDescription')}
             onClick={() => router.push('/profile/ascents', { scroll: false })}
           />
 
           {/* 公開設定 */}
           <ProfileDashboardCard
             icon={<Globe className="h-5 w-5" />}
-            title="公開設定"
-            description="人物誌是否公開顯示"
+            title={t('cardSettingsTitle')}
+            description={t('cardSettingsDescription')}
             onClick={() => openPanel('settings')}
             preview={
               <span
                 className={`text-xs ${profileData.isPublic ? 'text-green-600' : 'text-gray-500'}`}
               >
-                {profileData.isPublic ? '● 公開' : '○ 私人'}
+                {profileData.isPublic ? t('visibilityPublic') : t('visibilityPrivate')}
               </span>
             }
           />

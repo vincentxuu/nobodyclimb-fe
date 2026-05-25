@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import React, { useCallback, useRef, useState } from 'react'
 import ReactCrop, { Crop, centerCrop, makeAspectCrop, PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
@@ -36,6 +37,7 @@ export default function ImageCropDialog({
   onCancel,
   aspectRatio = 4 / 3,
 }: ImageCropDialogProps) {
+  const t = useTranslations('ProfileGallery')
   const [crop, setCrop] = useState<Crop>()
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const imgRef = useRef<HTMLImageElement>(null)
@@ -97,7 +99,7 @@ export default function ImageCropDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
       <div className="mx-4 w-full max-w-2xl rounded-lg bg-white p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-medium">裁剪圖片</h3>
+          <h3 className="text-lg font-medium">{t('cropDialogTitle')}</h3>
           <button onClick={onCancel} className="rounded-full p-1 hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
@@ -115,7 +117,7 @@ export default function ImageCropDialog({
             <img
               ref={imgRef}
               src={imageSrc}
-              alt="裁剪預覽"
+              alt={t('cropPreviewAlt')}
               onLoad={onImageLoad}
               className="max-h-[60vh] object-contain"
             />
@@ -125,16 +127,16 @@ export default function ImageCropDialog({
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RotateCcw className="mr-1 h-4 w-4" />
-            重設
+            {t('reset')}
           </Button>
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={onCancel}>
-              取消
+              {t('cancel')}
             </Button>
             <Button onClick={handleCropComplete}>
               <Check className="mr-1 h-4 w-4" />
-              確認裁剪
+              {t('confirmCrop')}
             </Button>
           </div>
         </div>

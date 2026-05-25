@@ -1,6 +1,7 @@
 'use client'
 
 import { Image as ImageIcon, User, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import React, { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
@@ -32,6 +33,7 @@ export default function BiographyAvatarSection({
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  const t = useTranslations('ProfileUI')
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
 
@@ -42,8 +44,8 @@ export default function BiographyAvatarSection({
     // 驗證檔案類型
     if (!validateImageType(file)) {
       toast({
-        title: '不支援的檔案格式',
-        description: '請上傳 JPG、PNG、WebP 或 GIF 格式的圖片',
+        title: t('unsupportedFileFormat'),
+        description: t('imageFormatHint'),
         variant: 'destructive',
       })
       return
@@ -56,9 +58,9 @@ export default function BiographyAvatarSection({
       await onAvatarUpload(compressedFile)
     } catch (error) {
       console.error('上傳失敗:', error)
-      const message = error instanceof Error ? error.message : '上傳失敗'
+      const message = error instanceof Error ? error.message : t('uploadFailed')
       toast({
-        title: '上傳失敗',
+        title: t('uploadFailed'),
         description: message,
         variant: 'destructive',
       })
@@ -78,8 +80,8 @@ export default function BiographyAvatarSection({
     // 驗證檔案類型
     if (!validateImageType(file)) {
       toast({
-        title: '不支援的檔案格式',
-        description: '請上傳 JPG、PNG、WebP 或 GIF 格式的圖片',
+        title: t('unsupportedFileFormat'),
+        description: t('imageFormatHint'),
         variant: 'destructive',
       })
       return
@@ -92,9 +94,9 @@ export default function BiographyAvatarSection({
       await onCoverImageUpload(compressedFile)
     } catch (error) {
       console.error('上傳失敗:', error)
-      const message = error instanceof Error ? error.message : '上傳失敗'
+      const message = error instanceof Error ? error.message : t('uploadFailed')
       toast({
-        title: '上傳失敗',
+        title: t('uploadFailed'),
         description: message,
         variant: 'destructive',
       })
@@ -111,13 +113,13 @@ export default function BiographyAvatarSection({
     <div className="space-y-6">
       {/* 頭像 */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-gray-700">人物誌頭像</h3>
+        <h3 className="mb-3 text-sm font-medium text-gray-700">{t('biographyAvatar')}</h3>
         <div className="flex items-start gap-4">
           {/* 頭像顯示 */}
           <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-full border-2 border-gray-200 bg-gray-100">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="頭像" className="h-full w-full object-cover" />
+              <img src={avatarUrl} alt={t('avatarAlt')} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-gray-400">
                 <User className="h-12 w-12" />
@@ -127,7 +129,7 @@ export default function BiographyAvatarSection({
               <button
                 onClick={onAvatarDelete}
                 className="absolute right-0 top-0 rounded-full bg-red-500 p-1 text-white shadow-md hover:bg-red-600"
-                title="刪除頭像"
+                title={t('deleteAvatar')}
               >
                 <X className="h-3 w-3" />
               </button>
@@ -151,7 +153,11 @@ export default function BiographyAvatarSection({
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={isUploadingAvatar}
               >
-                {isUploadingAvatar ? '上傳中...' : avatarUrl ? '更換頭像' : '上傳頭像'}
+                {isUploadingAvatar
+                  ? t('uploading')
+                  : avatarUrl
+                    ? t('changeAvatar')
+                    : t('uploadAvatar')}
               </Button>
             </div>
           )}
@@ -160,19 +166,23 @@ export default function BiographyAvatarSection({
 
       {/* 封面照片 */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-gray-700">人物誌封面照片</h3>
+        <h3 className="mb-3 text-sm font-medium text-gray-700">{t('biographyCover')}</h3>
         <div className="space-y-3">
           {/* 封面照片顯示 */}
           <div className="relative aspect-[21/9] w-full overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-100">
             {coverImageUrl ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={coverImageUrl} alt="封面照片" className="h-full w-full object-cover" />
+                <img
+                  src={coverImageUrl}
+                  alt={t('coverAlt')}
+                  className="h-full w-full object-cover"
+                />
                 {isEditing && (
                   <button
                     onClick={onCoverImageDelete}
                     className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-md hover:bg-red-600"
-                    title="刪除封面照片"
+                    title={t('deleteCover')}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -182,7 +192,7 @@ export default function BiographyAvatarSection({
               <div className="flex h-full w-full items-center justify-center text-gray-400">
                 <div className="text-center">
                   <ImageIcon className="mx-auto h-12 w-12 mb-2" />
-                  <p className="text-sm">尚未設定封面照片</p>
+                  <p className="text-sm">{t('noCoverSet')}</p>
                 </div>
               </div>
             )}
@@ -205,7 +215,11 @@ export default function BiographyAvatarSection({
                 onClick={() => coverInputRef.current?.click()}
                 disabled={isUploadingCover}
               >
-                {isUploadingCover ? '上傳中...' : coverImageUrl ? '更換封面' : '上傳封面'}
+                {isUploadingCover
+                  ? t('uploading')
+                  : coverImageUrl
+                    ? t('changeCover')
+                    : t('uploadCover')}
               </Button>
             </div>
           )}
@@ -214,9 +228,7 @@ export default function BiographyAvatarSection({
 
       {!isEditing && !avatarUrl && !coverImageUrl && (
         <div className="rounded-lg bg-gray-50 p-4 text-center">
-          <p className="text-sm text-gray-500">
-            點擊右上角「編輯資料」按鈕來上傳人物誌頭像和封面照片
-          </p>
+          <p className="text-sm text-gray-500">{t('emptyMediaHint')}</p>
         </div>
       )}
     </div>

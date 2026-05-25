@@ -151,7 +151,7 @@ export function StoryEditFullscreen({
             ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={question?.placeholder || '寫下你的故事...'}
+            placeholder={question?.placeholder || t('storyTextPlaceholder')}
             className="w-full h-full resize-none focus:outline-none bg-white text-[#1B1A1A] placeholder:text-[#B6B3B3] text-base leading-relaxed"
             maxLength={5000}
           />

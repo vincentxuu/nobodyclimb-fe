@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { Calendar as CalendarIcon, Instagram, Star, Youtube } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -62,6 +63,7 @@ export function AscentForm({
   initialData,
   isLoading = false,
 }: AscentFormProps) {
+  const t = useTranslations('Ascent')
   const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? [])
 
   const form = useForm<AscentFormData>({
@@ -125,7 +127,7 @@ export function AscentForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>記錄攀爬</DialogTitle>
+          <DialogTitle>{t('recordAscent')}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             {routeName} {routeGrade && <span className="font-medium">({routeGrade})</span>}
           </p>
@@ -134,7 +136,7 @@ export function AscentForm({
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
           {/* 攀爬類型 */}
           <div className="space-y-2">
-            <Label>攀爬類型</Label>
+            <Label>{t('fieldAscentType')}</Label>
             <AscentTypeSelect
               value={form.watch('ascent_type') as AscentType}
               onChange={(type) => form.setValue('ascent_type', type)}
@@ -143,7 +145,7 @@ export function AscentForm({
 
           {/* 攀爬日期 */}
           <div className="space-y-2">
-            <Label>攀爬日期</Label>
+            <Label>{t('fieldAscentDate')}</Label>
             <Input
               type="date"
               variant="outline"
@@ -156,7 +158,7 @@ export function AscentForm({
 
           {/* 嘗試次數 */}
           <div className="space-y-2">
-            <Label htmlFor="attempts_count">嘗試次數</Label>
+            <Label htmlFor="attempts_count">{t('fieldAttemptsCount')}</Label>
             <Input
               id="attempts_count"
               type="number"
@@ -167,7 +169,7 @@ export function AscentForm({
 
           {/* 個人評分 */}
           <div className="space-y-2">
-            <Label>個人評分 (可選)</Label>
+            <Label>{t('fieldRating')}</Label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -191,20 +193,20 @@ export function AscentForm({
 
           {/* 感受難度 */}
           <div className="space-y-2">
-            <Label htmlFor="perceived_grade">感受難度 (可選)</Label>
+            <Label htmlFor="perceived_grade">{t('fieldPerceivedGrade')}</Label>
             <Input
               id="perceived_grade"
-              placeholder="例如：比標示難度稍難"
+              placeholder={t('perceivedGradePlaceholder')}
               {...form.register('perceived_grade')}
             />
           </div>
 
           {/* 筆記 */}
           <div className="space-y-2">
-            <Label htmlFor="notes">筆記 (可選)</Label>
+            <Label htmlFor="notes">{t('fieldNotes')}</Label>
             <Textarea
               id="notes"
-              placeholder="記錄這次攀爬的心得..."
+              placeholder={t('notesPlaceholder')}
               rows={3}
               {...form.register('notes')}
             />
@@ -212,7 +214,7 @@ export function AscentForm({
 
           {/* 照片上傳 */}
           <div className="space-y-2">
-            <Label>照片 (可選)</Label>
+            <Label>{t('fieldPhotos')}</Label>
             <PhotoUpload
               photos={photos}
               onChange={setPhotos}
@@ -224,15 +226,18 @@ export function AscentForm({
 
           {/* 媒體連結 */}
           <div className="space-y-4">
-            <Label>媒體連結 (可選)</Label>
+            <Label>{t('fieldMediaLinks')}</Label>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Youtube className="h-5 w-5 text-red-500" />
-                <Input placeholder="YouTube 影片連結" {...form.register('youtube_url')} />
+                <Input placeholder={t('youtubeUrlPlaceholder')} {...form.register('youtube_url')} />
               </div>
               <div className="flex items-center gap-2">
                 <Instagram className="h-5 w-5 text-pink-500" />
-                <Input placeholder="Instagram 貼文連結" {...form.register('instagram_url')} />
+                <Input
+                  placeholder={t('instagramUrlPlaceholder')}
+                  {...form.register('instagram_url')}
+                />
               </div>
             </div>
           </div>
@@ -245,10 +250,10 @@ export function AscentForm({
               onClick={() => onOpenChange(false)}
               className="flex-1"
             >
-              取消
+              {t('cancel')}
             </Button>
             <Button type="submit" className="flex-1" disabled={isLoading}>
-              {isLoading ? '儲存中...' : '儲存'}
+              {isLoading ? t('saving') : t('save')}
             </Button>
           </div>
         </form>

@@ -1,19 +1,20 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
-// 路線型態分類
+// 路線型態分類（options 為儲存值，name 透過 i18n key 顯示）
 const ROUTE_TYPE_CATEGORIES = [
   {
-    name: '攀登方式',
+    id: 'climbingStyle' as const,
     options: ['抱石', '運動攀登', '頂繩攀登', '速度攀登', '傳統攀登'],
   },
   {
-    name: '地形型態',
+    id: 'terrainType' as const,
     options: ['平板岩', '垂直岩壁', '外傾岩壁', '屋簷', '裂隙', '稜線', '壁面', '煙囪'],
   },
   {
-    name: '動作風格',
+    id: 'movementStyle' as const,
     options: ['動態', '跑酷', '協調', '靜態', '技術', '力量', '耐力'],
   },
 ]
@@ -35,6 +36,7 @@ export function RouteTypeSelector({
   disabled = false,
   className,
 }: RouteTypeSelectorProps) {
+  const t = useTranslations('ProfileUI')
   const handleToggle = (option: string) => {
     if (disabled) return
 
@@ -48,8 +50,10 @@ export function RouteTypeSelector({
   return (
     <div className={cn('space-y-4', className)}>
       {ROUTE_TYPE_CATEGORIES.map((category) => (
-        <div key={category.name}>
-          <p className="mb-2 text-sm font-medium text-gray-600">{category.name}</p>
+        <div key={category.id}>
+          <p className="mb-2 text-sm font-medium text-gray-600">
+            {t(`routeTypeCategory.${category.id}`)}
+          </p>
           <div className="flex flex-wrap gap-2">
             {category.options.map((option) => {
               const isSelected = value.includes(option)

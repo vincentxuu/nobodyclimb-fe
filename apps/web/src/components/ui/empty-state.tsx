@@ -1,6 +1,7 @@
 'use client'
 
 import { FileText, Image, MapPin, Search, Target, User, Video } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 
@@ -35,13 +36,15 @@ const iconMap = {
 
 export function EmptyState({
   icon = 'file',
-  title = '沒有資料',
+  title,
   description,
   actionText,
   onAction,
   action,
   className,
 }: EmptyStateProps) {
+  const t = useTranslations('CommonUI')
+
   // 支援自訂圖示或預設圖示
   const renderIcon = () => {
     if (React.isValidElement(icon)) {
@@ -56,7 +59,7 @@ export function EmptyState({
       className={`flex min-h-[300px] flex-col items-center justify-center py-12 ${className ?? ''}`}
     >
       {renderIcon()}
-      <h3 className="mb-2 text-xl font-medium text-text-main">{title}</h3>
+      <h3 className="mb-2 text-xl font-medium text-text-main">{title ?? t('noData')}</h3>
       {description && <p className="mb-4 text-text-subtle">{description}</p>}
       {action ? (
         action

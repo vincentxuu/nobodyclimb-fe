@@ -2,6 +2,7 @@
 
 import imageCompression from 'browser-image-compression'
 import { ImagePlus, Loader2, Upload, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +35,7 @@ export function PhotoUpload({
   disabled = false,
   className,
 }: PhotoUploadProps) {
+  const t = useTranslations('CommonUI')
   const [uploadingPhotos, setUploadingPhotos] = useState<PhotoWithStatus[]>([])
 
   const compressImage = async (file: File): Promise<File> => {
@@ -100,7 +102,7 @@ export function PhotoUpload({
         } catch {
           setUploadingPhotos((prev) =>
             prev.map((p) =>
-              p.id === photoStatus.id ? { ...p, status: 'error', error: '上傳失敗' } : p
+              p.id === photoStatus.id ? { ...p, status: 'error', error: t('uploadFailed') } : p
             )
           )
         }
@@ -120,7 +122,7 @@ export function PhotoUpload({
 
       e.target.value = ''
     },
-    [photos, uploadingPhotos.length, maxPhotos, uploadFn, onChange]
+    [photos, uploadingPhotos.length, maxPhotos, uploadFn, onChange, t]
   )
 
   const removePhoto = (url: string) => {
@@ -191,13 +193,13 @@ export function PhotoUpload({
           {photos.length === 0 ? (
             <>
               <Upload className="h-5 w-5 text-gray-400" />
-              <span className="text-sm text-gray-500">新增照片（最多 {maxPhotos} 張）</span>
+              <span className="text-sm text-gray-500">{t('addPhotosMax', { max: maxPhotos })}</span>
             </>
           ) : (
             <>
               <ImagePlus className="h-4 w-4 text-gray-400" />
               <span className="text-sm text-gray-500">
-                新增更多（{photos.length}/{maxPhotos}）
+                {t('addMorePhotos', { current: photos.length, max: maxPhotos })}
               </span>
             </>
           )}

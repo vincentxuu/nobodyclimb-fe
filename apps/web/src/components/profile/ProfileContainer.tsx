@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { useCallback, useRef, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { biographyService } from '@/lib/api/services'
@@ -24,6 +25,7 @@ export default function ProfileContainer() {
   const originalDataRef = useRef(profileData)
   const isMobile = useIsMobile()
   const { toast } = useToast()
+  const t = useTranslations('ProfileUI')
   const [isSaving, setIsSaving] = useState(false)
 
   // 當進入編輯模式時，儲存原始資料
@@ -50,16 +52,16 @@ export default function ProfileContainer() {
           avatarUrl: response.data.url,
         })
         toast({
-          title: '頭像上傳成功',
+          title: t('avatarUploadSuccess'),
         })
       } else {
-        throw new Error(response.error || '上傳失敗')
+        throw new Error(response.error || t('uploadFailed'))
       }
     } catch (error) {
       console.error('頭像上傳失敗:', error)
       toast({
-        title: '頭像上傳失敗',
-        description: '請稍後再試',
+        title: t('avatarUploadFailed'),
+        description: t('tryAgainLater'),
         variant: 'destructive',
       })
       throw error
@@ -76,16 +78,16 @@ export default function ProfileContainer() {
           coverImageUrl: response.data.url,
         })
         toast({
-          title: '封面照片上傳成功',
+          title: t('coverUploadSuccess'),
         })
       } else {
-        throw new Error(response.error || '上傳失敗')
+        throw new Error(response.error || t('uploadFailed'))
       }
     } catch (error) {
       console.error('封面照片上傳失敗:', error)
       toast({
-        title: '封面照片上傳失敗',
-        description: '請稍後再試',
+        title: t('coverUploadFailed'),
+        description: t('tryAgainLater'),
         variant: 'destructive',
       })
       throw error
@@ -123,13 +125,13 @@ export default function ProfileContainer() {
       // 立即儲存到後端
       try {
         await biographyService.updateMyBiography({ [field]: value })
-        toast({ title: '故事已儲存' })
+        toast({ title: t('storySaved') })
       } catch {
-        toast({ title: '儲存失敗', variant: 'destructive' })
-        throw new Error('儲存失敗')
+        toast({ title: t('saveFailed'), variant: 'destructive' })
+        throw new Error(t('saveFailed'))
       }
     },
-    [setProfileData, toast]
+    [setProfileData, toast, t]
   )
 
   // 處理進階故事批量儲存
@@ -147,13 +149,13 @@ export default function ProfileContainer() {
       // 儲存到後端
       try {
         await biographyService.updateMyBiography(changes)
-        toast({ title: '所有故事已儲存' })
+        toast({ title: t('allStoriesSaved') })
       } catch {
-        toast({ title: '儲存失敗', variant: 'destructive' })
-        throw new Error('儲存失敗')
+        toast({ title: t('saveFailed'), variant: 'destructive' })
+        throw new Error(t('saveFailed'))
       }
     },
-    [setProfileData, toast]
+    [setProfileData, toast, t]
   )
 
   // 處理儲存
@@ -194,17 +196,17 @@ export default function ProfileContainer() {
         originalDataRef.current = { ...profileData }
         setIsEditing(false)
         toast({
-          title: '儲存成功',
-          description: '您的個人資料已成功更新',
+          title: t('saveSuccess'),
+          description: t('profileUpdated'),
         })
       } else {
-        throw new Error(response.error || '儲存失敗')
+        throw new Error(response.error || t('saveFailed'))
       }
     } catch (error) {
       console.error('儲存失敗:', error)
       toast({
-        title: '儲存失敗',
-        description: '請稍後再試',
+        title: t('saveFailed'),
+        description: t('tryAgainLater'),
         variant: 'destructive',
       })
     } finally {
@@ -221,7 +223,7 @@ export default function ProfileContainer() {
     >
       <div className="rounded-sm bg-white p-4 md:p-6 lg:p-8">
         <ProfilePageHeader
-          title="我的人物誌"
+          title={t('myBiography')}
           isEditing={isEditing}
           onEdit={handleStartEdit}
           isMobile={isMobile}

@@ -1,6 +1,7 @@
 'use client'
 
 import { Instagram, Youtube } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/input'
 import ProfileFormField from './ProfileFormField'
 import { SocialLinks } from './types'
@@ -19,6 +20,7 @@ export default function SocialLinksSection({
   isMobile,
   onChange,
 }: SocialLinksSectionProps) {
+  const t = useTranslations('ProfileUI')
   const handleFieldChange = (field: keyof SocialLinks, value: string) => {
     onChange('socialLinks', {
       ...socialLinks,
@@ -29,9 +31,9 @@ export default function SocialLinksSection({
   return (
     <div className="space-y-4">
       <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-medium text-[#1B1A1A]`}>
-        社群連結
+        {t('socialLinksTitle')}
       </h3>
-      <p className="text-sm text-[#6D6C6C]">新增您的社群帳號，讓其他攀岩者可以追蹤您的動態</p>
+      <p className="text-sm text-[#6D6C6C]">{t('socialLinksSubtitle')}</p>
 
       <div className="space-y-4">
         <ProfileFormField
@@ -70,7 +72,7 @@ export default function SocialLinksSection({
               @{socialLinks.instagram}
             </a>
           ) : (
-            <span className="text-sm text-[#8E8C8C]">尚未設定</span>
+            <span className="text-sm text-[#8E8C8C]">{t('notSet')}</span>
           )}
         </ProfileFormField>
 
@@ -78,7 +80,7 @@ export default function SocialLinksSection({
           label={
             <span className="flex items-center gap-2">
               <Youtube size={16} className="text-red-600" />
-              YouTube 頻道
+              {t('youtubeChannelLabel')}
             </span>
           }
           isMobile={isMobile}
@@ -87,7 +89,7 @@ export default function SocialLinksSection({
             <Input
               value={socialLinks.youtube_channel}
               onChange={(e) => handleFieldChange('youtube_channel', e.target.value)}
-              placeholder="頻道 ID 或網址"
+              placeholder={t('youtubeChannelPlaceholder')}
               className="border-[#B6B3B3] text-sm md:text-base"
             />
           ) : socialLinks.youtube_channel ? (
@@ -104,7 +106,7 @@ export default function SocialLinksSection({
               {socialLinks.youtube_channel}
             </a>
           ) : (
-            <span className="text-sm text-[#8E8C8C]">尚未設定</span>
+            <span className="text-sm text-[#8E8C8C]">{t('notSet')}</span>
           )}
         </ProfileFormField>
       </div>

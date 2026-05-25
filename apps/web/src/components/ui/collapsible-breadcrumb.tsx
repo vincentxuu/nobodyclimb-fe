@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +19,7 @@ interface CollapsibleBreadcrumbProps {
 
 export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrumbProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const t = useTranslations('CommonUI')
 
   return (
     <div className={cn('relative', className)}>
@@ -48,10 +50,12 @@ export function CollapsibleBreadcrumb({ items, className }: CollapsibleBreadcrum
             isExpanded && 'bg-gray-100'
           )}
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? '收合導航路徑' : '展開導航路徑'}
+          aria-label={isExpanded ? t('collapseBreadcrumb') : t('expandBreadcrumb')}
         >
           <MoreHorizontal size={16} />
-          {!isExpanded && <span className="hidden sm:inline text-xs text-gray-400">導航</span>}
+          {!isExpanded && (
+            <span className="hidden sm:inline text-xs text-gray-400">{t('navigation')}</span>
+          )}
         </button>
 
         <AnimatePresence>

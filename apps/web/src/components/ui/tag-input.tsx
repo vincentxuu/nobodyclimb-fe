@@ -1,6 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { KeyboardEvent, useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -19,10 +20,11 @@ interface TagInputProps {
 export function TagInput({
   value,
   onChange,
-  placeholder = '輸入後按 Enter 新增',
+  placeholder,
   className,
   disabled = false,
 }: TagInputProps) {
+  const t = useTranslations('CommonUI')
   const [inputValue, setInputValue] = useState('')
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -73,7 +75,7 @@ export function TagInput({
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={value.length === 0 ? placeholder : ''}
+        placeholder={value.length === 0 ? (placeholder ?? t('tagInputPlaceholder')) : ''}
         disabled={disabled}
         className="min-w-[120px] flex-1 border-none bg-transparent text-sm outline-none placeholder:text-gray-400"
       />

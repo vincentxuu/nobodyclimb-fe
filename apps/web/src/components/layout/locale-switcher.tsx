@@ -12,12 +12,6 @@ import {
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
 
-const localeLabels: Record<string, string> = {
-  zh: '繁中',
-  en: 'EN',
-  ja: '日',
-}
-
 export function LocaleSwitcher() {
   const t = useTranslations('LocaleSwitcher')
   const locale = useLocale()
@@ -38,7 +32,7 @@ export function LocaleSwitcher() {
           aria-label={t('label')}
         >
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{localeLabels[locale]}</span>
+          <span className="hidden sm:inline">{t(`${locale}Short`)}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[100px]">

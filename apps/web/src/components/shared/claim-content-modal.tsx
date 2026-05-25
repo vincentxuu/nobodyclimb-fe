@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, Loader2, Merge, User, UserCheck, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { type UnclaimedContent, useContentClaim } from '@/lib/hooks/useContentClaim'
@@ -23,6 +24,7 @@ export function ClaimContentModal({
   unclaimedContent,
   onClaimSuccess,
 }: ClaimContentModalProps) {
+  const t = useTranslations('SharedUI')
   const { claimBiography, mergeBiography } = useContentClaim()
   const [keepAnonymous, setKeepAnonymous] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -46,7 +48,7 @@ export function ClaimContentModal({
       // 顯示合併選項
       setShowMergeOption(true)
     } else {
-      setError(result.error || '認領失敗')
+      setError(result.error || t('claimFailed'))
     }
 
     setIsProcessing(false)
@@ -62,7 +64,7 @@ export function ClaimContentModal({
       onClaimSuccess?.(result.biographyId!)
       onClose()
     } else {
-      setError(result.error || '合併失敗')
+      setError(result.error || t('mergeFailed'))
     }
 
     setIsProcessing(false)
@@ -106,8 +108,8 @@ export function ClaimContentModal({
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#ffe70c]">
                   <User className="h-7 w-7 text-[#1B1A1A]" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1B1A1A]">發現你之前分享的故事！</h2>
-                <p className="mt-2 text-gray-600">要把這個故事連結到你的帳號嗎？</p>
+                <h2 className="text-xl font-bold text-[#1B1A1A]">{t('claimFoundStoryTitle')}</h2>
+                <p className="mt-2 text-gray-600">{t('claimLinkToAccountPrompt')}</p>
               </div>
 
               {/* Content preview */}
@@ -119,7 +121,7 @@ export function ClaimContentModal({
                   <div>
                     <p className="font-medium text-[#1B1A1A]">{content.anonymousName}</p>
                     <p className="text-sm text-gray-500">
-                      {content.storyCount} 則故事 ·{' '}
+                      {t('claimStoryCount', { count: content.storyCount })} ·{' '}
                       {new Date(content.createdAt).toLocaleDateString('zh-TW')}
                     </p>
                   </div>
@@ -135,9 +137,9 @@ export function ClaimContentModal({
                   className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#ffe70c] focus:ring-[#ffe70c]"
                 />
                 <div>
-                  <p className="font-medium text-[#1B1A1A]">保持匿名顯示</p>
+                  <p className="font-medium text-[#1B1A1A]">{t('claimKeepAnonymous')}</p>
                   <p className="text-sm text-gray-500">
-                    其他人只會看到「{content.anonymousName}」，不會看到你的帳號資訊
+                    {t('claimKeepAnonymousHint', { name: content.anonymousName })}
                   </p>
                 </div>
               </label>
@@ -158,7 +160,7 @@ export function ClaimContentModal({
                   ) : (
                     <>
                       <UserCheck className="mr-2 h-4 w-4" />
-                      認領這個故事
+                      {t('claimThisStory')}
                     </>
                   )}
                 </Button>
@@ -168,7 +170,7 @@ export function ClaimContentModal({
                   disabled={isProcessing}
                   className="w-full"
                 >
-                  不是我的，跳過
+                  {t('claimNotMineSkip')}
                 </Button>
               </div>
             </>
@@ -179,8 +181,8 @@ export function ClaimContentModal({
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-100">
                   <Merge className="h-7 w-7 text-yellow-600" />
                 </div>
-                <h2 className="text-xl font-bold text-[#1B1A1A]">你已經有人物誌了</h2>
-                <p className="mt-2 text-gray-600">要把匿名故事的內容合併到你現有的人物誌嗎？</p>
+                <h2 className="text-xl font-bold text-[#1B1A1A]">{t('mergeAlreadyHasBioTitle')}</h2>
+                <p className="mt-2 text-gray-600">{t('mergeConfirmPrompt')}</p>
               </div>
 
               {/* Error */}
@@ -199,7 +201,7 @@ export function ClaimContentModal({
                   ) : (
                     <>
                       <Merge className="mr-2 h-4 w-4" />
-                      合併到我的人物誌
+                      {t('mergeToMyBio')}
                     </>
                   )}
                 </Button>
@@ -209,7 +211,7 @@ export function ClaimContentModal({
                   disabled={isProcessing}
                   className="w-full"
                 >
-                  保持分開，不合併
+                  {t('mergeKeepSeparate')}
                 </Button>
               </div>
             </>

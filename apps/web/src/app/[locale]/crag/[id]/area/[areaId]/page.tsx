@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { fetchCragAreas, fetchCragById } from '@/lib/api/server-fetch'
 import { OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/constants'
 import AreaDetailClient from './AreaDetailClient'
@@ -10,24 +11,26 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string; areaId: string }>
+  params: Promise<{ id: string; areaId: string; locale: string }>
 }): Promise<Metadata> {
-  const { id, areaId } = await params
+  const { id, areaId, locale } = await params
 
   const [apiCrag, apiAreas] = await Promise.all([fetchCragById(id), fetchCragAreas(id)])
 
+  const t = await getTranslations({ locale, namespace: 'CragPage' })
+
   if (!apiCrag) {
     return {
-      title: '找不到岩場',
-      description: '您要找的岩場不存在',
+      title: t('metadataNotFound'),
+      description: t('metadataNotFoundDesc'),
     }
   }
 
   const area = apiAreas.find((a) => a.id === areaId)
   if (!area) {
     return {
-      title: '找不到區域',
-      description: '您要找的區域不存在',
+      title: t('metadataAreaNotFound'),
+      description: t('metadataAreaNotFoundDesc'),
     }
   }
 

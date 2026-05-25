@@ -11,6 +11,7 @@ import {
   Target,
   Trophy,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useGameSounds } from '@/lib/games/rope-system/sounds'
@@ -38,6 +39,7 @@ export function ResultModal({
   onGoHome,
   className,
 }: ResultModalProps) {
+  const t = useTranslations('GamesPage')
   const { playComplete, playGameOver } = useGameSounds()
 
   // 播放音效
@@ -92,7 +94,7 @@ export function ResultModal({
                 )}
               </motion.div>
               <h2 className="text-2xl font-bold text-[#1B1A1A]">
-                {isGameOver ? '遊戲結束' : '完成練習！'}
+                {isGameOver ? t('gameOver') : t('practiceComplete')}
               </h2>
               {categoryName && <p className="mt-1 text-[#535353]">{categoryName}</p>}
             </div>
@@ -108,7 +110,7 @@ export function ResultModal({
               >
                 <div className="flex items-center gap-3">
                   <Trophy className="h-6 w-6 text-[#FFE70C]" />
-                  <span className="text-[#535353]">分數</span>
+                  <span className="text-[#535353]">{t('score')}</span>
                 </div>
                 <span className="text-2xl font-bold text-[#1B1A1A]">
                   {stats.score.toLocaleString()}
@@ -124,7 +126,7 @@ export function ResultModal({
               >
                 <div className="flex items-center gap-3">
                   <Target className="h-6 w-6 text-[#1B1A1A]" />
-                  <span className="text-[#535353]">正確率</span>
+                  <span className="text-[#535353]">{t('accuracy')}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-bold text-[#1B1A1A]">{accuracy}%</span>
@@ -143,7 +145,7 @@ export function ResultModal({
               >
                 <div className="flex items-center gap-3">
                   <Flame className="h-6 w-6 text-[#FFE70C]" />
-                  <span className="text-[#535353]">最高連擊</span>
+                  <span className="text-[#535353]">{t('maxCombo')}</span>
                 </div>
                 <span className="text-2xl font-bold text-[#1B1A1A]">{stats.maxCombo}</span>
               </motion.div>
@@ -157,7 +159,7 @@ export function ResultModal({
               >
                 <div className="flex items-center gap-3">
                   <Clock className="h-6 w-6 text-[#1B1A1A]" />
-                  <span className="text-[#535353]">用時</span>
+                  <span className="text-[#535353]">{t('timeSpent')}</span>
                 </div>
                 <span className="text-2xl font-bold text-[#1B1A1A]">
                   {formatTime(stats.timeSpent)}
@@ -174,11 +176,11 @@ export function ResultModal({
             >
               <Button onClick={onPlayAgain} className="w-full" size="lg">
                 <RotateCcw className="mr-2 h-5 w-5" />
-                再玩一次
+                {t('playAgain')}
               </Button>
               <Button onClick={onGoHome} variant="secondary" className="w-full" size="lg">
                 <Home className="mr-2 h-5 w-5" />
-                回到首頁
+                {t('goHome')}
               </Button>
             </motion.div>
           </motion.div>

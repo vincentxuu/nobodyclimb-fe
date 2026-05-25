@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
 interface ProfileTextDisplayProps {
@@ -20,6 +21,7 @@ export default function ProfileTextDisplay({
   asTags = false,
   maxVisibleTags = 6,
 }: ProfileTextDisplayProps) {
+  const t = useTranslations('ProfileUI')
   const [isExpanded, setIsExpanded] = useState(false)
 
   // 將逗號分隔的文字轉為標籤陣列
@@ -65,7 +67,7 @@ export default function ProfileTextDisplay({
             >
               {isExpanded ? (
                 <>
-                  收起
+                  {t('collapse')}
                   <ChevronUp className="h-3 w-3" />
                 </>
               ) : (

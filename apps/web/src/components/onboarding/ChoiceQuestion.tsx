@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Check, ChevronRight, MessageCircle, Sparkles, Users, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { ChoiceOption, ChoiceQuestion as ChoiceQuestionType } from '@/lib/hooks/useQuestions'
@@ -24,6 +25,7 @@ interface ChoiceQuestionProps {
 type Phase = 'selecting' | 'response' | 'followup' | 'complete'
 
 export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: ChoiceQuestionProps) {
+  const t = useTranslations('Onboarding')
   const [phase, setPhase] = useState<Phase>('selecting')
   const [selectedOption, setSelectedOption] = useState<ChoiceOption | null>(null)
   const [customText, setCustomText] = useState('')
@@ -115,7 +117,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
         <button
           onClick={onSkip}
           className="absolute right-4 top-4 rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          aria-label="跳過"
+          aria-label={t('skip')}
         >
           <X size={20} />
         </button>
@@ -124,7 +126,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
         <div className="mb-8 text-center">
           <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
             <Sparkles size={14} />
-            <span>快速認識你</span>
+            <span>{t('choiceBadge')}</span>
           </div>
           <h2 className="text-2xl font-bold text-[#1B1A1A]">{question.question}</h2>
           {question.hint && <p className="mt-2 text-[#6D6C6C]">{question.hint}</p>}
@@ -134,7 +136,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
         {totalCount > 0 && (
           <div className="mb-6 flex items-center justify-center gap-2 text-sm text-[#8E8C8C]">
             <Users size={16} />
-            <span>已有 {totalCount} 人回答過這個問題</span>
+            <span>{t('answeredCount', { count: totalCount })}</span>
           </div>
         )}
 
@@ -159,7 +161,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
                 <span className="font-medium text-[#1B1A1A]">{option.label}</span>
                 {option.count > 0 && (
                   <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-[#8E8C8C]">
-                    {option.count} 人
+                    {t('peopleCount', { count: option.count })}
                   </span>
                 )}
               </div>
@@ -178,7 +180,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
               type="text"
               value={customText}
               onChange={(e) => setCustomText(e.target.value)}
-              placeholder="請描述你的開始..."
+              placeholder={t('describeYourStartPlaceholder')}
               className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[#1B1A1A] placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               autoFocus
             />
@@ -187,7 +189,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
               disabled={!customText.trim() || isSubmitting}
               className="w-full"
             >
-              {isSubmitting ? '送出中...' : '送出'}
+              {isSubmitting ? t('submitting') : t('submit')}
             </Button>
           </motion.div>
         )}
@@ -198,7 +200,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
             onClick={onSkip}
             className="text-sm text-[#8E8C8C] underline-offset-2 hover:text-[#6D6C6C] hover:underline"
           >
-            先跳過，之後再回答
+            {t('skipForNow')}
           </button>
         </div>
       </div>
@@ -221,11 +223,14 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
           <h3 className="mb-2 text-xl font-medium text-[#1B1A1A]">{responseMessage}</h3>
 
           <p className="mb-6 text-[#6D6C6C]">
-            已有 <span className="font-medium text-primary">{communityCount}</span> 人和你一樣
+            {t.rich('sameAsYouCount', {
+              count: communityCount,
+              highlight: (chunks) => <span className="font-medium text-primary">{chunks}</span>,
+            })}
           </p>
 
           <Button onClick={handleContinueToFollowUp} className="gap-2">
-            {question.followUpPrompt ? '繼續' : '完成'}
+            {question.followUpPrompt ? t('continue') : t('done')}
             <ChevronRight size={18} />
           </Button>
         </motion.div>
@@ -246,10 +251,10 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
           <div className="text-center">
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
               <MessageCircle size={14} />
-              <span>一句話就好</span>
+              <span>{t('justOneSentence')}</span>
             </div>
             <h2 className="text-xl font-bold text-[#1B1A1A]">{question.followUpPrompt}</h2>
-            <p className="mt-2 text-sm text-[#8E8C8C]">可選填，讓其他人更了解你的故事</p>
+            <p className="mt-2 text-sm text-[#8E8C8C]">{t('followUpOptionalHint')}</p>
           </div>
 
           {/* 輸入框 */}
@@ -257,7 +262,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
             type="text"
             value={followUpText}
             onChange={(e) => setFollowUpText(e.target.value)}
-            placeholder={question.followUpPlaceholder || '輸入你的故事...'}
+            placeholder={question.followUpPlaceholder || t('enterYourStoryPlaceholder')}
             className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[#1B1A1A] placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             autoFocus
           />
@@ -265,10 +270,10 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
           {/* 按鈕 */}
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleSkipFollowUp} className="flex-1">
-              跳過
+              {t('skip')}
             </Button>
             <Button onClick={handleFollowUpSubmit} disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? '送出中...' : '送出'}
+              {isSubmitting ? t('submitting') : t('submit')}
             </Button>
           </div>
         </motion.div>
@@ -287,7 +292,7 @@ export function ChoiceQuestion({ question, onSubmit, onSkip, onComplete }: Choic
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <Check className="h-8 w-8 text-green-600" />
         </div>
-        <h3 className="text-xl font-medium text-[#1B1A1A]">完成！</h3>
+        <h3 className="text-xl font-medium text-[#1B1A1A]">{t('completed')}</h3>
       </motion.div>
     </div>
   )

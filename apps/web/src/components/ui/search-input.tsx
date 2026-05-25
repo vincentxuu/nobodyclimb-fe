@@ -1,6 +1,7 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import { Input } from '@/components/ui/input'
 
@@ -12,17 +13,14 @@ interface SearchInputProps {
   className?: string
 }
 
-export function SearchInput({
-  value,
-  onChange,
-  placeholder = '搜尋...',
-  className,
-}: SearchInputProps) {
+export function SearchInput({ value, onChange, placeholder, className }: SearchInputProps) {
+  const t = useTranslations('CommonUI')
+
   return (
     <div className={`flex justify-center px-4 md:px-0 ${className ?? ''}`}>
       <Input
         type="text"
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('searchPlaceholder')}
         value={value}
         onChange={onChange}
         rightIcon={<Search className="h-5 w-5 stroke-[1.5px] text-text-main" />}

@@ -2,6 +2,7 @@
 
 import { motion, Reorder, useDragControls } from 'framer-motion'
 import { Check, GripVertical, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { Question, QuestionOption } from '@/lib/games/rope-system/types'
@@ -104,6 +105,7 @@ export function OrderingQuestion({
   userAnswer,
   className,
 }: OrderingQuestionProps) {
+  const t = useTranslations('GamesPage')
   const [items, setItems] = useState<QuestionOption[]>(question.options)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
@@ -154,22 +156,20 @@ export function OrderingQuestion({
       {/* 情境描述 */}
       {question.scenario && (
         <div className="rounded-lg bg-[#F5F5F5] p-4">
-          <div className="mb-1 text-sm font-medium text-[#535353]">情境</div>
+          <div className="mb-1 text-sm font-medium text-[#535353]">{t('scenarioLabel')}</div>
           <div className="text-[#1B1A1A]">{question.scenario}</div>
         </div>
       )}
 
       {/* 題目 */}
       <div className="space-y-2">
-        <div className="text-sm font-medium text-[#535353]">問題</div>
+        <div className="text-sm font-medium text-[#535353]">{t('questionLabel')}</div>
         <h2 className="text-lg font-medium text-[#1B1A1A]">{question.question}</h2>
       </div>
 
       {/* 操作提示 */}
       {!disabled && !showResult && (
-        <div className="text-sm text-[#535353]">
-          請將步驟拖曳至正確的順序，完成後點擊「確認順序」。
-        </div>
+        <div className="text-sm text-[#535353]">{t('orderingHint')}</div>
       )}
 
       {/* 排序列表 */}
@@ -190,7 +190,7 @@ export function OrderingQuestion({
       {/* 確認按鈕 */}
       {!disabled && !showResult && !hasSubmitted && (
         <Button onClick={handleSubmit} className="w-full" size="lg">
-          確認順序
+          {t('confirmOrder')}
         </Button>
       )}
     </motion.div>

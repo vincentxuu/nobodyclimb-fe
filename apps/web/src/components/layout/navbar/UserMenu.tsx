@@ -54,6 +54,7 @@ export default function UserMenu() {
   const t = useTranslations('UserMenu')
   const tNav = useTranslations('Navbar')
   const tAuth = useTranslations('AuthPage')
+  const tCommon = useTranslations('CommonUI')
 
   const avatarStyle = user?.avatarStyle
     ? DEFAULT_AVATARS.find((a) => a.id === user.avatarStyle) || DEFAULT_AVATARS[0]
@@ -96,10 +97,10 @@ export default function UserMenu() {
               <button className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full transition-opacity duration-200 hover:opacity-80 md:h-8 md:w-8 lg:h-10 lg:w-10">
                 <AvatarWithFallback
                   src={user?.avatar}
-                  alt="用戶頭像"
+                  alt={tCommon('userAvatarAlt')}
                   size="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10"
                   fallback={
-                    <div role="img" aria-label="用戶頭像">
+                    <div role="img" aria-label={tCommon('userAvatarAlt')}>
                       {generateAvatarElement(avatarStyle, 'w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10')}
                     </div>
                   }

@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, Circle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import type { Milestone } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +34,7 @@ export function ProgressTracker({
   onProgressChange,
   onMilestoneToggle,
 }: ProgressTrackerProps) {
+  const t = useTranslations('BucketList')
   if (!mode) return null
 
   const sizeClasses = {
@@ -75,7 +77,7 @@ export function ProgressTracker({
         </div>
         {showLabels && (
           <div className={cn('mt-1 flex justify-between', sizes.text, 'text-gray-500')}>
-            <span>進度</span>
+            <span>{t('progress')}</span>
             <span>{progress}%</span>
           </div>
         )}

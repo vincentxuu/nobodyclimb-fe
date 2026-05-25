@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
@@ -14,11 +15,12 @@ interface UnsavedChangesPromptProps {
 
 export function UnsavedChangesPrompt({
   when,
-  title = '尚未儲存',
-  message = '尚有未儲存的變更，確定要離開嗎？',
-  confirmText = '離開',
-  cancelText = '取消',
+  title,
+  message,
+  confirmText,
+  cancelText,
 }: UnsavedChangesPromptProps) {
+  const t = useTranslations('SharedUI')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -106,10 +108,10 @@ export function UnsavedChangesPrompt({
       isOpen={isOpen}
       onClose={closePrompt}
       onConfirm={handleConfirm}
-      title={title}
-      message={message}
-      confirmText={confirmText}
-      cancelText={cancelText}
+      title={title ?? t('unsavedTitle')}
+      message={message ?? t('unsavedMessage')}
+      confirmText={confirmText ?? t('unsavedConfirm')}
+      cancelText={cancelText ?? t('cancel')}
       variant="warning"
     />
   )

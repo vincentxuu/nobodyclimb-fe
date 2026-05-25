@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowLeft } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { Question, StoryInput } from './questions'
@@ -22,6 +23,8 @@ export function QuestionEditor({
   onSave,
   onCancel,
 }: QuestionEditorProps) {
+  const t = useTranslations('AnonShare')
+  const tCommon = useTranslations('Common')
   const [content, setContent] = useState(initialContent)
 
   const minLength = question.type === 'one_liner' ? 1 : 10
@@ -50,10 +53,10 @@ export function QuestionEditor({
             className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span>返回</span>
+            <span>{tCommon('back')}</span>
           </button>
           <Button onClick={handleSave} disabled={!canSave} size="sm">
-            儲存
+            {tCommon('save')}
           </Button>
         </div>
       </header>
@@ -82,10 +85,10 @@ export function QuestionEditor({
         <div className="mt-2 flex justify-between text-sm">
           <span className={content.length < minLength ? 'text-gray-400' : 'text-green-600'}>
             {content.length < minLength
-              ? `還需要 ${minLength - content.length} 個字`
-              : '可以儲存了'}
+              ? t('charsRemaining', { count: minLength - content.length })
+              : t('readyToSave')}
           </span>
-          <span className="text-gray-400">{content.length} 字</span>
+          <span className="text-gray-400">{t('charCount', { count: content.length })}</span>
         </div>
       </main>
     </div>

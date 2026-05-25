@@ -269,7 +269,7 @@ export function ClimbingFootprintsSection({ person }: ClimbingFootprintsSectionP
     years.length > 0
       ? years.length === 1
         ? `${Math.min(...years)}`
-        : `${Math.max(...years) - Math.min(...years) + 1} 年`
+        : t('yearsCount', { count: Math.max(...years) - Math.min(...years) + 1 })
       : '-'
 
   return (

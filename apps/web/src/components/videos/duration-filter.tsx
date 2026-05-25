@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import {
   Select,
@@ -14,9 +15,17 @@ interface DurationFilterProps {
   onDurationChange: (_duration: VideoDuration | 'all') => void
 }
 
+const DURATION_LABEL_KEYS: Record<VideoDuration | 'all', string> = {
+  all: 'durationAll',
+  short: 'durationShort',
+  medium: 'durationMedium',
+  long: 'durationLong',
+}
+
 const DurationFilter: React.FC<DurationFilterProps> = ({ selectedDuration, onDurationChange }) => {
-  const selectedLabel =
-    VIDEO_DURATION_OPTIONS.find((opt) => opt.value === selectedDuration)?.label || '全部時長'
+  const t = useTranslations('VideosPage')
+
+  const selectedLabel = t(DURATION_LABEL_KEYS[selectedDuration] ?? 'durationAll')
 
   return (
     <div className="w-full md:w-48">
@@ -25,12 +34,12 @@ const DurationFilter: React.FC<DurationFilterProps> = ({ selectedDuration, onDur
         onValueChange={(value) => onDurationChange(value as VideoDuration | 'all')}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="選擇時長">{selectedLabel}</SelectValue>
+          <SelectValue placeholder={t('durationSelectPlaceholder')}>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {VIDEO_DURATION_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              {option.label}
+              {t(DURATION_LABEL_KEYS[option.value])}
             </SelectItem>
           ))}
         </SelectContent>

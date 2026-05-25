@@ -129,7 +129,7 @@ export function BiographyCard({ person }: BiographyCardProps) {
           <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-[#EBEAEA] to-[#DBD8D8]">
             <Image
               src={coverUrl}
-              alt={`${displayName} 封面`}
+              alt={t('biographyCoverAlt', { name: displayName })}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 33vw"

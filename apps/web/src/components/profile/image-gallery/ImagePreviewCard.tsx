@@ -2,6 +2,7 @@
 
 import { GripVertical, X } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import React, { useState } from 'react'
 import { ProfileImage } from '../types'
 
@@ -22,6 +23,7 @@ export default function ImagePreviewCard({
   onCaptionChange,
   isDraggable = false,
 }: ImagePreviewCardProps) {
+  const t = useTranslations('ProfileGallery')
   const [isHovered, setIsHovered] = useState(false)
   const [isEditingCaption, setIsEditingCaption] = useState(false)
   const [captionValue, setCaptionValue] = useState(image.caption || '')
@@ -53,7 +55,7 @@ export default function ImagePreviewCard({
       <div className="relative aspect-[4/3] w-full">
         <Image
           src={image.url}
-          alt={image.caption || '攀岩照片'}
+          alt={image.caption || t('photoAlt')}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -73,7 +75,7 @@ export default function ImagePreviewCard({
               transition-opacity hover:bg-red-600
               ${isHovered ? 'opacity-100' : 'opacity-0'}
             `}
-            aria-label="刪除圖片"
+            aria-label={t('deleteImage')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -104,7 +106,7 @@ export default function ImagePreviewCard({
               onBlur={handleCaptionBlur}
               onKeyDown={handleCaptionKeyDown}
               className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-primary focus:outline-none"
-              placeholder="輸入圖片說明..."
+              placeholder={t('captionPlaceholder')}
               autoFocus
               maxLength={100}
             />
@@ -113,7 +115,7 @@ export default function ImagePreviewCard({
               onClick={() => setIsEditingCaption(true)}
               className="w-full rounded px-2 py-1 text-left text-sm text-gray-500 hover:bg-gray-100"
             >
-              {captionValue || '點擊新增說明...'}
+              {captionValue || t('addCaptionPrompt')}
             </button>
           )
         ) : (

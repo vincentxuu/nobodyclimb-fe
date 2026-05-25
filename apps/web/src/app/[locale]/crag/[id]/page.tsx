@@ -269,11 +269,16 @@ export async function generateMetadata({
   }
 }
 
-export default async function CragDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function CragDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>
+}) {
+  const { id, locale } = await params
   const apiCrag = await fetchCragById(id)
   const crag = apiCrag ? assembleCragMetadata(apiCrag) : null
   const faqs = crag ? generateCragFaqs(crag) : []
+  const t = await getTranslations({ locale, namespace: 'CragPage' })
 
   return (
     <>
@@ -326,7 +331,9 @@ export default async function CragDetailPage({ params }: { params: Promise<{ id:
       {faqs.length > 0 && crag && (
         <section className="container mx-auto px-4 pb-16">
           <div className="mx-auto max-w-3xl">
-            <h2 className="mb-6 text-xl font-medium text-[#1B1A1A]">{crag.name}常見問題</h2>
+            <h2 className="mb-6 text-xl font-medium text-[#1B1A1A]">
+              {t('faqSectionTitle', { name: crag.name })}
+            </h2>
             <div className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
               {faqs.map((faq, index) => (
                 <details key={index} className="group">

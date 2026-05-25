@@ -13,6 +13,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import * as React from 'react'
 import { DIFFICULTY_COLORS, DIFFICULTY_LABELS, ROUTES } from '@/lib/games/rope-system/constants'
 import type { Category, CategoryIconName, CategoryProgress } from '@/lib/games/rope-system/types'
@@ -39,6 +40,7 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ category, progress, className }: CategoryCardProps) {
+  const t = useTranslations('GamesPage')
   const difficultyColor = DIFFICULTY_COLORS[category.difficulty]
   const difficultyLabel = DIFFICULTY_LABELS[category.difficulty]
 
@@ -90,7 +92,9 @@ export function CategoryCard({ category, progress, className }: CategoryCardProp
         </div>
 
         {/* 題數 */}
-        <div className="mb-3 text-sm text-[#535353]">{category.questionCount} 題</div>
+        <div className="mb-3 text-sm text-[#535353]">
+          {t('questionCount', { count: category.questionCount })}
+        </div>
 
         {/* 進度條 */}
         <div className="relative h-2 overflow-hidden rounded-full bg-[#E5E5E5]">

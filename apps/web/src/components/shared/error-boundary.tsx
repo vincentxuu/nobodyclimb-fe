@@ -1,6 +1,7 @@
 'use client'
 
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 
@@ -79,6 +80,7 @@ function DefaultErrorFallback({
   onReset: () => void
   onReload: () => void
 }) {
+  const t = useTranslations('SharedUI')
   const isDevelopment = process.env.NODE_ENV === 'development'
 
   return (
@@ -90,10 +92,8 @@ function DefaultErrorFallback({
           </div>
         </div>
 
-        <h1 className="mb-2 text-2xl font-bold">發生錯誤</h1>
-        <p className="mb-6 text-muted-foreground">
-          抱歉，頁面發生了一些問題。請嘗試重新載入或稍後再試。
-        </p>
+        <h1 className="mb-2 text-2xl font-bold">{t('errorBoundaryTitle')}</h1>
+        <p className="mb-6 text-muted-foreground">{t('errorBoundaryMessage')}</p>
 
         {/* 開發環境顯示錯誤詳情 */}
         {isDevelopment && error && (
@@ -106,10 +106,10 @@ function DefaultErrorFallback({
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button onClick={onReset} variant="outline" className="gap-2">
             <RefreshCw className="h-4 w-4" />
-            重試
+            {t('errorBoundaryRetry')}
           </Button>
           <Button onClick={onReload} className="gap-2">
-            重新載入頁面
+            {t('errorBoundaryReload')}
           </Button>
         </div>
       </div>

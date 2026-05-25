@@ -1,6 +1,7 @@
 'use client'
 
 import { Image as ImageIcon, Loader2, UploadCloud, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { processImage, validateImageType } from '@/lib/utils/image'
@@ -22,6 +23,7 @@ export function ImageUploader({
   uploading = false,
   className = '',
 }: ImageUploaderProps) {
+  const t = useTranslations('CommonUI')
   const [isDragging, setIsDragging] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(value)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -30,7 +32,7 @@ export function ImageUploader({
     async (file: File) => {
       // 驗證檔案類型
       if (!validateImageType(file)) {
-        alert('請上傳 JPG、PNG、WebP 或 GIF 格式的圖片')
+        alert(t('invalidImageType'))
         return
       }
 
@@ -50,11 +52,11 @@ export function ImageUploader({
           onFileSelect(compressedFile)
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : '圖片處理失敗'
+        const message = error instanceof Error ? error.message : t('imageProcessFailed')
         alert(message)
       }
     },
-    [onFileSelect]
+    [onFileSelect, t]
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -122,7 +124,7 @@ export function ImageUploader({
         <div className="relative">
           <div className="relative h-[200px] overflow-hidden rounded-lg border border-gray-200">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={previewUrl} alt="封面預覽" className="h-full w-full object-cover" />
+            <img src={previewUrl} alt={t('coverPreview')} className="h-full w-full object-cover" />
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -139,7 +141,7 @@ export function ImageUploader({
               className="flex-1"
             >
               <ImageIcon className="mr-2 h-4 w-4" />
-              更換圖片
+              {t('changeImage')}
             </Button>
             <Button
               type="button"
@@ -171,7 +173,7 @@ export function ImageUploader({
           ) : (
             <>
               <UploadCloud className="mb-3 h-10 w-10 text-gray-400" />
-              <p className="text-sm text-gray-600">拖曳圖片至此處，或點擊上傳</p>
+              <p className="text-sm text-gray-600">{t('dragOrClickToUpload')}</p>
             </>
           )}
         </div>

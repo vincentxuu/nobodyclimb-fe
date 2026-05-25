@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import React from 'react'
 
 interface PlaceholderImageProps {
@@ -11,12 +12,14 @@ interface PlaceholderImageProps {
 }
 
 export const PlaceholderImage: React.FC<PlaceholderImageProps> = ({
-  text = '岩場圖片',
+  text,
   width = '100%',
   height = '100%',
   bgColor = '#CBD5E1', // tailwind gray-300
   textColor = '#1E293B', // tailwind gray-800
 }) => {
+  const t = useTranslations('CommonUI')
+
   return (
     <div
       style={{
@@ -45,7 +48,7 @@ export const PlaceholderImage: React.FC<PlaceholderImageProps> = ({
           backgroundSize: '50px 50px',
         }}
       />
-      <div style={{ zIndex: 1 }}>{text}</div>
+      <div style={{ zIndex: 1 }}>{text ?? t('cragImage')}</div>
     </div>
   )
 }

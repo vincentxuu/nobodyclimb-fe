@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/input'
 import ProfileFormField from './ProfileFormField'
 import ProfileTextDisplay from './ProfileTextDisplay'
@@ -20,9 +21,10 @@ export default function BasicInfoSection({
   isMobile,
   onChange,
 }: BasicInfoSectionProps) {
+  const t = useTranslations('ProfileUI')
   return (
     <div className="space-y-4">
-      <ProfileFormField label="暱稱" isMobile={isMobile}>
+      <ProfileFormField label={t('nicknameLabel')} isMobile={isMobile}>
         {isEditing ? (
           <Input
             value={name}
@@ -33,16 +35,16 @@ export default function BasicInfoSection({
           <ProfileTextDisplay text={name} isMobile={isMobile} />
         )}
       </ProfileFormField>
-      <ProfileFormField label="一句話形容自己" isMobile={isMobile}>
+      <ProfileFormField label={t('oneLinerLabel')} isMobile={isMobile}>
         {isEditing ? (
           <Input
             value={title}
             onChange={(e) => onChange('title', e.target.value)}
-            placeholder="例如：抱石愛好者"
+            placeholder={t('oneLinerPlaceholder')}
             className="border-[#B6B3B3] text-sm md:text-base"
           />
         ) : (
-          <ProfileTextDisplay text={title || '未設定'} isMobile={isMobile} />
+          <ProfileTextDisplay text={title || t('notSet')} isMobile={isMobile} />
         )}
       </ProfileFormField>
     </div>

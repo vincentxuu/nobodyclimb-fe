@@ -1,7 +1,8 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -12,12 +13,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 import { RouteStoryFormData } from '@/lib/types/route-story'
-
-const routeStoryFormSchema = z.object({
-  route_id: z.string().min(1, '請選擇路線'),
-  title: z.string().nullable().optional(),
-  content: z.string().min(1, '請輸入內容'),
-})
 
 interface RouteStoryFormProps {
   routeId: string
@@ -40,6 +35,18 @@ export function RouteStoryForm({
   initialData,
   isLoading = false,
 }: RouteStoryFormProps) {
+  const t = useTranslations('StoryDetail')
+
+  const routeStoryFormSchema = useMemo(
+    () =>
+      z.object({
+        route_id: z.string().min(1, t('routeStoryRouteRequired')),
+        title: z.string().nullable().optional(),
+        content: z.string().min(1, t('routeStoryContentRequired')),
+      }),
+    [t]
+  )
+
   const form = useForm<RouteStoryFormData>({
     resolver: zodResolver(routeStoryFormSchema),
     defaultValues: {
@@ -72,7 +79,7 @@ export function RouteStoryForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>分享路線故事</DialogTitle>
+          <DialogTitle>{t('routeStoryFormTitle')}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             {routeName} {routeGrade && <span className="font-medium">({routeGrade})</span>}
           </p>
@@ -81,16 +88,20 @@ export function RouteStoryForm({
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           {/* 標題 (可選) */}
           <div className="space-y-2">
-            <Label htmlFor="title">標題 (可選)</Label>
-            <Input id="title" placeholder="例如：為什麼叫做這個名字" {...form.register('title')} />
+            <Label htmlFor="title">{t('routeStoryTitleLabel')}</Label>
+            <Input
+              id="title"
+              placeholder={t('routeStoryTitlePlaceholder')}
+              {...form.register('title')}
+            />
           </div>
 
           {/* 內容 */}
           <div className="space-y-2">
-            <Label htmlFor="content">故事內容 *</Label>
+            <Label htmlFor="content">{t('routeStoryContentLabel')}</Label>
             <Textarea
               id="content"
-              placeholder="分享這條路線的命名由來、歷史故事或特別的經歷..."
+              placeholder={t('routeStoryContentPlaceholder')}
               rows={5}
               {...form.register('content')}
             />
@@ -107,10 +118,10 @@ export function RouteStoryForm({
               onClick={() => onOpenChange(false)}
               className="flex-1"
             >
-              取消
+              {t('routeStoryCancel')}
             </Button>
             <Button type="submit" className="flex-1" disabled={isLoading}>
-              {isLoading ? '發布中...' : '發布'}
+              {isLoading ? t('routeStoryPublishing') : t('routeStoryPublish')}
             </Button>
           </div>
         </form>

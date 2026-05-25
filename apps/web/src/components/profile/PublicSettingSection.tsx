@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 
@@ -15,10 +16,11 @@ export default function PublicSettingSection({
   isMobile,
   onChange,
 }: PublicSettingSectionProps) {
+  const t = useTranslations('ProfileUI')
   return (
     <div className="flex items-center justify-between rounded-lg bg-[#EBEAEA] p-4">
       <Label className={`cursor-pointer font-medium text-[#3F3D3D] ${isMobile ? 'text-sm' : ''}`}>
-        公開我的人物誌
+        {t('publicBiography')}
       </Label>
       <Switch checked={isPublic} onCheckedChange={(checked) => onChange('isPublic', checked)} />
     </div>

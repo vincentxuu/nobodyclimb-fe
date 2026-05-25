@@ -1,6 +1,7 @@
 'use client'
 
 import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 interface ProfileActionButtonsProps {
@@ -16,6 +17,7 @@ export default function ProfileActionButtons({
   isMobile,
   isLoading = false,
 }: ProfileActionButtonsProps) {
+  const t = useTranslations('ProfileUI')
   return (
     <div className={`flex ${isMobile ? 'flex-col' : 'justify-end'} mt-6 gap-3`}>
       <Button
@@ -24,7 +26,7 @@ export default function ProfileActionButtons({
         disabled={isLoading}
         className={`border-[#1B1A1A] text-[#1B1A1A] hover:bg-[#F5F5F5] ${isMobile ? 'w-full' : ''}`}
       >
-        取消
+        {t('cancel')}
       </Button>
       <Button
         onClick={onSave}
@@ -34,10 +36,10 @@ export default function ProfileActionButtons({
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            儲存中...
+            {t('saving')}
           </>
         ) : (
-          '儲存資料'
+          t('saveProfile')
         )}
       </Button>
     </div>
