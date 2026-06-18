@@ -49,6 +49,50 @@ import { Button, IconButton, Text } from '@/components/ui'
 import { isGradeInRange } from '@/lib/crag-data'
 import { useCragAreas, useCragDetail, useCragRoutes } from '@/lib/hooks/useCrags'
 
+function generateCragFaqs(crag: NonNullable<ReturnType<typeof useCragDetail>['data']>) {
+  const faqs: { question: string; answer: string }[] = []
+
+  if (crag.location) {
+    const approachText = crag.approach ? `步行約需 ${crag.approach}。` : ''
+    faqs.push({
+      question: `${crag.name}攀岩怎麼去？`,
+      answer: `${crag.name}位於${crag.location}。${approachText}${crag.parking ? `停車資訊：${crag.parking}` : ''}`,
+    })
+  }
+
+  if (crag.difficulty && crag.routes) {
+    const lowestGradeMatch = crag.difficulty.match(/5\.(\d+)/)
+    const isBeginnerFriendly = lowestGradeMatch
+      ? Number.parseInt(lowestGradeMatch[1], 10) <= 7
+      : false
+    faqs.push({
+      question: `${crag.name}適合攀岩初學者嗎？`,
+      answer: `${crag.name}共有 ${crag.routes} 條攀岩路線，難度範圍從 ${crag.difficulty}。${isBeginnerFriendly ? '有適合初學者的簡單路線。' : '建議有基礎攀岩經驗再前往。'}`,
+    })
+  }
+
+  if (crag.seasons?.length) {
+    faqs.push({
+      question: `${crag.name}最佳攀岩季節是什麼時候？`,
+      answer: `${crag.name}最適合攀岩的季節為${crag.seasons.join('、')}。建議避開雨季與極端天氣前往。`,
+    })
+  }
+
+  if (crag.rockType) {
+    faqs.push({
+      question: `${crag.name}的岩質是什麼？`,
+      answer: `${crag.name}的岩石類型為${crag.rockType}，攀登類型為${crag.type}。${crag.height ? `岩壁高度約 ${crag.height}。` : ''}`,
+    })
+  }
+
+  faqs.push({
+    question: `去${crag.name}攀岩需要帶什麼裝備？`,
+    answer: `前往${crag.name}攀岩建議攜帶：攀岩鞋、安全吊帶、確保器、頭盔${crag.type?.includes('傳統攀登') || crag.type?.includes('mixed') ? '、岩楔與凸輪等傳統攀登裝備' : '、快扣組'}。也建議攜帶足夠的水和防曬用品。`,
+  })
+
+  return faqs
+}
+
 export default function CragDetailScreen() {
   const router = useRouter()
   const {
@@ -156,6 +200,8 @@ export default function CragDetailScreen() {
   const gradeRanges = useMemo(() => {
     return computeGradeRanges(routes.map((r) => r.grade))
   }, [routes])
+
+  const faqs = useMemo(() => (crag ? generateCragFaqs(crag) : []), [crag])
 
   const handleBack = () => {
     router.back()
@@ -526,6 +572,29 @@ export default function CragDetailScreen() {
             </View>
           )}
 
+          {faqs.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                  {crag.name}常見問題
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <View style={styles.faqList}>
+                {faqs.map((faq, index) => (
+                  <View key={index} style={styles.faqItem}>
+                    <Text variant="body" fontWeight="600" style={styles.faqQuestion}>
+                      {faq.question}
+                    </Text>
+                    <Text variant="small" color="textSubtle" style={styles.faqAnswer}>
+                      {faq.answer}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
           <View style={styles.bottomPadding} />
         </ScrollView>
 
@@ -706,6 +775,21 @@ const styles = StyleSheet.create({
   },
   metadataContainer: {
     gap: 4,
+  },
+  faqList: {
+    gap: SPACING.sm,
+  },
+  faqItem: {
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  faqQuestion: {
+    color: SEMANTIC_COLORS.textMain,
+  },
+  faqAnswer: {
+    marginTop: 4,
+    lineHeight: 20,
   },
   bottomPadding: {
     height: 100,

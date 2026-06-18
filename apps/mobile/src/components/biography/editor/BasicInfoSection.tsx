@@ -37,6 +37,14 @@ interface BasicInfoSectionProps {
   climbingStartYear: number | null
   /** 開始攀岩年份變更回調 */
   onClimbingStartYearChange: (year: number | null) => void
+  /** 身高 */
+  heightCm?: number | null
+  /** 身高變更回調 */
+  onHeightCmChange?: (height: number | null) => void
+  /** 臂展 */
+  armSpanCm?: number | null
+  /** 臂展變更回調 */
+  onArmSpanCmChange?: (armSpan: number | null) => void
   /** 平常出沒的地方 */
   frequentLocations: string[]
   /** 平常出沒的地方變更回調 */
@@ -101,6 +109,10 @@ export function BasicInfoSection({
   onCoverChange,
   climbingStartYear,
   onClimbingStartYearChange,
+  heightCm,
+  onHeightCmChange,
+  armSpanCm,
+  onArmSpanCmChange,
   frequentLocations,
   onFrequentLocationsChange,
   favoriteRouteTypes,
@@ -152,6 +164,17 @@ export function BasicInfoSection({
     } else {
       onFavoriteRouteTypesChange([...favoriteRouteTypes, value])
     }
+  }
+
+  const handleNumberChange = (value: string, onChange?: (nextValue: number | null) => void) => {
+    if (!onChange) return
+    const trimmed = value.trim()
+    if (!trimmed) {
+      onChange(null)
+      return
+    }
+    const parsed = Number.parseInt(trimmed, 10)
+    onChange(Number.isNaN(parsed) ? null : parsed)
   }
 
   return (
@@ -377,6 +400,74 @@ export function BasicInfoSection({
           </Text>
         </XStack>
       </YStack>
+
+      {(onHeightCmChange || onArmSpanCmChange) && (
+        <YStack gap="$3">
+          <XStack alignItems="center">
+            <Text fontSize={14} fontWeight="500" color={SEMANTIC_COLORS.textSubtle}>
+              身體資料
+            </Text>
+            <Text fontSize={12} color={COLORS.text.muted}>
+              {' '}
+              (選填)
+            </Text>
+          </XStack>
+          <XStack gap="$3">
+            {onHeightCmChange && (
+              <YStack flex={1} gap="$2">
+                <Text fontSize={12} color={COLORS.text.muted}>
+                  身高 (cm)
+                </Text>
+                <TextInput
+                  value={heightCm ? String(heightCm) : ''}
+                  onChangeText={(text) => handleNumberChange(text, onHeightCmChange)}
+                  placeholder="例如 170"
+                  placeholderTextColor={COLORS.text.placeholder}
+                  keyboardType="number-pad"
+                  maxLength={3}
+                  style={{
+                    width: '100%',
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: COLORS.border.default,
+                    borderRadius: 12,
+                    color: SEMANTIC_COLORS.textMain,
+                    fontSize: 14,
+                  }}
+                />
+              </YStack>
+            )}
+            {onArmSpanCmChange && (
+              <YStack flex={1} gap="$2">
+                <Text fontSize={12} color={COLORS.text.muted}>
+                  臂展 (cm)
+                </Text>
+                <TextInput
+                  value={armSpanCm ? String(armSpanCm) : ''}
+                  onChangeText={(text) => handleNumberChange(text, onArmSpanCmChange)}
+                  placeholder="例如 174"
+                  placeholderTextColor={COLORS.text.placeholder}
+                  keyboardType="number-pad"
+                  maxLength={3}
+                  style={{
+                    width: '100%',
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: COLORS.border.default,
+                    borderRadius: 12,
+                    color: SEMANTIC_COLORS.textMain,
+                    fontSize: 14,
+                  }}
+                />
+              </YStack>
+            )}
+          </XStack>
+        </YStack>
+      )}
 
       {/* Frequent Locations */}
       <YStack gap="$2">

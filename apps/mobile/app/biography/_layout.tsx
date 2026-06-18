@@ -11,6 +11,7 @@ export default function BiographyLayout() {
       }}
     >
       <Stack.Screen name="[slug]" />
+      <Stack.Screen name="profile/[slug]" />
       <Stack.Screen name="explore/index" />
       <Stack.Screen name="community" />
     </Stack>

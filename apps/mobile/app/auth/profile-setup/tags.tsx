@@ -5,47 +5,99 @@
  */
 
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import type { TagDimension } from '@nobodyclimb/types'
 import { useRouter } from 'expo-router'
-import { Check } from 'lucide-react-native'
+import {
+  Check,
+  ChevronDown,
+  Clock,
+  Dumbbell,
+  Footprints,
+  Hand,
+  HeartPulse,
+  type LucideIcon,
+  MapPin,
+  Music,
+  Sparkles,
+  Tag,
+  Target,
+  Tent,
+  Users,
+} from 'lucide-react-native'
 import { useCallback, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { XStack, YStack } from 'tamagui'
 import { Button, ProgressBar, Text } from '@/components/ui'
+import biographyService from '@/lib/biographyService'
+import { SYSTEM_TAG_DIMENSION_LIST, SYSTEM_TAG_DIMENSIONS } from '@/lib/constants/biography-tags'
 
-// 興趣標籤選項
-const TAG_OPTIONS = [
-  { id: 'bouldering', label: '抱石' },
-  { id: 'lead', label: '先鋒' },
-  { id: 'top-rope', label: '上方確保' },
-  { id: 'trad', label: '傳統攀岩' },
-  { id: 'sport', label: '運動攀登' },
-  { id: 'outdoor', label: '戶外攀岩' },
-  { id: 'indoor', label: '室內攀岩' },
-  { id: 'competition', label: '競技比賽' },
-  { id: 'beginner', label: '新手' },
-  { id: 'intermediate', label: '進階' },
-  { id: 'advanced', label: '高階' },
-  { id: 'training', label: '訓練' },
+const REGISTRATION_TAG_DIMENSIONS: string[] = [
+  SYSTEM_TAG_DIMENSIONS.STYLE_CULT,
+  SYSTEM_TAG_DIMENSIONS.INJURY_BADGE,
+  SYSTEM_TAG_DIMENSIONS.SOCIAL_TYPE,
 ]
+
+const TAG_DIMENSIONS = SYSTEM_TAG_DIMENSION_LIST.filter((dimension) =>
+  REGISTRATION_TAG_DIMENSIONS.includes(dimension.id)
+)
+
+const iconMap: Record<string, LucideIcon> = {
+  Sparkles,
+  HeartPulse,
+  Footprints,
+  Clock,
+  Tent,
+  Music,
+  Target,
+  Users,
+  Hand,
+  Dumbbell,
+  MapPin,
+}
 
 export default function TagsScreen() {
   const router = useRouter()
 
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selections, setSelections] = useState<Record<string, string[]>>({})
+  const [expandedDimensions, setExpandedDimensions] = useState<Set<string>>(
+    new Set(TAG_DIMENSIONS.map((dimension) => dimension.id))
+  )
   const [isLoading, setIsLoading] = useState(false)
 
+  const selectedCount = Object.values(selections).reduce((sum, ids) => sum + ids.length, 0)
+
   // 處理標籤選擇
-  const handleTagToggle = useCallback((tagId: string) => {
-    setSelectedTags((prev) => {
-      if (prev.includes(tagId)) {
-        return prev.filter((id) => id !== tagId)
+  const handleTagToggle = useCallback((dimension: TagDimension, tagId: string) => {
+    setSelections((prev) => {
+      const current = prev[dimension.id] || []
+
+      if (dimension.selection_mode === 'single') {
+        return {
+          ...prev,
+          [dimension.id]: current.includes(tagId) ? [] : [tagId],
+        }
       }
-      if (prev.length >= 5) {
-        return prev // 最多選擇 5 個
+
+      return {
+        ...prev,
+        [dimension.id]: current.includes(tagId)
+          ? current.filter((id) => id !== tagId)
+          : [...current, tagId],
       }
-      return [...prev, tagId]
+    })
+  }, [])
+
+  const toggleDimension = useCallback((dimensionId: string) => {
+    setExpandedDimensions((prev) => {
+      const next = new Set(prev)
+      if (next.has(dimensionId)) {
+        next.delete(dimensionId)
+      } else {
+        next.add(dimensionId)
+      }
+      return next
     })
   }, [])
 
@@ -53,14 +105,31 @@ export default function TagsScreen() {
   const handleNext = useCallback(async () => {
     setIsLoading(true)
     try {
-      // TODO: 儲存標籤到後端
+      const tagsData = Object.values(selections)
+        .flat()
+        .map((tagId) => ({
+          tag_id: tagId,
+          source: 'system' as const,
+        }))
+
+      if (tagsData.length > 0) {
+        const response = await biographyService.updateRegistrationBiography({
+          tags_data: JSON.stringify(tagsData),
+        })
+
+        if (!response.success) {
+          throw new Error(response.error || '儲存標籤失敗')
+        }
+      }
       router.push('/auth/profile-setup/self-intro')
     } catch (error) {
       console.error('儲存失敗', error)
+      const message = error instanceof Error ? error.message : '請稍後再試'
+      Alert.alert('儲存失敗', message)
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, selections])
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -82,32 +151,93 @@ export default function TagsScreen() {
 
             {/* 標題 */}
             <YStack gap={SPACING.xs}>
-              <Text variant="h2">您對什麼類型的攀岩感興趣？</Text>
-              <Text color="textSubtle">選擇最多 5 個標籤，幫助我們推薦適合您的內容</Text>
+              <Text variant="h2">選擇你的攀岩標籤</Text>
+              <Text color="textSubtle">用幾個小標籤，讓其他岩友更快認識你</Text>
             </YStack>
 
             {/* 標籤選擇 */}
-            <XStack flexWrap="wrap" gap={SPACING.sm}>
-              {TAG_OPTIONS.map((tag) => {
-                const isSelected = selectedTags.includes(tag.id)
+            <YStack gap={SPACING.md}>
+              {TAG_DIMENSIONS.map((dimension) => {
+                const selectedIds = selections[dimension.id] || []
+                const isExpanded = expandedDimensions.has(dimension.id)
+                const Icon = iconMap[dimension.icon ?? ''] ?? Tag
+
                 return (
-                  <Pressable
-                    key={tag.id}
-                    onPress={() => handleTagToggle(tag.id)}
-                    style={[styles.tag, isSelected && styles.tagSelected]}
-                  >
-                    <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>
-                      {tag.label}
-                    </Text>
-                    {isSelected && <Check size={14} color="#FFFFFF" />}
-                  </Pressable>
+                  <View key={dimension.id} style={styles.dimensionCard}>
+                    <Pressable
+                      onPress={() => toggleDimension(dimension.id)}
+                      style={styles.dimensionHeader}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${isExpanded ? '收合' : '展開'}${dimension.name}`}
+                    >
+                      <XStack alignItems="center" gap={SPACING.sm} flex={1}>
+                        <Icon size={20} color={SEMANTIC_COLORS.textMain} />
+                        <YStack flex={1} gap={2}>
+                          <XStack alignItems="center" gap={SPACING.xs}>
+                            <Text fontWeight="600">{dimension.name}</Text>
+                            {selectedIds.length > 0 && (
+                              <View style={styles.selectedBadge}>
+                                <Text variant="caption" style={styles.selectedBadgeText}>
+                                  {selectedIds.length}
+                                </Text>
+                              </View>
+                            )}
+                          </XStack>
+                          <Text variant="small" color="textMuted">
+                            {dimension.description}
+                            {dimension.selection_mode === 'multiple' ? '（可複選）' : '（單選）'}
+                          </Text>
+                        </YStack>
+                      </XStack>
+                      <ChevronDown
+                        size={18}
+                        color={SEMANTIC_COLORS.textMuted}
+                        style={isExpanded ? styles.chevronExpanded : undefined}
+                      />
+                    </Pressable>
+
+                    {isExpanded && (
+                      <XStack flexWrap="wrap" gap={SPACING.sm} style={styles.tagList}>
+                        {dimension.options.map((tag) => {
+                          const isSelected = selectedIds.includes(tag.id)
+                          return (
+                            <Pressable
+                              key={tag.id}
+                              onPress={() => handleTagToggle(dimension, tag.id)}
+                              style={[styles.tag, isSelected && styles.tagSelected]}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected: isSelected }}
+                            >
+                              {isSelected && <Check size={14} color="#FFFFFF" />}
+                              <YStack gap={2} flexShrink={1}>
+                                <Text
+                                  style={[styles.tagText, isSelected && styles.tagTextSelected]}
+                                >
+                                  {tag.label}
+                                </Text>
+                                <Text
+                                  variant="caption"
+                                  style={[
+                                    styles.tagDescription,
+                                    isSelected && styles.tagDescriptionSelected,
+                                  ]}
+                                >
+                                  {tag.description}
+                                </Text>
+                              </YStack>
+                            </Pressable>
+                          )
+                        })}
+                      </XStack>
+                    )}
+                  </View>
                 )
               })}
-            </XStack>
+            </YStack>
 
             {/* 已選數量 */}
             <Text variant="small" color="textSubtle">
-              已選擇 {selectedTags.length}/5
+              已選擇 {selectedCount} 個標籤
             </Text>
 
             {/* 按鈕 */}
@@ -144,16 +274,49 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: SPACING.lg,
   },
+  dimensionCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: RADIUS.md,
+    overflow: 'hidden',
+  },
+  dimensionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    backgroundColor: '#F9FAFB',
+  },
+  selectedBadge: {
+    minWidth: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 11,
+    backgroundColor: SEMANTIC_COLORS.textMain,
+  },
+  selectedBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  chevronExpanded: {
+    transform: [{ rotate: '180deg' }],
+  },
+  tagList: {
+    padding: SPACING.md,
+  },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: SPACING.xs,
+    maxWidth: '100%',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.md,
     backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: '#E5E7EB',
   },
   tagSelected: {
     backgroundColor: SEMANTIC_COLORS.textMain,
@@ -162,9 +325,16 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 14,
     color: SEMANTIC_COLORS.textMain,
+    fontWeight: '600',
   },
   tagTextSelected: {
     color: '#FFFFFF',
+  },
+  tagDescription: {
+    color: SEMANTIC_COLORS.textMuted,
+  },
+  tagDescriptionSelected: {
+    color: '#F5F5F5',
   },
   nextButton: {
     width: '100%',

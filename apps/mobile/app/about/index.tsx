@@ -268,18 +268,18 @@ function FeaturesSection() {
 // Stats Section
 // ============================================
 interface StatsConfig {
-  key: 'totalGyms' | 'totalCrags' | 'totalBiographies' | 'totalArticles' | 'totalVideos'
+  key: 'gyms' | 'crags' | 'routes' | 'biographies' | 'posts' | 'videos'
   label: string
   suffix: string
-  fallback: number
 }
 
 const STATS_CONFIG: StatsConfig[] = [
-  { key: 'totalGyms', label: '間岩館', suffix: '+', fallback: 120 },
-  { key: 'totalCrags', label: '個岩場', suffix: '+', fallback: 45 },
-  { key: 'totalBiographies', label: '篇人物誌', suffix: '+', fallback: 150 },
-  { key: 'totalArticles', label: '篇文章', suffix: '+', fallback: 350 },
-  { key: 'totalVideos', label: '部影片', suffix: '+', fallback: 800 },
+  { key: 'gyms', label: '間岩館', suffix: '+' },
+  { key: 'crags', label: '個岩場', suffix: '+' },
+  { key: 'routes', label: '條路線', suffix: '+' },
+  { key: 'biographies', label: '篇人物誌', suffix: '+' },
+  { key: 'posts', label: '篇文章', suffix: '+' },
+  { key: 'videos', label: '部影片', suffix: '+' },
 ]
 
 function StatsSkeleton() {
@@ -308,7 +308,7 @@ function StatsSection() {
             ) : (
               <>
                 <Text style={styles.statNumber}>
-                  {(stats as any)?.[item.key] ?? item.fallback}
+                  {stats[item.key]}
                   <Text style={styles.statSuffix}>{item.suffix}</Text>
                 </Text>
                 <Text style={styles.statLabel}>{item.label}</Text>

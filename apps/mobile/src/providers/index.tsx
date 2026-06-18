@@ -9,6 +9,11 @@ import { TamaguiProvider } from '@tamagui/core'
 import { type ReactNode, useEffect, useState } from 'react'
 import { useColorScheme } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { ChatWidget } from '@/components/ai'
+import { AuthInitializer as StoryPromptInitializer } from '@/components/shared/AuthInitializer'
+import { ClaimContentProvider } from '@/components/shared/ClaimContentModal'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { ShareInvitation } from '@/components/shared/ShareInvitation'
 import { ToastProvider } from '@/components/ui/Toast'
 import { tokenStorage, useAuthStore } from '@/store/authStore'
 import config from '../../tamagui.config'
@@ -17,6 +22,8 @@ import { QueryProvider } from './QueryProvider'
 interface ProvidersProps {
   children: ReactNode
 }
+
+const ENABLE_AI_CHAT = process.env.EXPO_PUBLIC_ENABLE_AI_CHAT === 'true'
 
 /**
  * Auth Initializer
@@ -53,7 +60,16 @@ export function Providers({ children }: ProvidersProps) {
         <QueryProvider>
           <BottomSheetModalProvider>
             <ToastProvider>
-              <AuthInitializer>{children}</AuthInitializer>
+              <AuthInitializer>
+                <ErrorBoundary>
+                  <ClaimContentProvider>
+                    {children}
+                    <StoryPromptInitializer />
+                    <ShareInvitation />
+                    {ENABLE_AI_CHAT && <ChatWidget />}
+                  </ClaimContentProvider>
+                </ErrorBoundary>
+              </AuthInitializer>
             </ToastProvider>
           </BottomSheetModalProvider>
         </QueryProvider>

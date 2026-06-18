@@ -4,7 +4,7 @@
  * 取得當前用戶收藏（按讚）的文章列表
  * 對應後端 GET /posts/liked
  */
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
 export interface BookmarkedPost {
@@ -17,9 +17,11 @@ export interface BookmarkedPost {
   status: string
   published_at: string | null
   created_at: string
+  tags?: string[]
   username?: string
   display_name?: string
   author_avatar?: string
+  content?: string | null
 }
 
 interface PaginationInfo {
@@ -44,6 +46,25 @@ export function useBookmarks(page = 1, limit = 50) {
         posts: data?.data ?? data ?? [],
         pagination: data?.pagination ?? { page, limit, total: 0, total_pages: 0 },
       }
+    },
+  })
+}
+
+/**
+ * 從收藏列表移除文章
+ *
+ * Web 目前使用 /posts/:id/like 來移除 /posts/liked 列表中的項目，mobile 先保持一致。
+ */
+export function useRemoveBookmark() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await apiClient.post(`/posts/${postId}/like`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
     },
   })
 }

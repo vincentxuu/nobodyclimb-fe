@@ -6,6 +6,7 @@
  *
  * 流程：先取得 /biographies/me 拿到 biography ID，再用它取得人生清單
  */
+import type { CompleteBucketListInput, CreateBucketListInput } from '@nobodyclimb/schemas'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
@@ -20,9 +21,22 @@ export interface BucketListItem {
   target_date: string | null
   status: 'active' | 'completed' | 'archived'
   completed_at: string | null
+  enable_progress?: boolean
+  progress_mode?: 'manual' | 'milestone' | null
   progress: number
+  milestones?: unknown[] | null
+  completion_story?: string | null
+  psychological_insights?: string | null
+  technical_insights?: string | null
+  completion_media?: {
+    youtube_videos?: string[]
+    instagram_posts?: string[]
+    photos?: string[]
+  } | null
   is_public: boolean
   likes_count: number
+  inspired_count?: number
+  comments_count?: number
   sort_order: number
   created_at: string
   updated_at: string
@@ -90,6 +104,23 @@ export function useToggleBucketItem() {
 }
 
 /**
+ * 完成人生清單項目，包含完成故事、心得與媒體
+ */
+export function useCompleteBucketItem() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: CompleteBucketListInput }) => {
+      const response = await apiClient.put(`/bucket-list/${id}/complete`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
+    },
+  })
+}
+
+/**
  * 刪除人生清單項目
  */
 export function useDeleteBucketItem() {
@@ -98,6 +129,68 @@ export function useDeleteBucketItem() {
   return useMutation({
     mutationFn: async (id: string) => {
       const response = await apiClient.delete(`/bucket-list/${id}`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
+    },
+  })
+}
+
+/**
+ * 新增人生清單項目
+ */
+export function useCreateBucketItem() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: CreateBucketListInput) => {
+      const response = await apiClient.post('/bucket-list', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
+    },
+  })
+}
+
+/**
+ * 更新人生清單項目
+ */
+export function useUpdateBucketItem() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateBucketListInput> }) => {
+      const response = await apiClient.put(`/bucket-list/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bucket-list'] })
+    },
+  })
+}
+
+/**
+ * 更新人生清單里程碑完成狀態
+ */
+export function useUpdateBucketMilestone() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      milestoneId,
+      completed,
+    }: {
+      id: string
+      milestoneId: string
+      completed: boolean
+    }) => {
+      const response = await apiClient.put(`/bucket-list/${id}/milestone`, {
+        milestone_id: milestoneId,
+        completed,
+      })
       return response.data
     },
     onSuccess: () => {

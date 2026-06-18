@@ -39,6 +39,8 @@ interface VideoListItem {
   duration: string
   viewCount: string
   category: string
+  excluded?: boolean
+  tags?: string[]
 }
 
 interface VideosMeta {
@@ -233,7 +235,7 @@ export default function VideosScreen() {
 
   // 篩選和搜尋邏輯
   const filteredVideos = useMemo(() => {
-    let filtered = [...videoList]
+    let filtered = videoList.filter((video) => !video.excluded)
 
     // 分類篩選
     if (selectedCategory !== 'all') {
@@ -297,7 +299,7 @@ export default function VideosScreen() {
     durationCategory: getDurationCategory(parseDuration(v.duration)),
     viewCount: v.viewCount,
     category: v.category as VideoCategory,
-    tags: [],
+    tags: v.tags || [],
     featured: false,
   }))
 

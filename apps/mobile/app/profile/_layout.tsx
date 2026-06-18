@@ -10,12 +10,15 @@ export default function ProfileLayout() {
         headerShown: false,
       }}
     >
+      <Stack.Screen name="index" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="biography" />
       <Stack.Screen name="photos" />
       <Stack.Screen name="articles" />
       <Stack.Screen name="bookmarks" />
       <Stack.Screen name="bucket-list" />
       <Stack.Screen name="edit" />
+      <Stack.Screen name="editor" />
       <Stack.Screen name="ascents/index" />
       <Stack.Screen name="ascents/create" />
       <Stack.Screen name="stats/index" options={{ headerShown: false }} />

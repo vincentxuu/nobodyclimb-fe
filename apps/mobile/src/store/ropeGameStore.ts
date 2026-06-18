@@ -6,18 +6,9 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
+import type { RopeQuestion } from '@/lib/games/rope-system'
 
 const ROPE_GAME_PROGRESS_KEY = 'rope_game_progress'
-
-interface Question {
-  id: string
-  categoryId: string
-  question: string
-  options: string[]
-  correctAnswer: number
-  explanation: string
-  difficulty: 'easy' | 'medium' | 'hard'
-}
 
 interface CategoryProgress {
   categoryId: string
@@ -30,9 +21,9 @@ interface CategoryProgress {
 
 interface GameSession {
   categoryId: string
-  questions: Question[]
+  questions: RopeQuestion[]
   currentIndex: number
-  answers: number[]
+  answers: Array<string | string[]>
   startedAt: number
   score: number
 }
@@ -60,8 +51,11 @@ interface RopeGameState {
   resetAllProgress: () => Promise<void>
 
   // 遊戲操作
-  startGame: (categoryId: string, questions: Question[]) => void
-  submitAnswer: (answerIndex: number) => { isCorrect: boolean; correctAnswer: number }
+  startGame: (categoryId: string, questions: RopeQuestion[]) => void
+  submitAnswer: (answer: string | string[]) => {
+    isCorrect: boolean
+    correctAnswer: string | string[]
+  }
   nextQuestion: () => boolean
   endGame: () => { score: number; totalQuestions: number; correctAnswers: number }
   quitGame: () => void
@@ -193,19 +187,19 @@ export const useRopeGameStore = create<RopeGameState>((set, get) => ({
     })
   },
 
-  submitAnswer: (answerIndex) => {
+  submitAnswer: (answer) => {
     const { currentSession } = get()
     if (!currentSession) {
-      return { isCorrect: false, correctAnswer: -1 }
+      return { isCorrect: false, correctAnswer: '' }
     }
 
     const currentQuestion = currentSession.questions[currentSession.currentIndex]
-    const isCorrect = answerIndex === currentQuestion.correctAnswer
+    const isCorrect = checkAnswer(answer, currentQuestion.correctAnswer)
 
     set({
       currentSession: {
         ...currentSession,
-        answers: [...currentSession.answers, answerIndex],
+        answers: [...currentSession.answers, answer],
         score: isCorrect ? currentSession.score + 10 : currentSession.score,
       },
     })
@@ -242,8 +236,8 @@ export const useRopeGameStore = create<RopeGameState>((set, get) => ({
     }
 
     const totalQuestions = currentSession.questions.length
-    const correctAnswers = currentSession.answers.filter(
-      (answer, index) => answer === currentSession.questions[index].correctAnswer
+    const correctAnswers = currentSession.answers.filter((answer, index) =>
+      checkAnswer(answer, currentSession.questions[index].correctAnswer)
     ).length
 
     // 更新進度
@@ -275,3 +269,18 @@ export const useRopeGameStore = create<RopeGameState>((set, get) => ({
     set((state) => ({ vibrationEnabled: !state.vibrationEnabled }))
   },
 }))
+
+function checkAnswer(userAnswer: string | string[], correctAnswer: string | string[]): boolean {
+  if (typeof correctAnswer === 'string') {
+    return userAnswer === correctAnswer
+  }
+
+  if (Array.isArray(userAnswer)) {
+    return (
+      userAnswer.length === correctAnswer.length &&
+      userAnswer.every((answer, index) => answer === correctAnswer[index])
+    )
+  }
+
+  return false
+}

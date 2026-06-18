@@ -43,6 +43,7 @@ export interface GalleryGridPhoto {
     city?: string
     spot?: string
   }
+  uploadDate?: string
   author?: {
     id: string
     username: string

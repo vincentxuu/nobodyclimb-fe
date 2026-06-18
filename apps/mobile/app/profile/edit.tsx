@@ -8,18 +8,7 @@ import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { useRouter } from 'expo-router'
-import {
-  Calendar,
-  Camera,
-  ChevronLeft,
-  Facebook,
-  Instagram,
-  Mail,
-  MapPin,
-  Phone,
-  User,
-  Youtube,
-} from 'lucide-react-native'
+import { AtSign, Camera, ChevronLeft, Mail, User } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import {
   Alert,
@@ -34,37 +23,28 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
 import { Button, IconButton, Text } from '@/components/ui'
+import { userService } from '@/lib/userService'
 import { useAuthStore } from '@/store/authStore'
 
 interface ProfileFormData {
+  username: string
   displayName: string
   email: string
-  phone: string
-  location: string
-  birthday: string
   bio: string
-  instagram: string
-  facebook: string
-  youtube: string
 }
+
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/
 
 export default function EditProfileScreen() {
   const router = useRouter()
-  const { user } = useAuthStore()
+  const { user, hydrate } = useAuthStore()
 
-  const [avatar, setAvatar] = useState<string | null>(
-    user?.avatar || 'https://picsum.photos/200?random=user'
-  )
+  const [avatar, setAvatar] = useState<string | null>(user?.avatar || null)
   const [formData, setFormData] = useState<ProfileFormData>({
+    username: user?.username || '',
     displayName: user?.displayName || '',
     email: user?.email || '',
-    phone: '',
-    location: '',
-    birthday: '',
-    bio: '',
-    instagram: '',
-    facebook: '',
-    youtube: '',
+    bio: user?.bio || '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -98,17 +78,35 @@ export default function EditProfileScreen() {
       return
     }
 
+    if (!USERNAME_PATTERN.test(formData.username.trim())) {
+      Alert.alert('使用者名稱格式錯誤', '請輸入 3-30 個英文、數字或底線')
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      // TODO: 整合 userService.updateProfile
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      let avatarUrl = avatar || undefined
+
+      if (avatar && avatar !== user?.avatar && !avatar.startsWith('http')) {
+        avatarUrl = await userService.uploadAvatar(avatar)
+      }
+
+      await userService.updateProfile({
+        username: formData.username.trim(),
+        display_name: formData.displayName.trim(),
+        bio: formData.bio.trim(),
+        avatar_url: avatarUrl,
+      })
+
+      await hydrate()
       Alert.alert('儲存成功', '個人資料已更新', [{ text: '好', onPress: () => router.back() }])
-    } catch (_error) {
-      Alert.alert('儲存失敗', '請稍後再試')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '請稍後再試'
+      Alert.alert('儲存失敗', message)
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, avatar, router])
+  }, [formData, avatar, hydrate, router, user?.avatar])
 
   return (
     <ProtectedRoute>
@@ -173,6 +171,20 @@ export default function EditProfileScreen() {
 
               <View style={styles.inputGroup}>
                 <View style={styles.inputIcon}>
+                  <AtSign size={18} color={SEMANTIC_COLORS.textMuted} />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={formData.username}
+                  onChangeText={(v) => handleInputChange('username', v)}
+                  placeholder="使用者名稱"
+                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <View style={styles.inputIcon}>
                   <Mail size={18} color={SEMANTIC_COLORS.textMuted} />
                 </View>
                 <TextInput
@@ -181,46 +193,6 @@ export default function EditProfileScreen() {
                   placeholder="電子郵件"
                   placeholderTextColor={SEMANTIC_COLORS.textMuted}
                   editable={false}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <View style={styles.inputIcon}>
-                  <Phone size={18} color={SEMANTIC_COLORS.textMuted} />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  value={formData.phone}
-                  onChangeText={(v) => handleInputChange('phone', v)}
-                  placeholder="電話號碼"
-                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
-                  keyboardType="phone-pad"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <View style={styles.inputIcon}>
-                  <MapPin size={18} color={SEMANTIC_COLORS.textMuted} />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  value={formData.location}
-                  onChangeText={(v) => handleInputChange('location', v)}
-                  placeholder="所在地區"
-                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <View style={styles.inputIcon}>
-                  <Calendar size={18} color={SEMANTIC_COLORS.textMuted} />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  value={formData.birthday}
-                  onChangeText={(v) => handleInputChange('birthday', v)}
-                  placeholder="生日 (YYYY-MM-DD)"
-                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
                 />
               </View>
             </View>
@@ -244,55 +216,6 @@ export default function EditProfileScreen() {
               <Text variant="small" color="textMuted" style={styles.charCount}>
                 {formData.bio.length}/500
               </Text>
-            </View>
-
-            {/* 社群連結 */}
-            <View style={styles.section}>
-              <Text variant="small" color="textMuted" style={styles.sectionTitle}>
-                社群連結
-              </Text>
-
-              <View style={styles.inputGroup}>
-                <View style={styles.inputIcon}>
-                  <Instagram size={18} color="#E4405F" />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  value={formData.instagram}
-                  onChangeText={(v) => handleInputChange('instagram', v)}
-                  placeholder="Instagram 用戶名"
-                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <View style={styles.inputIcon}>
-                  <Facebook size={18} color="#1877F2" />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  value={formData.facebook}
-                  onChangeText={(v) => handleInputChange('facebook', v)}
-                  placeholder="Facebook 用戶名"
-                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <View style={styles.inputIcon}>
-                  <Youtube size={18} color="#FF0000" />
-                </View>
-                <TextInput
-                  style={styles.input}
-                  value={formData.youtube}
-                  onChangeText={(v) => handleInputChange('youtube', v)}
-                  placeholder="YouTube 頻道"
-                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
-                  autoCapitalize="none"
-                />
-              </View>
             </View>
 
             {/* 底部間距 */}

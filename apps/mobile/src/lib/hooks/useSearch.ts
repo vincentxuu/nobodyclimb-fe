@@ -13,10 +13,12 @@ import { apiClient } from '@/lib/api'
  * 前端 SearchType → 後端 type 參數
  */
 const SEARCH_TYPE_MAP: Record<Exclude<SearchType, 'all'>, string> = {
-  biography: 'posts', // biography 搜尋用 posts 類型
+  biography: 'biographies',
   crag: 'crags',
   gym: 'gyms',
   blog: 'posts',
+  gallery: 'galleries',
+  video: 'videos',
 }
 
 interface SearchResultRaw {
@@ -28,6 +30,7 @@ interface SearchResultRaw {
   description?: string
   cover_image?: string
   thumbnail_url?: string
+  image_url?: string
   type?: string
   region?: string
   city?: string
@@ -42,10 +45,11 @@ interface SearchResultRaw {
 function toSearchResultItem(raw: SearchResultRaw, category: string): SearchResultItem {
   const typeMap: Record<string, Exclude<SearchType, 'all'>> = {
     posts: 'blog',
+    biographies: 'biography',
     crags: 'crag',
     gyms: 'gym',
-    galleries: 'blog', // fallback
-    videos: 'blog', // fallback
+    galleries: 'gallery',
+    videos: 'video',
   }
 
   const itemType = typeMap[category] ?? 'blog'
@@ -58,6 +62,12 @@ function toSearchResultItem(raw: SearchResultRaw, category: string): SearchResul
     subtitle = raw.city || raw.description?.slice(0, 30)
   } else if (category === 'posts') {
     subtitle = raw.excerpt?.slice(0, 40) || raw.author_name || raw.author_username
+  } else if (category === 'biographies') {
+    subtitle = raw.excerpt?.slice(0, 40) || raw.description?.slice(0, 40) || raw.author_username
+  } else if (category === 'galleries') {
+    subtitle = [raw.region, raw.city].filter(Boolean).join(' ') || raw.description?.slice(0, 40)
+  } else if (category === 'videos') {
+    subtitle = raw.category || raw.description?.slice(0, 40)
   } else {
     subtitle = raw.description?.slice(0, 40)
   }
@@ -67,7 +77,7 @@ function toSearchResultItem(raw: SearchResultRaw, category: string): SearchResul
     type: itemType,
     title,
     subtitle,
-    image: raw.cover_image || raw.thumbnail_url,
+    image: raw.cover_image || raw.thumbnail_url || raw.image_url,
     slug: raw.slug,
   }
 }
@@ -102,9 +112,9 @@ export function useSearch(query: string, type: SearchType = 'all') {
         return data.map((item: SearchResultRaw) => toSearchResultItem(item, backendType))
       }
 
-      // 沒有指定 type，data 是 { posts, crags, gyms, galleries, videos }
+      // 沒有指定 type，data 是 { biographies, posts, crags, gyms, galleries, videos }
       const results: SearchResultItem[] = []
-      const categories = ['posts', 'crags', 'gyms', 'galleries', 'videos'] as const
+      const categories = ['biographies', 'posts', 'crags', 'gyms', 'galleries', 'videos'] as const
       for (const cat of categories) {
         const items = (data as Record<string, SearchResultRaw[]>)?.[cat]
         if (Array.isArray(items)) {

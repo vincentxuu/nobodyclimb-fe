@@ -7,7 +7,8 @@
 
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import { Camera, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
+import { Camera, ChevronLeft, ChevronRight, LogIn, Plus, X } from 'lucide-react-native'
 import React, { useState } from 'react'
 import {
   ActivityIndicator,
@@ -42,6 +43,7 @@ export function RoutePhotosSection({
   routeName,
   staticPhotos = [],
 }: RoutePhotosSectionProps) {
+  const router = useRouter()
   const { data: photos = [], isLoading } = useRoutePhotos(routeId, staticPhotos)
   const [lightboxVisible, setLightboxVisible] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -98,11 +100,18 @@ export function RoutePhotosSection({
               </Text>
             )}
           </View>
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <Pressable style={styles.addButton} onPress={() => mediaFormRef.current?.open()}>
               <Plus size={16} color="#2563EB" />
               <Text variant="caption" style={{ color: '#2563EB' }}>
                 分享
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.addButton} onPress={() => router.push('/auth/login' as any)}>
+              <LogIn size={16} color="#2563EB" />
+              <Text variant="caption" style={{ color: '#2563EB' }}>
+                登入分享
               </Text>
             </Pressable>
           )}

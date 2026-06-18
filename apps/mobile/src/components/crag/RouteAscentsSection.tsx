@@ -7,7 +7,8 @@
 
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import { Mountain, Plus, Star, Users } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
+import { LogIn, Mountain, Plus, Star, Users } from 'lucide-react-native'
 import React from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui'
@@ -49,6 +50,7 @@ function renderStars(rating: number | null) {
 }
 
 export function RouteAscentsSection({ routeId, routeName, routeGrade }: RouteAscentsSectionProps) {
+  const router = useRouter()
   const { ascents, summary, isLoading } = useRouteAscents(routeId)
   const ascentFormRef = React.useRef<AscentFormRef>(null)
   const createAscent = useCreateAscent()
@@ -78,11 +80,18 @@ export function RouteAscentsSection({ routeId, routeName, routeGrade }: RouteAsc
               攀爬記錄
             </Text>
           </View>
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <Pressable style={styles.addButton} onPress={() => ascentFormRef.current?.open()}>
               <Plus size={16} color="#2563EB" />
               <Text variant="caption" style={{ color: '#2563EB' }}>
                 記錄
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.addButton} onPress={() => router.push('/auth/login' as any)}>
+              <LogIn size={16} color="#2563EB" />
+              <Text variant="caption" style={{ color: '#2563EB' }}>
+                登入記錄
               </Text>
             </Pressable>
           )}
@@ -141,6 +150,13 @@ export function RouteAscentsSection({ routeId, routeName, routeGrade }: RouteAsc
             <Text variant="small" color="textMuted">
               成為第一個留下紀錄的攀岩者吧！
             </Text>
+            {isLoggedIn ? (
+              <Pressable style={styles.emptyAction} onPress={() => ascentFormRef.current?.open()}>
+                <Text variant="small" fontWeight="600" style={styles.emptyActionText}>
+                  立即記錄
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : (
           <View style={styles.recordList}>
@@ -266,6 +282,14 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: SPACING.sm,
     marginBottom: 4,
+  },
+  emptyAction: {
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+  },
+  emptyActionText: {
+    color: '#2563EB',
   },
   recordList: {
     gap: SPACING.sm,

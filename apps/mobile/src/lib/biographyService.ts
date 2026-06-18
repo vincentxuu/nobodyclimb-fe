@@ -10,10 +10,22 @@ interface LikeStatusResponse {
   likes: number
 }
 
+export interface BiographyComment {
+  id: string
+  biography_id: string
+  user_id: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  content: string
+  created_at: string
+}
+
 interface ApiResponse<T> {
   success: boolean
   data?: T
   error?: string
+  message?: string
 }
 
 export const biographyService = {
@@ -206,6 +218,39 @@ export const biographyService = {
   },
 
   /**
+   * 註冊流程用：如果目前使用者還沒有人物誌，先建立再更新。
+   */
+  async updateRegistrationBiography(data: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+    try {
+      const response = await apiClient.put('/biographies/me', data)
+      return { success: true, data: response.data }
+    } catch (error) {
+      const status =
+        error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : undefined
+
+      if (status !== 404) {
+        console.error('[biographyService] updateRegistrationBiography error:', error)
+        return { success: false, error: String(error) }
+      }
+
+      try {
+        await apiClient.post('/biographies', {
+          name: '攀岩者',
+          is_public: 1,
+          visibility: 'public',
+        })
+        const response = await apiClient.put('/biographies/me', data)
+        return { success: true, data: response.data }
+      } catch (retryError) {
+        console.error('[biographyService] updateRegistrationBiography retry error:', retryError)
+        return { success: false, error: String(retryError) }
+      }
+    }
+  },
+
+  /**
    * 建立新的人物誌
    */
   async createBiography(data: Record<string, unknown>): Promise<ApiResponse<unknown>> {
@@ -231,6 +276,94 @@ export const biographyService = {
       return { success: true, data: response.data }
     } catch (error) {
       console.error('[biographyService] uploadImage error:', error)
+      return { success: false, error: String(error) }
+    }
+  },
+
+  /**
+   * 上傳人物誌圖片到媒體儲存。
+   */
+  async uploadBiographyImage(
+    uri: string,
+    oldUrl?: string | null
+  ): Promise<ApiResponse<{ url: string }>> {
+    try {
+      const formData = new FormData()
+      formData.append('image', {
+        uri,
+        type: 'image/jpeg',
+        name: `biography-${Date.now()}.jpg`,
+      } as unknown as Blob)
+      if (oldUrl) {
+        formData.append('old_url', oldUrl)
+      }
+
+      const response = await apiClient.post<ApiResponse<{ url: string }>>(
+        '/media/upload?type=biography',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
+      if (!response.data.success || !response.data.data?.url) {
+        return {
+          success: false,
+          error: response.data.error || '圖片上傳失敗',
+        }
+      }
+
+      return { success: true, data: response.data.data }
+    } catch (error) {
+      console.error('[biographyService] uploadBiographyImage error:', error)
+      return { success: false, error: String(error) }
+    }
+  },
+
+  /**
+   * 取得人物誌評論
+   */
+  async getComments(biographyId: string): Promise<ApiResponse<BiographyComment[]>> {
+    try {
+      const response = await apiClient.get<ApiResponse<BiographyComment[]>>(
+        `/biographies/${biographyId}/comments`
+      )
+      return response.data
+    } catch (error) {
+      console.error('[biographyService] getComments error:', error)
+      return { success: false, error: String(error) }
+    }
+  },
+
+  /**
+   * 新增人物誌評論
+   */
+  async addComment(biographyId: string, content: string): Promise<ApiResponse<BiographyComment>> {
+    try {
+      const response = await apiClient.post<ApiResponse<BiographyComment>>(
+        `/biographies/${biographyId}/comments`,
+        { content }
+      )
+      return response.data
+    } catch (error) {
+      console.error('[biographyService] addComment error:', error)
+      return { success: false, error: String(error) }
+    }
+  },
+
+  /**
+   * 刪除人物誌評論
+   */
+  async deleteComment(commentId: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+        `/biographies/comments/${commentId}`
+      )
+      return response.data
+    } catch (error) {
+      console.error('[biographyService] deleteComment error:', error)
       return { success: false, error: String(error) }
     }
   },

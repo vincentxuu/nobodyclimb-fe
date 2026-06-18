@@ -116,6 +116,13 @@ export function VideoCard({ video, onClick, fullWidth = false }: VideoCardProps)
               {video.category}
             </Text>
           </View>
+          {video.tags?.slice(0, 3).map((tag) => (
+            <View key={tag} style={styles.tagBadge}>
+              <Text variant="small" style={styles.tagText}>
+                {tag}
+              </Text>
+            </View>
+          ))}
         </View>
       </View>
     </AnimatedPressable>
@@ -204,12 +211,23 @@ const styles = StyleSheet.create({
   },
   categoryContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING[1],
   },
   categoryBadge: {
     backgroundColor: WB_COLORS[10],
     borderRadius: BORDER_RADIUS.full,
     paddingHorizontal: SPACING[2],
     paddingVertical: SPACING[1],
+  },
+  tagBadge: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: SPACING[2],
+    paddingVertical: SPACING[1],
+  },
+  tagText: {
+    color: '#047857',
   },
 })
 

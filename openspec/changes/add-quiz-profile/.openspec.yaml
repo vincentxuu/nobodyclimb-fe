@@ -1,0 +1,7 @@
+schema: spec-driven
+created: 2026-06-13
+artifacts:
+  - proposal.md
+  - specs/quiz-profile-badge/spec.md
+  - specs/quiz-biography-block/spec.md
+  - tasks.md

@@ -49,12 +49,21 @@ export function LocationExplorer() {
       setError(null)
 
       try {
-        const response = await apiClient.get('/content/popular/locations')
-        const data = response.data?.data ?? response.data ?? {}
+        const [taiwanResponse, overseasResponse, bucketResponse] = await Promise.all([
+          apiClient.get('/bucket-list/explore/climbing-footprints', {
+            params: { limit: 8, country: 'taiwan' },
+          }),
+          apiClient.get('/bucket-list/explore/climbing-footprints', {
+            params: { limit: 8, country: 'overseas' },
+          }),
+          apiClient.get('/bucket-list/explore/locations', {
+            params: { limit: 8 },
+          }),
+        ])
 
-        setTaiwanLocations(data.taiwan ?? [])
-        setOverseasLocations(data.overseas ?? [])
-        setBucketListLocations(data.bucketList ?? [])
+        setTaiwanLocations(taiwanResponse.data?.data ?? taiwanResponse.data ?? [])
+        setOverseasLocations(overseasResponse.data?.data ?? overseasResponse.data ?? [])
+        setBucketListLocations(bucketResponse.data?.data ?? bucketResponse.data ?? [])
       } catch (err) {
         console.error('Failed to load locations:', err)
         setError('載入地點資料時發生錯誤')

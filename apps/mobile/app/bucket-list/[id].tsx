@@ -30,19 +30,23 @@ import {
   MessageCircle,
   Mountain,
   Plane,
+  Share2,
   Target,
   Tent,
+  Trash2,
   Trophy,
   Youtube,
 } from 'lucide-react-native'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   Platform,
   Pressable,
   RefreshControl,
   ScrollView,
+  Share,
   StyleSheet,
   TextInput,
   View,
@@ -52,6 +56,7 @@ import { FadeIn, SlideUp } from '@/components/animations'
 import { Button, IconButton, Text } from '@/components/ui'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 
 // 分類配置
 interface CategoryConfig {
@@ -231,10 +236,15 @@ export default function BucketListDetailScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const queryClient = useQueryClient()
+  const { user } = useAuthStore()
 
   const [commentText, setCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
+  const [isLiking, setIsLiking] = useState(false)
 
   // 獲取目標詳情
   const {
@@ -249,6 +259,12 @@ export default function BucketListDetailScreen() {
   })
 
   const item = itemResponse?.data
+
+  useEffect(() => {
+    if (!item) return
+    setIsLiked(!!(item as BucketListItem & { is_liked?: boolean }).is_liked)
+    setLikeCount(item.likes_count || 0)
+  }, [item])
 
   // 獲取作者資訊
   const { data: biographyResponse } = useQuery<BiographyResponse>({
@@ -283,7 +299,7 @@ export default function BucketListDetailScreen() {
     try {
       await api.post(`/bucket-list/${id}/comments`, { content: commentText.trim() })
       setCommentText('')
-      refetchComments()
+      await refetchComments()
       queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
     } catch (err) {
       console.error('Failed to add comment:', err)
@@ -291,6 +307,75 @@ export default function BucketListDetailScreen() {
       setIsSubmittingComment(false)
     }
   }, [id, commentText, refetchComments, queryClient])
+
+  const handleDeleteComment = useCallback(
+    async (commentId: string) => {
+      if (deletingCommentId) return
+
+      setDeletingCommentId(commentId)
+      try {
+        await api.delete(`/bucket-list/comments/${commentId}`)
+        await refetchComments()
+        queryClient.invalidateQueries({ queryKey: ['bucket-list-item', id] })
+      } catch (err) {
+        console.error('Failed to delete comment:', err)
+        Alert.alert('刪除失敗', '請稍後再試')
+      } finally {
+        setDeletingCommentId(null)
+      }
+    },
+    [deletingCommentId, id, queryClient, refetchComments]
+  )
+
+  const handleToggleLike = useCallback(async () => {
+    if (!id || isLiking) return
+
+    const previousLiked = isLiked
+    const previousCount = likeCount
+    const nextLiked = !previousLiked
+
+    setIsLiking(true)
+    setIsLiked(nextLiked)
+    setLikeCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)))
+
+    try {
+      if (nextLiked) {
+        await api.post(`/bucket-list/${id}/like`, {})
+      } else {
+        await api.delete(`/bucket-list/${id}/like`)
+      }
+      queryClient.setQueryData(['bucket-list-item', id], (previous: BucketListItemResponse) => {
+        if (!previous?.data) return previous
+        return {
+          ...previous,
+          data: {
+            ...previous.data,
+            is_liked: nextLiked,
+            likes_count: Math.max(0, previousCount + (nextLiked ? 1 : -1)),
+          },
+        }
+      })
+    } catch (err) {
+      console.error('Failed to toggle bucket-list like:', err)
+      setIsLiked(previousLiked)
+      setLikeCount(previousCount)
+      Alert.alert('操作失敗', '請稍後再試')
+    } finally {
+      setIsLiking(false)
+    }
+  }, [id, isLiked, isLiking, likeCount, queryClient])
+
+  const handleShare = useCallback(async () => {
+    if (!item) return
+    try {
+      await Share.share({
+        title: item.title,
+        message: `${item.title}\nhttps://nobodyclimb.cc/bucket-list/${item.id}`,
+      })
+    } catch (err) {
+      console.error('Failed to share bucket-list item:', err)
+    }
+  }, [item])
 
   // 計算進度
   const displayProgress = useMemo(() => {
@@ -418,7 +503,9 @@ export default function BucketListDetailScreen() {
                 {/* 作者 */}
                 {biography && (
                   <Pressable
-                    onPress={() => router.push(`/biography/${biography.slug || biography.id}`)}
+                    onPress={() =>
+                      router.push(`/biography/profile/${biography.slug || biography.id}`)
+                    }
                     style={styles.authorLink}
                   >
                     <Text variant="small" color="textMuted">
@@ -612,22 +699,37 @@ export default function BucketListDetailScreen() {
         <SlideUp delay={400}>
           <View style={styles.section}>
             <View style={styles.socialStats}>
-              <Pressable style={styles.socialItem}>
-                <Mountain size={20} color={SEMANTIC_COLORS.textMuted} />
-                <Text variant="body" color="textMuted">
-                  {item.likes_count || 0}
+              <Pressable
+                style={styles.socialItem}
+                onPress={handleToggleLike}
+                disabled={isLiking}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Mountain
+                  size={20}
+                  color={isLiked ? SEMANTIC_COLORS.success : SEMANTIC_COLORS.textMuted}
+                  fill={isLiked ? SEMANTIC_COLORS.success : 'transparent'}
+                />
+                <Text variant="body" color={isLiked ? 'success' : 'textMuted'}>
+                  {likeCount}
                 </Text>
               </Pressable>
               <Pressable style={styles.socialItem}>
                 <MessageCircle size={20} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="body" color="textMuted">
-                  {item.comments_count || 0}
+                  {comments.length}
                 </Text>
               </Pressable>
               <Pressable style={styles.socialItem}>
                 <LinkIcon size={20} color={SEMANTIC_COLORS.textMuted} />
                 <Text variant="body" color="textMuted">
                   {item.inspired_count || 0} 人也想做
+                </Text>
+              </Pressable>
+              <Pressable style={styles.socialItem} onPress={handleShare}>
+                <Share2 size={20} color={SEMANTIC_COLORS.textMuted} />
+                <Text variant="body" color="textMuted">
+                  分享
                 </Text>
               </Pressable>
             </View>
@@ -650,12 +752,23 @@ export default function BucketListDetailScreen() {
                 {comments.map((comment) => (
                   <View key={comment.id} style={styles.commentItem}>
                     <View style={styles.commentHeader}>
-                      <Text variant="bodyBold">
-                        {comment.display_name || comment.username || '匿名用戶'}
-                      </Text>
-                      <Text variant="small" color="textMuted">
-                        {new Date(comment.created_at).toLocaleDateString('zh-TW')}
-                      </Text>
+                      <View style={styles.commentAuthor}>
+                        <Text variant="bodyBold">
+                          {comment.display_name || comment.username || '匿名用戶'}
+                        </Text>
+                        <Text variant="small" color="textMuted">
+                          {new Date(comment.created_at).toLocaleDateString('zh-TW')}
+                        </Text>
+                      </View>
+                      {user?.id === comment.user_id && (
+                        <Pressable
+                          onPress={() => handleDeleteComment(comment.id)}
+                          disabled={deletingCommentId === comment.id}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Trash2 size={16} color={SEMANTIC_COLORS.textMuted} />
+                        </Pressable>
+                      )}
                     </View>
                     <Text variant="body" color="textSubtle" style={styles.commentContent}>
                       {comment.content}
@@ -920,6 +1033,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: SPACING[2],
+    gap: SPACING[2],
+  },
+  commentAuthor: {
+    flex: 1,
+    minWidth: 0,
   },
   commentContent: {
     lineHeight: 22,

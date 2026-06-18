@@ -107,7 +107,7 @@ export function PhotoPopup({
   const handleAuthorPress = useCallback(() => {
     if (photo?.author?.username) {
       onClose()
-      router.push(`/biography/${photo.author.username}`)
+      router.push(`/biography/profile/${photo.author.username}`)
     }
   }, [photo, onClose, router])
 

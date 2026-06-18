@@ -7,26 +7,30 @@
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, ChevronRight, Eye, FileText, Plus } from 'lucide-react-native'
+import { ChevronLeft, Edit2, Eye, FileText, Plus, Trash2 } from 'lucide-react-native'
 import { useCallback } from 'react'
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ProtectedRoute } from '@/components/shared'
-import { IconButton, Text } from '@/components/ui'
-import { type Post, useMyPosts } from '@/lib/hooks'
+import { Button, IconButton, Text } from '@/components/ui'
+import { type Post, useDeletePost, useMyPosts } from '@/lib/hooks'
 
 interface ArticleCardProps {
   article: Post
   onPress: () => void
+  onEdit: () => void
+  onDelete: () => void
+  isDeleting: boolean
   index: number
 }
 
-function ArticleCard({ article, onPress, index }: ArticleCardProps) {
+function ArticleCard({ article, onPress, onEdit, onDelete, isDeleting, index }: ArticleCardProps) {
   const isDraft = article.status === 'draft'
-  const dateStr = article.published_at
-    ? new Date(article.published_at).toLocaleDateString('zh-TW')
-    : new Date(article.created_at).toLocaleDateString('zh-TW')
+  const isArchived = article.status === 'archived'
+  const isPublished = article.status === 'published'
+  const primaryTag = article.tags?.[0]
+  const dateStr = new Date(article.created_at).toLocaleDateString('zh-TW')
 
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
@@ -57,29 +61,67 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
                 </Text>
               </View>
             )}
+            {isArchived && (
+              <View style={styles.archivedBadge}>
+                <Text variant="small" style={styles.archivedText}>
+                  已封存
+                </Text>
+              </View>
+            )}
+            {isPublished && (
+              <View style={styles.publishedBadge}>
+                <Text variant="small" style={styles.publishedText}>
+                  已發布
+                </Text>
+              </View>
+            )}
           </View>
+          {primaryTag ? (
+            <Text variant="small" color="textMuted" numberOfLines={1}>
+              {primaryTag}
+            </Text>
+          ) : null}
           {article.excerpt ? (
             <Text variant="small" color="textMuted" numberOfLines={1} style={styles.articleExcerpt}>
               {article.excerpt}
             </Text>
-          ) : null}
+          ) : (
+            <Text variant="small" color="textMuted" numberOfLines={1} style={styles.articleExcerpt}>
+              尚無摘要
+            </Text>
+          )}
           <View style={styles.articleMeta}>
             <Text variant="small" color="textMuted">
               {dateStr}
             </Text>
-            {!isDraft && (
-              <View style={styles.stats}>
-                <View style={styles.statItem}>
-                  <Eye size={12} color={SEMANTIC_COLORS.textMuted} />
-                  <Text variant="small" color="textMuted">
-                    {article.view_count}
-                  </Text>
-                </View>
+            <View style={styles.stats}>
+              <View style={styles.statItem}>
+                <Eye size={12} color={SEMANTIC_COLORS.textMuted} />
+                <Text variant="small" color="textMuted">
+                  {article.view_count}
+                </Text>
               </View>
-            )}
+            </View>
+          </View>
+          <View style={styles.articleActions}>
+            <Button variant="secondary" size="sm" onPress={onEdit} leftIcon={Edit2}>
+              編輯
+            </Button>
+            <Button variant="outline" size="sm" onPress={onPress}>
+              查看
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onPress={onDelete}
+              leftIcon={Trash2}
+              loading={isDeleting}
+              style={styles.deleteButton}
+            >
+              刪除
+            </Button>
           </View>
         </View>
-        <ChevronRight size={18} color={SEMANTIC_COLORS.textMuted} />
       </Pressable>
     </Animated.View>
   )
@@ -88,7 +130,8 @@ function ArticleCard({ article, onPress, index }: ArticleCardProps) {
 export default function ArticlesScreen() {
   const router = useRouter()
 
-  const { data, isLoading, error } = useMyPosts()
+  const { data, isLoading, error, refetch, isRefetching } = useMyPosts()
+  const deleteMutation = useDeletePost()
   const articles = data?.posts ?? []
 
   const handleBack = () => {
@@ -101,18 +144,51 @@ export default function ArticlesScreen() {
 
   const handleArticlePress = useCallback(
     (article: Post) => {
-      if (article.status === 'draft') {
-        // 導航到編輯頁面
-        router.push(`/blog/create?id=${article.id}` as any)
-      } else {
-        router.push(`/blog/${article.id}` as any)
-      }
+      router.push(`/blog/${article.id}` as any)
     },
     [router]
   )
 
+  const handleEditArticle = useCallback(
+    (article: Post) => {
+      router.push(`/blog/edit/${article.id}` as any)
+    },
+    [router]
+  )
+
+  const handleDeleteArticle = useCallback(
+    (article: Post) => {
+      Alert.alert('刪除文章', `確定要刪除「${article.title}」嗎？此操作無法復原。`, [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '刪除',
+          style: 'destructive',
+          onPress: () => {
+            deleteMutation.mutate(article.id, {
+              onSuccess: () => {
+                Alert.alert('刪除成功', '文章已刪除')
+              },
+              onError: (deleteError) => {
+                const message = deleteError instanceof Error ? deleteError.message : '請稍後再試'
+                Alert.alert('刪除失敗', message)
+              },
+            })
+          },
+        },
+      ])
+    },
+    [deleteMutation]
+  )
+
   const renderItem = ({ item, index }: { item: Post; index: number }) => (
-    <ArticleCard article={item} onPress={() => handleArticlePress(item)} index={index} />
+    <ArticleCard
+      article={item}
+      onPress={() => handleArticlePress(item)}
+      onEdit={() => handleEditArticle(item)}
+      onDelete={() => handleDeleteArticle(item)}
+      isDeleting={deleteMutation.isPending && deleteMutation.variables === item.id}
+      index={index}
+    />
   )
 
   const publishedCount = articles.filter((a) => a.status === 'published').length
@@ -169,6 +245,9 @@ export default function ArticlesScreen() {
             <Text variant="body" color="textSubtle" style={styles.emptyText}>
               載入文章失敗，請稍後再試
             </Text>
+            <Button variant="primary" onPress={() => refetch()} loading={isRefetching}>
+              重新載入
+            </Button>
           </View>
         ) : articles.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -179,6 +258,9 @@ export default function ArticlesScreen() {
             <Text variant="small" color="textMuted">
               點擊右上角開始寫作
             </Text>
+            <Button variant="primary" onPress={handleCreateArticle} leftIcon={Edit2}>
+              寫第一篇文章
+            </Button>
           </View>
         ) : (
           <FlatList
@@ -278,6 +360,28 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
+  archivedBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: SPACING.xs,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  archivedText: {
+    color: '#6B7280',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  publishedBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: SPACING.xs,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  publishedText: {
+    color: '#15803D',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   articleExcerpt: {
     marginTop: 2,
   },
@@ -286,6 +390,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 4,
+  },
+  articleActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    marginTop: SPACING.xs,
+  },
+  deleteButton: {
+    borderColor: '#FCA5A5',
   },
   stats: {
     flexDirection: 'row',

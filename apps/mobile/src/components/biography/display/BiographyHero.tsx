@@ -4,13 +4,17 @@
  * Hero 區塊，對應 apps/web/src/components/biography/display/BiographyHero.tsx
  */
 
-import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
-import { BarChart3, Clock, Eye, Globe, MessageCircle, Share2, Users } from 'lucide-react-native'
+import { BarChart3, Clock, Eye, Globe, Share2, Users } from 'lucide-react-native'
 import { useState } from 'react'
 import { Linking, Pressable, StyleSheet, View } from 'react-native'
 import { Avatar, Text } from '@/components/ui'
+import { biographyService } from '@/lib/biographyService'
+import { BiographyLikeButton } from '../biography-like-button'
+import { FollowButton } from '../follow-button'
+import { ContentCommentSheet } from './ContentCommentSheet'
 
 // 類型定義
 interface SocialLinks {
@@ -85,12 +89,8 @@ interface BiographyHeroProps {
   showActions?: boolean
   /** 追蹤者數量變更回調 */
   onFollowerCountChange?: (count: number) => void
-  /** 按讚回調 */
-  onLike?: () => void
   /** 分享回調 */
   onShare?: () => void
-  /** 評論回調 */
-  onComment?: () => void
   /** 追蹤回調 */
   onFollow?: () => void
 }
@@ -101,31 +101,56 @@ export function BiographyHero({
   isAnonymous: isAnonymousProp,
   showActions = true,
   onFollowerCountChange,
-  onLike,
   onShare,
-  onComment,
   onFollow,
 }: BiographyHeroProps) {
   const isAnonymous = isAnonymousProp ?? biography.visibility === 'anonymous'
   const climbingYears = biography.climbing_years
 
-  const [likesCount, setLikesCount] = useState(biography.total_likes || 0)
-  const [commentsCount] = useState(biography.comment_count || 0)
   const [followerCount, setFollowerCount] = useState(biography.follower_count || 0)
-  const [isFollowing, setIsFollowing] = useState(false)
 
-  const handleFollow = () => {
-    const newFollowing = !isFollowing
-    setIsFollowing(newFollowing)
-    const newCount = newFollowing ? followerCount + 1 : Math.max(0, followerCount - 1)
+  const handleFollowChange = (isFollowing: boolean) => {
+    const newCount = isFollowing ? followerCount + 1 : Math.max(0, followerCount - 1)
     setFollowerCount(newCount)
     onFollowerCountChange?.(newCount)
     onFollow?.()
   }
 
-  const handleLike = () => {
-    setLikesCount((prev) => prev + 1)
-    onLike?.()
+  const handleFetchComments = async () => {
+    const response = await biographyService.getComments(biography.id)
+    if (!response.success || !response.data) {
+      throw new Error(response.message || response.error || '留言載入失敗')
+    }
+    return response.data.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      user_id: comment.user_id,
+      user_name: comment.display_name || comment.username,
+      user_avatar: comment.avatar_url || undefined,
+      created_at: comment.created_at,
+    }))
+  }
+
+  const handleAddComment = async (content: string) => {
+    const response = await biographyService.addComment(biography.id, content)
+    if (!response.success || !response.data) {
+      throw new Error(response.message || response.error || '留言送出失敗')
+    }
+    return {
+      id: response.data.id,
+      content: response.data.content,
+      user_id: response.data.user_id,
+      user_name: response.data.display_name || response.data.username,
+      user_avatar: response.data.avatar_url || undefined,
+      created_at: response.data.created_at,
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    const response = await biographyService.deleteComment(commentId)
+    if (!response.success) {
+      throw new Error(response.message || response.error || '留言刪除失敗')
+    }
   }
 
   return (
@@ -222,18 +247,11 @@ export function BiographyHero({
             <View style={styles.actionsSection}>
               {/* 追蹤按鈕 */}
               {!isOwner && biography.id && (
-                <Pressable
-                  style={[styles.followButton, isFollowing && styles.followingButton]}
-                  onPress={handleFollow}
-                >
-                  <Text
-                    variant="small"
-                    fontWeight="500"
-                    style={isFollowing ? styles.followingText : styles.followText}
-                  >
-                    {isFollowing ? '追蹤中' : '追蹤'}
-                  </Text>
-                </Pressable>
+                <FollowButton
+                  biographyId={biography.id}
+                  onFollowChange={handleFollowChange}
+                  size="sm"
+                />
               )}
 
               {/* 統計列 */}
@@ -245,12 +263,10 @@ export function BiographyHero({
                   </Text>
                 </View>
 
-                <Pressable style={styles.statItem} onPress={handleLike}>
-                  <View style={styles.likeIcon} />
-                  <Text variant="small" color="textSubtle">
-                    {likesCount}
-                  </Text>
-                </Pressable>
+                <BiographyLikeButton
+                  biographyId={biography.id}
+                  initialCount={biography.total_likes || 0}
+                />
 
                 <View style={styles.statItem}>
                   <Users size={14} color={SEMANTIC_COLORS.textSubtle} />
@@ -259,12 +275,12 @@ export function BiographyHero({
                   </Text>
                 </View>
 
-                <Pressable style={styles.statItem} onPress={onComment}>
-                  <MessageCircle size={14} color={SEMANTIC_COLORS.textSubtle} />
-                  <Text variant="small" color="textSubtle">
-                    {commentsCount}
-                  </Text>
-                </Pressable>
+                <ContentCommentSheet
+                  commentCount={biography.comment_count || 0}
+                  onFetchComments={handleFetchComments}
+                  onAddComment={handleAddComment}
+                  onDeleteComment={handleDeleteComment}
+                />
 
                 <Pressable style={styles.statItem} onPress={onShare}>
                   <Share2 size={14} color={SEMANTIC_COLORS.textSubtle} />
@@ -362,24 +378,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
     gap: SPACING.sm,
   },
-  followButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: WB_COLORS[100],
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.sm,
-  },
-  followingButton: {
-    backgroundColor: WB_COLORS[10],
-    borderWidth: 1,
-    borderColor: WB_COLORS[30],
-  },
-  followText: {
-    color: WB_COLORS[0],
-  },
-  followingText: {
-    color: WB_COLORS[100],
-  },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,12 +387,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  likeIcon: {
-    width: 14,
-    height: 14,
-    backgroundColor: SEMANTIC_COLORS.success,
-    borderRadius: 7,
   },
 })
 

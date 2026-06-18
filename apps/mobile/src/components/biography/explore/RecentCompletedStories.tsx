@@ -55,9 +55,18 @@ const BUCKET_LIST_CATEGORIES = [
 interface RecentCompletedStoriesProps {
   searchTerm?: string
   filter?: string
+  category?: string
+  title?: string
+  emptyMessage?: string
 }
 
-export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedStoriesProps) {
+export function RecentCompletedStories({
+  searchTerm,
+  filter,
+  category,
+  title,
+  emptyMessage,
+}: RecentCompletedStoriesProps) {
   const router = useRouter()
   const [items, setItems] = useState<CompletedItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,7 +77,9 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
     setError(null)
 
     try {
-      const response = await apiClient.get('/content/popular/stories', { params: { limit: 10 } })
+      const response = await apiClient.get('/bucket-list/explore/recent-completed', {
+        params: { limit: 10 },
+      })
       const rawData: CompletedItem[] = response.data?.data ?? response.data ?? []
 
       let filteredData = rawData
@@ -81,6 +92,10 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
             item.completion_story?.toLowerCase().includes(search) ||
             item.author_name?.toLowerCase().includes(search)
         )
+      }
+
+      if (category) {
+        filteredData = filteredData.filter((item) => item.category === category)
       }
 
       if (filter && filter !== 'all') {
@@ -103,7 +118,7 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
     } finally {
       setLoading(false)
     }
-  }, [searchTerm, filter])
+  }, [searchTerm, filter, category])
 
   useEffect(() => {
     loadRecentCompleted()
@@ -150,14 +165,15 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
       <View style={styles.header}>
         <Sparkles size={24} color="#EAB308" />
         <Text variant="h4" fontWeight="700">
-          最新完成故事
+          {title ?? '最新完成故事'}
         </Text>
       </View>
 
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text color="textSubtle">
-            {searchTerm ? `找不到符合「${searchTerm}」的完成故事` : '目前沒有完成故事'}
+            {emptyMessage ??
+              (searchTerm ? `找不到符合「${searchTerm}」的完成故事` : '目前沒有完成故事')}
           </Text>
         </View>
       ) : (
@@ -169,7 +185,9 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                 <Pressable
                   style={styles.authorRow}
                   onPress={() =>
-                    router.push(`/biography/${item.author_slug || item.biography_id}` as any)
+                    router.push(
+                      `/biography/profile/${item.author_slug || item.biography_id}` as any
+                    )
                   }
                 >
                   <View style={styles.authorInfo}>
@@ -267,7 +285,9 @@ export function RecentCompletedStories({ searchTerm, filter }: RecentCompletedSt
                   <Pressable
                     style={styles.viewButton}
                     onPress={() =>
-                      router.push(`/biography/${item.author_slug || item.biography_id}` as any)
+                      router.push(
+                        `/biography/profile/${item.author_slug || item.biography_id}` as any
+                      )
                     }
                   >
                     <Text variant="small" color="textSubtle">

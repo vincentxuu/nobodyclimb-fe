@@ -12,7 +12,10 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Dumbbell,
   Lock,
+  Mountain,
+  MountainSnow,
   Trophy,
   Volume2,
   VolumeX,
@@ -22,63 +25,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { IconButton, Text } from '@/components/ui'
+import { ROPE_CATEGORIES, type RopeCategory } from '@/lib/games/rope-system'
 import { useRopeGameStore } from '@/store/ropeGameStore'
-
-interface Category {
-  id: string
-  name: string
-  description: string
-  questionsCount: number
-  difficulty: 'easy' | 'medium' | 'hard'
-  isLocked: boolean
-  requiredScore?: number
-}
-
-// 模擬資料
-const CATEGORIES: Category[] = [
-  {
-    id: 'basics',
-    name: '基礎知識',
-    description: '認識繩索系統的基本概念',
-    questionsCount: 10,
-    difficulty: 'easy',
-    isLocked: false,
-  },
-  {
-    id: 'knots',
-    name: '繩結技巧',
-    description: '學習常用的攀岩繩結',
-    questionsCount: 15,
-    difficulty: 'easy',
-    isLocked: false,
-  },
-  {
-    id: 'belaying',
-    name: '確保技術',
-    description: '確保系統與操作流程',
-    questionsCount: 12,
-    difficulty: 'medium',
-    isLocked: false,
-  },
-  {
-    id: 'anchors',
-    name: '固定點設置',
-    description: '建立安全的固定點系統',
-    questionsCount: 15,
-    difficulty: 'medium',
-    isLocked: true,
-    requiredScore: 100,
-  },
-  {
-    id: 'rescue',
-    name: '救援技術',
-    description: '緊急狀況處理與救援',
-    questionsCount: 20,
-    difficulty: 'hard',
-    isLocked: true,
-    requiredScore: 200,
-  },
-]
 
 const DIFFICULTY_COLORS = {
   easy: '#10B981',
@@ -92,8 +40,44 @@ const DIFFICULTY_LABELS = {
   hard: '專業',
 }
 
+const PARENT_SECTIONS = [
+  {
+    id: 'sport',
+    name: '運動攀登',
+    description: '從確保、先鋒到頂繩與垂降，建立戶外運動攀登的安全基礎。',
+    Icon: Dumbbell,
+  },
+  {
+    id: 'trad',
+    name: '傳統攀登',
+    description: '練習固定點、保護裝備、多繩距與自我救援等進階系統判斷。',
+    Icon: MountainSnow,
+  },
+]
+
+const QUICK_ACTIONS = [
+  {
+    title: '學習模式',
+    description: '依章節練習繩索系統題目',
+    Icon: BookOpen,
+    disabled: false,
+  },
+  {
+    title: '測驗模式',
+    description: '即將開放',
+    Icon: Trophy,
+    disabled: true,
+  },
+  {
+    title: '認證挑戰',
+    description: '即將開放',
+    Icon: Mountain,
+    disabled: true,
+  },
+]
+
 interface CategoryCardProps {
-  category: Category
+  category: RopeCategory
   progress?: {
     answeredQuestions: number
     correctAnswers: number
@@ -101,11 +85,10 @@ interface CategoryCardProps {
   }
   onPress: () => void
   index: number
-  totalScore: number
 }
 
-function CategoryCard({ category, progress, onPress, index, totalScore }: CategoryCardProps) {
-  const isUnlocked = !category.isLocked || totalScore >= (category.requiredScore || 0)
+function CategoryCard({ category, progress, onPress, index }: CategoryCardProps) {
+  const isUnlocked = !category.isLocked
   const progressPercent = progress
     ? Math.round((progress.answeredQuestions / category.questionsCount) * 100)
     : 0
@@ -147,12 +130,15 @@ function CategoryCard({ category, progress, onPress, index, totalScore }: Catego
         <Text variant="small" color="textMuted" style={styles.categoryDescription}>
           {category.description}
         </Text>
+        <Text variant="small" color="textMuted" style={styles.parentName}>
+          {category.parentName}
+        </Text>
 
-        {!isUnlocked && category.requiredScore && (
+        {!isUnlocked && (
           <View style={styles.lockedInfo}>
             <Trophy size={14} color={SEMANTIC_COLORS.textMuted} />
             <Text variant="small" color="textMuted">
-              需要 {category.requiredScore} 分解鎖
+              尚未開放
             </Text>
           </View>
         )}
@@ -187,7 +173,7 @@ export default function RopeSystemGameScreen() {
     router.back()
   }
 
-  const handleCategoryPress = (category: Category) => {
+  const handleCategoryPress = (category: RopeCategory) => {
     router.push(`/games/rope-system/learn/${category.id}` as any)
   }
 
@@ -252,21 +238,71 @@ export default function RopeSystemGameScreen() {
           </View>
         </LinearGradient>
 
+        <View style={styles.introSection}>
+          <Text variant="h2" fontWeight="700" style={styles.introTitle}>
+            繩索系統學習
+          </Text>
+          <Text variant="body" color="textMuted" style={styles.introSubtitle}>
+            用互動題目熟悉確保、先鋒、固定點與自我救援的安全判斷。
+          </Text>
+        </View>
+
+        <View style={styles.quickActions}>
+          {QUICK_ACTIONS.map(({ title, description, Icon, disabled }) => (
+            <View key={title} style={[styles.quickActionCard, disabled && styles.disabledCard]}>
+              <View style={styles.quickActionIcon}>
+                <Icon size={22} color={disabled ? SEMANTIC_COLORS.textMuted : '#1B1A1A'} />
+              </View>
+              <View style={styles.quickActionCopy}>
+                <Text variant="body" fontWeight="600">
+                  {title}
+                </Text>
+                <Text variant="small" color="textMuted">
+                  {description}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
         {/* 類別列表 */}
         <View style={styles.categoriesSection}>
-          <Text variant="h4" fontWeight="600" style={styles.sectionTitle}>
-            學習章節
+          {PARENT_SECTIONS.map((section) => {
+            const categories = ROPE_CATEGORIES.filter(
+              (category) => category.parentName === section.name
+            )
+            const Icon = section.Icon
+            return (
+              <View key={section.id} style={styles.parentSection}>
+                <View style={styles.parentHeader}>
+                  <Icon size={24} color={SEMANTIC_COLORS.textMain} />
+                  <View style={styles.parentCopy}>
+                    <Text variant="h4" fontWeight="600">
+                      {section.name}
+                    </Text>
+                    <Text variant="small" color="textMuted">
+                      {section.description}
+                    </Text>
+                  </View>
+                </View>
+                {categories.map((category, index) => (
+                  <CategoryCard
+                    key={category.id}
+                    category={category}
+                    progress={progress.get(category.id)}
+                    onPress={() => handleCategoryPress(category)}
+                    index={index}
+                  />
+                ))}
+              </View>
+            )
+          })}
+        </View>
+
+        <View style={styles.disclaimer}>
+          <Text variant="small" color="textMuted" style={styles.disclaimerText}>
+            此工具用於輔助學習，實際操作請在合格教練或有經驗者指導下進行。
           </Text>
-          {CATEGORIES.map((category, index) => (
-            <CategoryCard
-              key={category.id}
-              category={category}
-              progress={progress.get(category.id)}
-              onPress={() => handleCategoryPress(category)}
-              index={index}
-              totalScore={totalScore}
-            />
-          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -328,8 +364,61 @@ const styles = StyleSheet.create({
   categoriesSection: {
     padding: SPACING.md,
   },
-  sectionTitle: {
+  introSection: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.lg,
+    alignItems: 'center',
+  },
+  introTitle: {
+    textAlign: 'center',
+    color: SEMANTIC_COLORS.textMain,
+  },
+  introSubtitle: {
+    marginTop: SPACING.xs,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  quickActions: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+    gap: SPACING.sm,
+  },
+  quickActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+  },
+  disabledCard: {
+    opacity: 0.55,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 231, 12, 0.22)',
+  },
+  quickActionCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  parentSection: {
+    marginBottom: SPACING.lg,
+  },
+  parentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     marginBottom: SPACING.md,
+  },
+  parentCopy: {
+    flex: 1,
   },
   categoryCard: {
     backgroundColor: SEMANTIC_COLORS.cardBg,
@@ -363,6 +452,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   categoryDescription: {
+    marginBottom: 4,
+  },
+  parentName: {
     marginBottom: SPACING.sm,
   },
   lockedInfo: {
@@ -384,5 +476,18 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#10B981',
     borderRadius: 3,
+  },
+  disclaimer: {
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.xl,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+  },
+  disclaimerText: {
+    textAlign: 'center',
+    lineHeight: 20,
   },
 })

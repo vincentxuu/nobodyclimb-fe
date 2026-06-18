@@ -14,6 +14,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native'
@@ -35,6 +36,12 @@ interface LocationData {
   }>
 }
 
+interface CountryStat {
+  country: string
+  location_count: number
+  visitor_count: number
+}
+
 type TabType = 'all' | 'taiwan' | 'overseas'
 
 export default function LocationsScreen() {
@@ -42,6 +49,15 @@ export default function LocationsScreen() {
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('all')
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
+
+  const { data: countries = [] } = useQuery<CountryStat[]>({
+    queryKey: ['climbing-locations-countries'],
+    queryFn: async () => {
+      const response = await apiClient.get('/climbing-locations/explore/countries')
+      return response.data?.data ?? response.data ?? []
+    },
+  })
 
   // 取得攀岩地點列表
   const {
@@ -62,10 +78,14 @@ export default function LocationsScreen() {
   const filteredLocations = useMemo(() => {
     let filtered = locations
 
+    if (selectedCountry) {
+      filtered = filtered.filter((loc) => loc.country === selectedCountry)
+    }
+
     // 依分頁過濾（根據 country 判斷台灣或海外）
-    if (activeTab === 'taiwan') {
+    if (!selectedCountry && activeTab === 'taiwan') {
       filtered = filtered.filter((loc) => loc.country === '台灣' || loc.country === 'Taiwan')
-    } else if (activeTab === 'overseas') {
+    } else if (!selectedCountry && activeTab === 'overseas') {
       filtered = filtered.filter((loc) => loc.country !== '台灣' && loc.country !== 'Taiwan')
     }
 
@@ -80,7 +100,7 @@ export default function LocationsScreen() {
 
     // 依訪客數排序
     return [...filtered].sort((a, b) => (b.visitor_count ?? 0) - (a.visitor_count ?? 0))
-  }, [locations, activeTab, searchTerm])
+  }, [locations, activeTab, searchTerm, selectedCountry])
 
   // 計算分頁數量
   const taiwanCount = useMemo(
@@ -91,11 +111,16 @@ export default function LocationsScreen() {
     () => locations.filter((loc) => loc.country !== '台灣' && loc.country !== 'Taiwan').length,
     [locations]
   )
+  const totalVisitors = useMemo(
+    () => countries.reduce((sum, country) => sum + country.visitor_count, 0),
+    [countries]
+  )
 
   const [refreshing, setRefreshing] = useState(false)
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
     await queryClient.invalidateQueries({ queryKey: ['climbing-locations-explore'] })
+    await queryClient.invalidateQueries({ queryKey: ['climbing-locations-countries'] })
     setRefreshing(false)
   }, [queryClient])
 
@@ -178,10 +203,34 @@ export default function LocationsScreen() {
           style={styles.searchInput}
         />
 
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <Globe size={16} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="small" color="textSubtle">
+              {countries.length} 國
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <MapPin size={16} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="small" color="textSubtle">
+              {locations.length} 地點
+            </Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Users size={16} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="small" color="textSubtle">
+              {totalVisitors} 次足跡
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.tabs}>
           <Pressable
             style={[styles.tab, activeTab === 'all' && styles.tabActive]}
-            onPress={() => setActiveTab('all')}
+            onPress={() => {
+              setActiveTab('all')
+              setSelectedCountry(null)
+            }}
           >
             <Text
               variant="small"
@@ -192,7 +241,10 @@ export default function LocationsScreen() {
           </Pressable>
           <Pressable
             style={[styles.tab, activeTab === 'taiwan' && styles.tabActive]}
-            onPress={() => setActiveTab('taiwan')}
+            onPress={() => {
+              setActiveTab('taiwan')
+              setSelectedCountry(null)
+            }}
           >
             <MapPin
               size={14}
@@ -207,7 +259,10 @@ export default function LocationsScreen() {
           </Pressable>
           <Pressable
             style={[styles.tab, activeTab === 'overseas' && styles.tabActive]}
-            onPress={() => setActiveTab('overseas')}
+            onPress={() => {
+              setActiveTab('overseas')
+              setSelectedCountry(null)
+            }}
           >
             <Globe
               size={14}
@@ -221,6 +276,38 @@ export default function LocationsScreen() {
             </Text>
           </Pressable>
         </View>
+
+        {countries.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.countryList}>
+            <View style={styles.countryChips}>
+              {countries.map((country) => (
+                <Pressable
+                  key={country.country}
+                  style={[
+                    styles.countryChip,
+                    selectedCountry === country.country && styles.countryChipActive,
+                  ]}
+                  onPress={() => {
+                    setActiveTab('all')
+                    setSelectedCountry((current) =>
+                      current === country.country ? null : country.country
+                    )
+                  }}
+                >
+                  <Text
+                    variant="small"
+                    style={[
+                      styles.countryChipText,
+                      selectedCountry === country.country && styles.countryChipTextActive,
+                    ]}
+                  >
+                    {country.country} ({country.visitor_count})
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </ScrollView>
+        )}
       </View>
 
       {/* 列表 */}
@@ -279,6 +366,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: SPACING.sm,
   },
+  summaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#F7F7F7',
+  },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,6 +399,33 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: '#fff',
+  },
+  countryList: {
+    marginTop: SPACING.sm,
+  },
+  countryChips: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    paddingRight: SPACING.md,
+  },
+  countryChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    backgroundColor: '#F7F7F7',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  countryChipActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+  },
+  countryChipText: {
+    color: SEMANTIC_COLORS.textSubtle,
+    fontWeight: '500',
+  },
+  countryChipTextActive: {
+    color: '#047857',
   },
   loadingContainer: {
     flex: 1,

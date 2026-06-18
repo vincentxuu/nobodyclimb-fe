@@ -78,28 +78,36 @@ export default function ProfileContainer({ onAdvancedStoryPress }: ProfileContai
   const handleAvatarUpload = useCallback(
     async (uri: string) => {
       try {
-        // TODO: 上傳到伺服器並取得 URL
-        setProfileData((prev) => ({ ...prev, avatarUrl: uri }))
+        const response = await biographyService.uploadBiographyImage(uri, profileData.avatarUrl)
+        if (!response.success || !response.data?.url) {
+          throw new Error(response.error || '頭像上傳失敗')
+        }
+        setProfileData((prev) => ({ ...prev, avatarUrl: response.data!.url }))
       } catch (error) {
         console.error('Failed to upload avatar:', error)
-        Alert.alert('錯誤', '頭像上傳失敗')
+        const message = error instanceof Error ? error.message : '頭像上傳失敗'
+        Alert.alert('錯誤', message)
       }
     },
-    [setProfileData]
+    [profileData.avatarUrl, setProfileData]
   )
 
   // 處理封面上傳
   const handleCoverUpload = useCallback(
     async (uri: string) => {
       try {
-        // TODO: 上傳到伺服器並取得 URL
-        setProfileData((prev) => ({ ...prev, coverImageUrl: uri }))
+        const response = await biographyService.uploadBiographyImage(uri, profileData.coverImageUrl)
+        if (!response.success || !response.data?.url) {
+          throw new Error(response.error || '封面上傳失敗')
+        }
+        setProfileData((prev) => ({ ...prev, coverImageUrl: response.data!.url }))
       } catch (error) {
         console.error('Failed to upload cover:', error)
-        Alert.alert('錯誤', '封面上傳失敗')
+        const message = error instanceof Error ? error.message : '封面上傳失敗'
+        Alert.alert('錯誤', message)
       }
     },
-    [setProfileData]
+    [profileData.coverImageUrl, setProfileData]
   )
 
   // 刪除頭像

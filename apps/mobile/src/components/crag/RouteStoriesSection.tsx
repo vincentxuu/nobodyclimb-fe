@@ -7,11 +7,13 @@
 
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
 import {
   BookOpen,
   CheckCircle,
   Heart,
   Instagram,
+  LogIn,
   MessageSquare,
   Plus,
   Star,
@@ -229,6 +231,7 @@ export function RouteStoriesSection({
   routeName,
   routeGrade,
 }: RouteStoriesSectionProps) {
+  const router = useRouter()
   const { data, isLoading } = useRouteStories(routeId)
   const stories = data?.data ?? []
 
@@ -258,11 +261,18 @@ export function RouteStoriesSection({
               攀岩故事
             </Text>
           </View>
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <Pressable style={styles.addButton} onPress={() => storyFormRef.current?.open()}>
               <Plus size={16} color="#2563EB" />
               <Text variant="caption" style={{ color: '#2563EB' }}>
                 分享
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.addButton} onPress={() => router.push('/auth/login' as any)}>
+              <LogIn size={16} color="#2563EB" />
+              <Text variant="caption" style={{ color: '#2563EB' }}>
+                登入分享
               </Text>
             </Pressable>
           )}

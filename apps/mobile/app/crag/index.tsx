@@ -6,14 +6,79 @@
 
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, Mountain } from 'lucide-react-native'
+import { ChevronLeft, MapPin, Mountain } from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native'
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { CragCard } from '@/components/crag'
 import { EmptyState, IconButton, SearchInput, Text } from '@/components/ui'
 import type { CragListItem } from '@/lib/crag-data'
 import { useCrags } from '@/lib/hooks/useCrags'
+
+const cragMapPositions: Record<string, { top: `${number}%`; left: `${number}%` }> = {
+  longdong: { top: '26%', left: '90%' },
+  defulan: { top: '42%', left: '68%' },
+  guanziling: { top: '58%', left: '58%' },
+  shoushan: { top: '75%', left: '54%' },
+  kenting: { top: '90%', left: '60%' },
+}
+
+function CragMapPanel({
+  crags,
+  onCragPress,
+}: {
+  crags: CragListItem[]
+  onCragPress: (id: string) => void
+}) {
+  const mappedCrags = crags.filter((crag) => cragMapPositions[crag.id])
+
+  if (mappedCrags.length === 0) return null
+
+  return (
+    <View style={styles.mapCard}>
+      <View style={styles.mapHeader}>
+        <Text variant="body" fontWeight="600">
+          岩場地圖
+        </Text>
+        <Text variant="small" color="textSubtle">
+          點擊標記前往岩場
+        </Text>
+      </View>
+      <View style={styles.mapCanvas}>
+        <View style={styles.taiwanShape} />
+        {mappedCrags.map((crag) => {
+          const position = cragMapPositions[crag.id]
+          return (
+            <Pressable
+              key={crag.id}
+              onPress={() => onCragPress(crag.id)}
+              style={({ pressed }) => [
+                styles.mapMarker,
+                { top: position.top, left: position.left },
+                pressed && styles.mapMarkerPressed,
+              ]}
+              hitSlop={10}
+            >
+              <MapPin size={16} color="#FFFFFF" fill={SEMANTIC_COLORS.textMain} />
+              <View style={styles.markerLabel}>
+                <Text variant="caption" numberOfLines={1} style={styles.markerLabelText}>
+                  {crag.name}
+                </Text>
+              </View>
+            </Pressable>
+          )
+        })}
+      </View>
+    </View>
+  )
+}
 
 export default function CragListScreen() {
   const router = useRouter()
@@ -142,6 +207,11 @@ export default function CragListScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          filteredCrags.length > 0 ? (
+            <CragMapPanel crags={filteredCrags} onCragPress={handleCragPress} />
+          ) : null
+        }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={renderEmptyState}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
@@ -186,6 +256,54 @@ const styles = StyleSheet.create({
   listContent: {
     padding: SPACING.md,
     paddingBottom: SPACING.xxl,
+  },
+  mapCard: {
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: 16,
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+    borderWidth: 1,
+    borderColor: '#EBEAEA',
+  },
+  mapHeader: {
+    gap: 2,
+  },
+  mapCanvas: {
+    height: 260,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
+  },
+  taiwanShape: {
+    width: 136,
+    height: 224,
+    borderTopLeftRadius: 90,
+    borderTopRightRadius: 58,
+    borderBottomLeftRadius: 82,
+    borderBottomRightRadius: 110,
+    backgroundColor: '#E5E7EB',
+    transform: [{ rotate: '10deg' }],
+  },
+  mapMarker: {
+    position: 'absolute',
+    alignItems: 'center',
+    transform: [{ translateX: -8 }, { translateY: -16 }],
+  },
+  mapMarkerPressed: {
+    opacity: 0.72,
+    transform: [{ translateX: -8 }, { translateY: -16 }, { scale: 0.94 }],
+  },
+  markerLabel: {
+    maxWidth: 88,
+    marginTop: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: SEMANTIC_COLORS.textMain,
+  },
+  markerLabelText: {
+    color: '#FFFFFF',
   },
   separator: {
     height: SPACING.sm,

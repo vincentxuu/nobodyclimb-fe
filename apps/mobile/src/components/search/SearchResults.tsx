@@ -5,7 +5,16 @@
  */
 
 import { BORDER_RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { Building2, ChevronRight, FileText, Mountain, Search, Users } from 'lucide-react-native'
+import {
+  Building2,
+  ChevronRight,
+  FileText,
+  ImageIcon,
+  Mountain,
+  PlayCircle,
+  Search,
+  Users,
+} from 'lucide-react-native'
 import React from 'react'
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -31,6 +40,8 @@ const TYPE_ICONS: Record<
   crag: Mountain,
   gym: Building2,
   blog: FileText,
+  gallery: ImageIcon,
+  video: PlayCircle,
 }
 
 interface ResultItemProps {

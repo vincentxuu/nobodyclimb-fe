@@ -20,6 +20,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { XStack, YStack } from 'tamagui'
+import { GOOGLE_AUTH_CONFIGURED, GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
 import { Button, Link, Spinner, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
 
@@ -48,8 +49,12 @@ export default function LoginScreen() {
 
     setError('')
     try {
-      await login(email, password)
-      router.replace('/')
+      const result = await login(email, password)
+      if (result.success) {
+        router.replace('/')
+      } else {
+        setError(result.error || '登入失敗，請檢查您的帳號密碼')
+      }
     } catch (err: any) {
       setError(err.message || '登入失敗，請檢查您的帳號密碼')
     }
@@ -167,19 +172,20 @@ export default function LoginScreen() {
                 </Button>
               </YStack>
 
-              {/* 分隔線 */}
-              <XStack alignItems="center" width="100%" gap={SPACING.md}>
-                <View style={styles.divider} />
-                <Text variant="caption" color="textMuted">
-                  或
-                </Text>
-                <View style={styles.divider} />
-              </XStack>
+              {GOOGLE_AUTH_CONFIGURED && (
+                <>
+                  {/* 分隔線 */}
+                  <XStack alignItems="center" width="100%" gap={SPACING.md}>
+                    <View style={styles.divider} />
+                    <Text variant="caption" color="textMuted">
+                      或
+                    </Text>
+                    <View style={styles.divider} />
+                  </XStack>
 
-              {/* Google 登入 (TODO: 實作 expo-auth-session) */}
-              <Button variant="secondary" style={styles.googleButton}>
-                <Text>使用 Google 登入</Text>
-              </Button>
+                  <GoogleAuthButton mode="login" onError={setError} />
+                </>
+              )}
 
               {/* 註冊連結 */}
               <XStack gap={SPACING.xs}>
@@ -265,9 +271,5 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     backgroundColor: '#D3D3D3',
-  },
-  googleButton: {
-    width: '100%',
-    height: 44,
   },
 })

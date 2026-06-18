@@ -1,6 +1,6 @@
 import { SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, Sparkles } from 'lucide-react-native'
+import { ChevronLeft, RefreshCw, Sparkles } from 'lucide-react-native'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -34,7 +34,7 @@ export default function RecommendationsScreen() {
   const [allItems, setAllItems] = useState<Recommendation[]>([])
   const [total, setTotal] = useState(0)
 
-  const { data, isLoading, refetch } = useRecommendations(offset, PAGE_SIZE)
+  const { data, isLoading, isError, refetch } = useRecommendations(offset, PAGE_SIZE)
   const triggerRecommendation = useTriggerRecommendation()
 
   // pollAttemptsRef avoids stale closure in the async poll callback;
@@ -92,11 +92,18 @@ export default function RecommendationsScreen() {
 
   const handleTrigger = async () => {
     try {
-      await triggerRecommendation.mutateAsync()
+      const newRecommendation = await triggerRecommendation.mutateAsync()
+      if (newRecommendation) {
+        setAllItems((prev) => [
+          newRecommendation,
+          ...prev.filter((item) => item.id !== newRecommendation.id),
+        ])
+        setTotal((prev) => prev + 1)
+      }
       setOffset(0)
       pollAttemptsRef.current = 0
       setPollAttempts(0)
-      setIsPolling(true)
+      setIsPolling(!newRecommendation)
     } catch (error) {
       toast.show({
         message: isQuotaExceededError(error)
@@ -114,12 +121,15 @@ export default function RecommendationsScreen() {
   }
 
   const renderItem = useCallback(
-    ({ item }: { item: Recommendation }) => <RecommendationCard recommendation={item} />,
+    ({ item, index }: { item: Recommendation; index: number }) => (
+      <RecommendationCard recommendation={item} defaultExpanded={index === 0} />
+    ),
     []
   )
 
   const showLoading = isLoading && allItems.length === 0
   const showPolling = isPolling && !pollingExhausted
+  const showError = isError && allItems.length === 0
   const showEmpty = !isLoading && !isPolling && allItems.length === 0
   const showList = !showLoading && !showPolling && allItems.length > 0
 
@@ -130,12 +140,32 @@ export default function RecommendationsScreen() {
           <ChevronLeft size={24} color={WB_COLORS[70]} />
         </Pressable>
         <Text style={styles.title}>路線推薦</Text>
-        <View style={{ width: 40 }} />
+        <Pressable
+          onPress={handleTrigger}
+          disabled={triggerRecommendation.isPending}
+          style={({ pressed }) => [
+            styles.refreshBtn,
+            pressed && styles.refreshBtnPressed,
+            triggerRecommendation.isPending && styles.refreshBtnDisabled,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="重新推薦"
+        >
+          <RefreshCw size={18} color={WB_COLORS[70]} />
+        </Pressable>
       </View>
 
       {showLoading ? (
         <View style={styles.center} testID="loading-spinner">
           <ActivityIndicator color={SEMANTIC_COLORS.accent} />
+        </View>
+      ) : showError ? (
+        <View style={styles.center}>
+          <Sparkles size={48} color={WB_COLORS[30]} />
+          <Text style={styles.emptyText}>載入推薦失敗，請稍後再試</Text>
+          <Button onPress={() => refetch()} style={styles.triggerBtn}>
+            重新載入
+          </Button>
         </View>
       ) : showPolling ? (
         <View style={styles.center}>
@@ -185,6 +215,9 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING[3],
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  refreshBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  refreshBtnPressed: { opacity: 0.65 },
+  refreshBtnDisabled: { opacity: 0.45 },
   title: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '600' },
   center: {
     flex: 1,

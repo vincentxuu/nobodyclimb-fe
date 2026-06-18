@@ -33,6 +33,7 @@ import { TextArea } from '@/components/ui/TextArea'
 const _MAX_FILE_SIZE = 500 * 1024 // 500KB
 const MAX_FILE_COUNT = 20
 const MAX_IMAGE_DIMENSION = 1920
+const VALID_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 interface FileWithPreview {
   uri: string
@@ -90,6 +91,14 @@ async function compressImage(uri: string): Promise<{ uri: string; wasCompressed:
     console.error('Image compression failed:', error)
     return { uri, wasCompressed: false }
   }
+}
+
+function validateAssetType(asset: ImagePicker.ImagePickerAsset): string | null {
+  if (!asset.mimeType) return null
+  if (!VALID_MIME_TYPES.has(asset.mimeType)) {
+    return '請上傳 JPG、PNG 或 WebP 格式的圖片'
+  }
+  return null
 }
 
 /**
@@ -161,10 +170,17 @@ export function UploadPhotoDialog({
       setCompressProgress({ current: 0, total: result.assets.length })
 
       const newFiles: FileWithPreview[] = []
+      const errors: string[] = []
 
       for (let i = 0; i < result.assets.length; i++) {
         const asset = result.assets[i]
         setCompressProgress({ current: i + 1, total: result.assets.length })
+
+        const typeError = validateAssetType(asset)
+        if (typeError) {
+          errors.push(typeError)
+          continue
+        }
 
         const { uri, wasCompressed } = await compressImage(asset.uri)
         const id = `${Date.now()}-${i}`
@@ -179,6 +195,11 @@ export function UploadPhotoDialog({
 
       setIsCompressing(false)
       setCompressProgress(null)
+
+      if (errors.length > 0) {
+        setError(errors.join('\n'))
+      }
+
       setFiles((prev) => [...prev, ...newFiles])
     } catch (err) {
       console.error('Failed to pick images:', err)
@@ -341,7 +362,7 @@ export function UploadPhotoDialog({
               點擊選擇照片
             </Text>
             <Text variant="caption" color="textMuted">
-              支援 JPG、PNG（自動壓縮，最多 {MAX_FILE_COUNT} 張）
+              支援 JPG、PNG、WebP（自動壓縮，最多 {MAX_FILE_COUNT} 張）
             </Text>
           </Pressable>
 

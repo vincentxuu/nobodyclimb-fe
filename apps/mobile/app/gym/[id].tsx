@@ -50,6 +50,8 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { WeatherDisplay } from '@/components/crag'
+import { GoogleMapsEmbed } from '@/components/crag/GoogleMapsEmbed'
 import { Button, Card, IconButton, Text } from '@/components/ui'
 import type { GymDetailData, GymListItem, GymPricing } from '@/lib/gym-data'
 import { useAdjacentGyms, useGymDetail, useRelatedGyms } from '@/lib/hooks/useGyms'
@@ -286,6 +288,13 @@ export default function GymDetailScreen() {
     return items
   }
 
+  const weatherLocation =
+    `${gym?.location.city || ''}${gym?.location.district || ''}` || gym?.location.address || ''
+  const weatherLatitude =
+    gym?.location.latitude && gym.location.latitude !== 0 ? gym.location.latitude : undefined
+  const weatherLongitude =
+    gym?.location.longitude && gym.location.longitude !== 0 ? gym.location.longitude : undefined
+
   // 載入中狀態
   if (isLoading) {
     return (
@@ -428,6 +437,32 @@ export default function GymDetailScreen() {
           )}
         </View>
 
+        {weatherLocation ? (
+          <Card style={styles.section}>
+            <SectionHeader title="即時天氣" />
+            <WeatherDisplay
+              location={weatherLocation}
+              latitude={weatherLatitude}
+              longitude={weatherLongitude}
+            />
+          </Card>
+        ) : null}
+
+        {gym.facilities.length > 0 && (
+          <Card style={styles.section}>
+            <SectionHeader title="設施服務" />
+            <View style={styles.allFacilitiesList}>
+              {gym.facilities.map((facility, index) => (
+                <View key={`${facility}-${index}`} style={styles.facilityTag}>
+                  <Text variant="small" color="textSubtle">
+                    {facility}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </Card>
+        )}
+
         {/* 場地介紹 */}
         {gym.description && (
           <Card style={styles.section}>
@@ -532,6 +567,16 @@ export default function GymDetailScreen() {
               </View>
             )}
           </View>
+
+          {gym.location.latitude && gym.location.longitude ? (
+            <View style={styles.mapEmbed}>
+              <GoogleMapsEmbed
+                latitude={gym.location.latitude}
+                longitude={gym.location.longitude}
+                height={200}
+              />
+            </View>
+          ) : null}
         </Card>
 
         {/* 營業時間 */}
@@ -854,6 +899,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: RADIUS.sm,
   },
+  allFacilitiesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+  },
 
   // 快速操作
   quickActions: {
@@ -930,6 +980,9 @@ const styles = StyleSheet.create({
   transportList: {
     marginTop: SPACING.sm,
     gap: SPACING.sm,
+  },
+  mapEmbed: {
+    marginTop: SPACING.md,
   },
   transportItem: {
     flexDirection: 'row',

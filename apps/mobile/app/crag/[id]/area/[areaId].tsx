@@ -10,7 +10,7 @@
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ChevronLeft, Filter, Mountain, Share2 } from 'lucide-react-native'
+import { ChevronLeft, Filter, MapPin, Mountain, Share2 } from 'lucide-react-native'
 import { useMemo, useState } from 'react'
 import {
   ActivityIndicator,
@@ -105,6 +105,9 @@ export default function AreaDetailScreen() {
           description: fromCrag.description,
           difficulty: fromCrag.difficulty,
           routes: fromCrag.routes,
+          nameEn: '',
+          descriptionEn: '',
+          boltCount: 0,
         }
     }
     return null
@@ -141,6 +144,18 @@ export default function AreaDetailScreen() {
     return calculateGradeDistribution(areaRoutes)
   }, [areaRoutes])
 
+  const typeDistribution = useMemo(() => {
+    return areaRoutes.reduce<Record<string, number>>((acc, route) => {
+      const routeType = route.type || '未分類'
+      acc[routeType] = (acc[routeType] || 0) + 1
+      return acc
+    }, {})
+  }, [areaRoutes])
+
+  const otherAreas = useMemo(() => {
+    return apiAreas.filter((item) => item.id !== areaId).slice(0, 3)
+  }, [apiAreas, areaId])
+
   const maxCount = useMemo(() => {
     return Math.max(...Object.values(gradeDistribution), 1)
   }, [gradeDistribution])
@@ -162,7 +177,17 @@ export default function AreaDetailScreen() {
   }
 
   const handleRoutePress = (routeId: string) => {
-    router.push(`/crag/${id}/route/${routeId}` as any)
+    const params: Record<string, string> = { area: areaId }
+    if (filterState.selectedGrade !== 'all') params.grade = filterState.selectedGrade
+    if (filterState.selectedType !== 'all') params.type = filterState.selectedType
+    if (filterState.searchQuery) params.q = filterState.searchQuery
+
+    const qs = new URLSearchParams(params).toString()
+    router.push(`/crag/${id}/route/${routeId}${qs ? '?' + qs : ''}` as any)
+  }
+
+  const handleAreaNavigate = (targetAreaId: string) => {
+    router.push(`/crag/${id}/area/${targetAreaId}` as any)
   }
 
   const toggleFilters = () => {
@@ -239,6 +264,11 @@ export default function AreaDetailScreen() {
             <Text variant="h2" fontWeight="700" style={styles.coverTitle}>
               {area.name}
             </Text>
+            {area.nameEn ? (
+              <Text variant="body" style={styles.coverSubtitle}>
+                {area.nameEn}
+              </Text>
+            ) : null}
             <View style={styles.coverStats}>
               <View style={styles.statItem}>
                 <Mountain size={16} color="#FFFFFF" />
@@ -258,8 +288,36 @@ export default function AreaDetailScreen() {
           </View>
         </Animated.View>
 
+        {/* 快速統計 */}
+        <Animated.View entering={FadeInDown.delay(80).duration(400)} style={styles.statCards}>
+          <View style={styles.statCard}>
+            <Text variant="caption" color="textMuted">
+              路線數
+            </Text>
+            <Text variant="h4" fontWeight="700">
+              {areaRoutes.length}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text variant="caption" color="textMuted">
+              難度範圍
+            </Text>
+            <Text variant="h4" fontWeight="700" numberOfLines={1}>
+              {area.difficulty || 'N/A'}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text variant="caption" color="textMuted">
+              Bolts
+            </Text>
+            <Text variant="h4" fontWeight="700">
+              {area.boltCount || 0}
+            </Text>
+          </View>
+        </Animated.View>
+
         {/* 區域描述 */}
-        {area.description && (
+        {(area.description || area.descriptionEn) && (
           <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
@@ -267,9 +325,16 @@ export default function AreaDetailScreen() {
               </Text>
               <View style={styles.sectionDivider} />
             </View>
-            <Text variant="body" color="textSubtle" style={styles.description}>
-              {area.description}
-            </Text>
+            {area.description ? (
+              <Text variant="body" color="textSubtle" style={styles.description}>
+                {area.description}
+              </Text>
+            ) : null}
+            {area.descriptionEn ? (
+              <Text variant="body" color="textMuted" style={styles.descriptionEn}>
+                {area.descriptionEn}
+              </Text>
+            ) : null}
           </Animated.View>
         )}
 
@@ -295,6 +360,30 @@ export default function AreaDetailScreen() {
                   </View>
                   <Text variant="small" color="textSubtle" style={styles.distributionCount}>
                     {count}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </Animated.View>
+        )}
+
+        {/* 路線類型分佈 */}
+        {Object.keys(typeDistribution).length > 0 && (
+          <Animated.View entering={FadeInDown.delay(250).duration(400)} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                路線類型分佈
+              </Text>
+              <View style={styles.sectionDivider} />
+            </View>
+            <View style={styles.typeChips}>
+              {Object.entries(typeDistribution).map(([routeType, count]) => (
+                <View key={routeType} style={styles.typeChip}>
+                  <Text variant="small" fontWeight="600">
+                    {routeType}
+                  </Text>
+                  <Text variant="small" color="textMuted">
+                    ({count})
                   </Text>
                 </View>
               ))}
@@ -373,6 +462,50 @@ export default function AreaDetailScreen() {
           </View>
         )}
 
+        {/* 其他區域推薦 */}
+        {otherAreas.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(450).duration(400)} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text variant="body" fontWeight="600" style={styles.sectionTitleOrange}>
+                {crag.name} 的其他區域
+              </Text>
+              <View style={styles.sectionDivider} />
+            </View>
+            <View style={styles.otherAreas}>
+              {otherAreas.map((otherArea) => (
+                <Pressable
+                  key={otherArea.id}
+                  onPress={() => handleAreaNavigate(otherArea.id)}
+                  style={({ pressed }) => [
+                    styles.otherAreaCard,
+                    pressed && styles.otherAreaCardPressed,
+                  ]}
+                >
+                  <View style={styles.otherAreaContent}>
+                    <Text variant="body" fontWeight="600" numberOfLines={1}>
+                      {otherArea.name}
+                    </Text>
+                    <View style={styles.otherAreaMeta}>
+                      <MapPin size={13} color={SEMANTIC_COLORS.textMuted} />
+                      <Text variant="caption" color="textMuted" numberOfLines={1}>
+                        {(otherArea.difficulty || 'N/A') +
+                          ' · ' +
+                          (otherArea.routes || 0) +
+                          ' 條路線'}
+                      </Text>
+                    </View>
+                  </View>
+                  <ChevronLeft
+                    size={18}
+                    color={SEMANTIC_COLORS.textMuted}
+                    style={styles.otherAreaChevron}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          </Animated.View>
+        )}
+
         <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
@@ -435,6 +568,10 @@ const styles = StyleSheet.create({
   coverTitle: {
     color: '#FFFFFF',
   },
+  coverSubtitle: {
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+  },
   coverStats: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -472,8 +609,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
     marginTop: SPACING.xs,
   },
+  statCards: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.md,
+    gap: 4,
+  },
   description: {
     lineHeight: 22,
+  },
+  descriptionEn: {
+    lineHeight: 22,
+    marginTop: SPACING.sm,
   },
   distributionContainer: {
     gap: SPACING.sm,
@@ -503,6 +657,22 @@ const styles = StyleSheet.create({
     width: 24,
     textAlign: 'right',
   },
+  typeChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F8F8F8',
+    borderWidth: 1,
+    borderColor: '#EBEAEA',
+    borderRadius: RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 6,
+  },
   routesHeader: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.lg,
@@ -531,6 +701,32 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: SPACING.xl,
     alignItems: 'center',
+  },
+  otherAreas: {
+    gap: SPACING.sm,
+  },
+  otherAreaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EBEAEA',
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+  },
+  otherAreaCardPressed: {
+    backgroundColor: '#F8F8F8',
+  },
+  otherAreaContent: {
+    flex: 1,
+  },
+  otherAreaMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  otherAreaChevron: {
+    transform: [{ rotate: '180deg' }],
   },
   bottomPadding: {
     height: 40,

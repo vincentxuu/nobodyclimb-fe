@@ -6,92 +6,28 @@
 
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ArrowRight, CheckCircle, X, XCircle } from 'lucide-react-native'
-import { useEffect, useState } from 'react'
-import { Alert, Pressable, StyleSheet, Vibration, View } from 'react-native'
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  BookOpen,
+  CheckCircle,
+  GripVertical,
+  Lightbulb,
+  X,
+  XCircle,
+} from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { Alert, Image, Pressable, StyleSheet, Vibration, View } from 'react-native'
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, IconButton, Text } from '@/components/ui'
+import {
+  fetchRopeQuestionsByCategory,
+  ROPE_CATEGORIES,
+  type RopeQuestion,
+} from '@/lib/games/rope-system'
 import { useRopeGameStore } from '@/store/ropeGameStore'
-
-interface Question {
-  id: string
-  categoryId: string
-  question: string
-  options: string[]
-  correctAnswer: number
-  explanation: string
-  difficulty: 'easy' | 'medium' | 'hard'
-}
-
-// 模擬問題資料
-const MOCK_QUESTIONS: Record<string, Question[]> = {
-  basics: [
-    {
-      id: '1',
-      categoryId: 'basics',
-      question: '攀岩繩的主要材質是什麼？',
-      options: ['棉', '尼龍', '聚酯纖維', '鋼絲'],
-      correctAnswer: 1,
-      explanation: '現代攀岩繩主要由尼龍製成，具有良好的彈性和強度。',
-      difficulty: 'easy',
-    },
-    {
-      id: '2',
-      categoryId: 'basics',
-      question: '動力繩的延展性約為多少？',
-      options: ['1-3%', '5-10%', '15-20%', '30-40%'],
-      correctAnswer: 1,
-      explanation: '動力繩的延展性通常在 5-10% 之間，可以吸收墜落衝擊力。',
-      difficulty: 'easy',
-    },
-    {
-      id: '3',
-      categoryId: 'basics',
-      question: '繩子應該避免什麼？',
-      options: ['陽光', '水分', '尖銳邊緣', '以上皆是'],
-      correctAnswer: 3,
-      explanation: '繩子應該避免長時間日曬、潮濕和尖銳邊緣的接觸，以延長使用壽命。',
-      difficulty: 'easy',
-    },
-  ],
-  knots: [
-    {
-      id: '4',
-      categoryId: 'knots',
-      question: '八字結通常用於什麼？',
-      options: ['連接兩條繩子', '綁在安全吊帶上', '固定點設置', '繩子收納'],
-      correctAnswer: 1,
-      explanation: '八字結是最常用的攀岩繩結，用於將繩子連接到安全吊帶上。',
-      difficulty: 'easy',
-    },
-    {
-      id: '5',
-      categoryId: 'knots',
-      question: '雙漁人結的主要用途是？',
-      options: ['打繩頭', '連接兩條繩子', '製作繩圈', '緊急下降'],
-      correctAnswer: 1,
-      explanation: '雙漁人結用於連接兩條繩子，非常牢固且可靠。',
-      difficulty: 'medium',
-    },
-  ],
-  belaying: [
-    {
-      id: '6',
-      categoryId: 'belaying',
-      question: 'PBUS 確保口訣代表什麼？',
-      options: [
-        'Pull, Brake, Under, Slide',
-        'Push, Brake, Up, Slide',
-        'Pull, Back, Under, Stop',
-        'Push, Back, Up, Stop',
-      ],
-      correctAnswer: 0,
-      explanation: 'PBUS 代表 Pull, Brake, Under, Slide，是確保的基本動作流程。',
-      difficulty: 'medium',
-    },
-  ],
-}
 
 interface ProgressBarProps {
   current: number
@@ -120,28 +56,65 @@ function ProgressBar({ current, total, correctCount }: ProgressBarProps) {
 }
 
 interface QuestionCardProps {
-  question: Question
-  selectedAnswer: number | null
+  question: RopeQuestion
+  selectedAnswer: string | string[] | null
   showResult: boolean
-  onSelectAnswer: (index: number) => void
+  onSelectAnswer: (answer: string | string[]) => void
 }
 
 function QuestionCard({ question, selectedAnswer, showResult, onSelectAnswer }: QuestionCardProps) {
-  const getOptionStyle = (index: number) => {
+  const [orderedOptions, setOrderedOptions] = useState(question.options)
+
+  useEffect(() => {
+    if (question.type !== 'ordering') return
+
+    const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5)
+    setOrderedOptions(shuffledOptions)
+    onSelectAnswer(shuffledOptions.map((option) => option.id))
+  }, [onSelectAnswer, question.id, question.options, question.type])
+
+  const moveOption = (index: number, direction: -1 | 1) => {
+    if (showResult) return
+
+    const nextIndex = index + direction
+    if (nextIndex < 0 || nextIndex >= orderedOptions.length) return
+
+    const nextOptions = [...orderedOptions]
+    const currentOption = nextOptions[index]
+    nextOptions[index] = nextOptions[nextIndex]
+    nextOptions[nextIndex] = currentOption
+    setOrderedOptions(nextOptions)
+    onSelectAnswer(nextOptions.map((option) => option.id))
+  }
+
+  const isSelectedChoice = (optionId: string) =>
+    typeof selectedAnswer === 'string' && selectedAnswer === optionId
+
+  const isCorrectChoice = (optionId: string) =>
+    typeof question.correctAnswer === 'string' && question.correctAnswer === optionId
+
+  const getOptionStyle = (optionId: string) => {
     if (!showResult) {
-      return selectedAnswer === index ? styles.optionSelected : styles.option
+      return isSelectedChoice(optionId) ? styles.optionSelected : styles.option
     }
 
-    if (index === question.correctAnswer) {
+    if (isCorrectChoice(optionId)) {
       return styles.optionCorrect
     }
 
-    if (selectedAnswer === index) {
+    if (isSelectedChoice(optionId)) {
       return styles.optionWrong
     }
 
     return styles.option
   }
+
+  const isOrderingPositionCorrect = (optionId: string, index: number) =>
+    Array.isArray(question.correctAnswer) && question.correctAnswer[index] === optionId
+
+  const correctAnswerText = getCorrectAnswerText(question)
+  const isCorrectAnswer =
+    selectedAnswer !== null ? isAnswerCorrect(selectedAnswer, question.correctAnswer) : false
 
   return (
     <Animated.View
@@ -149,50 +122,220 @@ function QuestionCard({ question, selectedAnswer, showResult, onSelectAnswer }: 
       exiting={SlideOutLeft.duration(300)}
       style={styles.questionCard}
     >
+      {question.scenario && (
+        <View style={styles.scenarioBox}>
+          <Text variant="small" fontWeight="600" color="textMuted" style={styles.sectionLabel}>
+            情境
+          </Text>
+          <Text variant="body" color="textSubtle">
+            {question.scenario}
+          </Text>
+        </View>
+      )}
+
+      <Text variant="small" fontWeight="600" color="textMuted" style={styles.sectionLabel}>
+        問題
+      </Text>
       <Text variant="h4" fontWeight="600" style={styles.questionText}>
         {question.question}
       </Text>
 
-      <View style={styles.optionsContainer}>
-        {question.options.map((option, index) => (
-          <Pressable
-            key={index}
-            style={[styles.optionBase, getOptionStyle(index)]}
-            onPress={() => !showResult && onSelectAnswer(index)}
-            disabled={showResult}
-          >
-            <Text
-              variant="body"
-              style={[
-                styles.optionText,
-                showResult && index === question.correctAnswer && styles.optionTextCorrect,
-                showResult &&
-                  selectedAnswer === index &&
-                  index !== question.correctAnswer &&
-                  styles.optionTextWrong,
-              ]}
-            >
-              {option}
+      {question.imageUrl && (
+        <Image source={{ uri: question.imageUrl }} style={styles.questionImage} />
+      )}
+
+      {question.type === 'ordering' ? (
+        <View style={styles.optionsContainer}>
+          {!showResult && (
+            <Text variant="small" color="textMuted">
+              使用上下箭頭調整步驟順序，完成後確認答案。
             </Text>
-            {showResult && index === question.correctAnswer && (
-              <CheckCircle size={20} color="#10B981" />
-            )}
-            {showResult && selectedAnswer === index && index !== question.correctAnswer && (
-              <XCircle size={20} color="#EF4444" />
-            )}
-          </Pressable>
-        ))}
-      </View>
+          )}
+          {orderedOptions.map((option, index) => {
+            const isCorrectPosition = isOrderingPositionCorrect(option.id, index)
+
+            return (
+              <View
+                key={option.id}
+                style={[
+                  styles.orderingItem,
+                  showResult && isCorrectPosition && styles.optionCorrect,
+                  showResult && !isCorrectPosition && styles.optionWrong,
+                ]}
+              >
+                <GripVertical size={18} color={SEMANTIC_COLORS.textMuted} />
+                <View
+                  style={[
+                    styles.orderingIndex,
+                    showResult && isCorrectPosition && styles.orderingIndexCorrect,
+                    showResult && !isCorrectPosition && styles.orderingIndexWrong,
+                  ]}
+                >
+                  <Text variant="small" fontWeight="700" style={styles.orderingIndexText}>
+                    {index + 1}
+                  </Text>
+                </View>
+                {option.image && (
+                  <Image source={{ uri: option.image }} style={styles.optionImage} />
+                )}
+                <Text variant="body" style={styles.optionText}>
+                  {option.text}
+                </Text>
+                {showResult ? (
+                  isCorrectPosition ? (
+                    <CheckCircle size={20} color="#10B981" />
+                  ) : (
+                    <XCircle size={20} color="#EF4444" />
+                  )
+                ) : (
+                  <View style={styles.orderingControls}>
+                    <IconButton
+                      icon={<ArrowUp size={16} color={SEMANTIC_COLORS.textMain} />}
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === 0}
+                      onPress={() => moveOption(index, -1)}
+                    />
+                    <IconButton
+                      icon={<ArrowDown size={16} color={SEMANTIC_COLORS.textMain} />}
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === orderedOptions.length - 1}
+                      onPress={() => moveOption(index, 1)}
+                    />
+                  </View>
+                )}
+              </View>
+            )
+          })}
+        </View>
+      ) : (
+        <View style={styles.optionsContainer}>
+          {question.options.map((option) => (
+            <Pressable
+              key={option.id}
+              style={[styles.optionBase, getOptionStyle(option.id)]}
+              onPress={() => !showResult && onSelectAnswer(option.id)}
+              disabled={showResult}
+            >
+              {option.image && <Image source={{ uri: option.image }} style={styles.optionImage} />}
+              <Text
+                variant="body"
+                style={[
+                  styles.optionText,
+                  showResult && isCorrectChoice(option.id) && styles.optionTextCorrect,
+                  showResult &&
+                    isSelectedChoice(option.id) &&
+                    !isCorrectChoice(option.id) &&
+                    styles.optionTextWrong,
+                ]}
+              >
+                {option.text}
+              </Text>
+              {showResult && isCorrectChoice(option.id) && (
+                <CheckCircle size={20} color="#10B981" />
+              )}
+              {showResult && isSelectedChoice(option.id) && !isCorrectChoice(option.id) && (
+                <XCircle size={20} color="#EF4444" />
+              )}
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       {showResult && (
         <Animated.View entering={FadeIn.duration(200)} style={styles.explanationBox}>
-          <Text variant="body" color="textSubtle">
-            {question.explanation}
-          </Text>
+          <View style={styles.explanationHeader}>
+            {isCorrectAnswer ? (
+              <CheckCircle size={24} color="#10B981" />
+            ) : (
+              <XCircle size={24} color="#EF4444" />
+            )}
+            <Text
+              variant="h4"
+              fontWeight="700"
+              style={isCorrectAnswer ? styles.optionTextCorrect : styles.optionTextWrong}
+            >
+              {isCorrectAnswer ? '答對了！' : '答錯了'}
+            </Text>
+          </View>
+
+          {!isCorrectAnswer && (
+            <View style={styles.explanationSection}>
+              <Text variant="small" fontWeight="600" color="textMuted">
+                正確答案
+              </Text>
+              <Text variant="body">{correctAnswerText}</Text>
+            </View>
+          )}
+
+          {question.explanation && (
+            <View style={styles.explanationSection}>
+              <View style={styles.explanationLabel}>
+                <BookOpen size={16} color={SEMANTIC_COLORS.textMuted} />
+                <Text variant="small" fontWeight="600" color="textMuted">
+                  解釋
+                </Text>
+              </View>
+              <Text variant="body" color="textSubtle">
+                {question.explanation}
+              </Text>
+            </View>
+          )}
+
+          {question.hint && !isCorrectAnswer && (
+            <View style={styles.hintBox}>
+              <View style={styles.explanationLabel}>
+                <Lightbulb size={16} color="#F59E0B" />
+                <Text variant="small" fontWeight="600" style={styles.hintTitle}>
+                  提示
+                </Text>
+              </View>
+              <Text variant="small">{question.hint}</Text>
+            </View>
+          )}
+
+          {question.referenceSources && question.referenceSources.length > 0 && (
+            <View style={styles.explanationSection}>
+              <Text variant="small" fontWeight="600" color="textMuted">
+                參考資料
+              </Text>
+              {question.referenceSources.map((source) => (
+                <Text key={source} variant="small" color="textMuted">
+                  {source}
+                </Text>
+              ))}
+            </View>
+          )}
         </Animated.View>
       )}
     </Animated.View>
   )
+}
+
+function isAnswerCorrect(userAnswer: string | string[], correctAnswer: string | string[]): boolean {
+  if (typeof correctAnswer === 'string') {
+    return userAnswer === correctAnswer
+  }
+
+  return (
+    Array.isArray(userAnswer) &&
+    userAnswer.length === correctAnswer.length &&
+    userAnswer.every((answer, index) => answer === correctAnswer[index])
+  )
+}
+
+function getCorrectAnswerText(question: RopeQuestion): string {
+  if (typeof question.correctAnswer === 'string') {
+    return question.options.find((option) => option.id === question.correctAnswer)?.text ?? ''
+  }
+
+  return question.correctAnswer
+    .map((answerId, index) => {
+      const option = question.options.find((item) => item.id === answerId)
+      return `${index + 1}. ${option?.text ?? answerId}`
+    })
+    .join('\n')
 }
 
 interface ResultScreenProps {
@@ -285,10 +428,13 @@ export default function LearnScreen() {
     quitGame,
   } = useRopeGameStore()
 
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
+  const [selectedAnswer, setSelectedAnswer] = useState<string | string[] | null>(null)
   const [showResult, setShowResult] = useState(false)
   const [correctCount, setCorrectCount] = useState(0)
   const [gameEnded, setGameEnded] = useState(false)
+  const [questions, setQuestions] = useState<RopeQuestion[]>([])
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [finalResult, setFinalResult] = useState<{
     score: number
     totalQuestions: number
@@ -297,13 +443,55 @@ export default function LearnScreen() {
 
   // 初始化遊戲
   useEffect(() => {
-    if (categoryId) {
-      const questions = MOCK_QUESTIONS[categoryId] || []
-      if (questions.length > 0) {
-        startGame(categoryId, questions)
+    if (!categoryId) return
+
+    const category = ROPE_CATEGORIES.find((item) => item.id === categoryId)
+    if (!category) {
+      router.replace('/games/rope-system' as any)
+      return
+    }
+
+    let cancelled = false
+
+    const loadQuestions = async () => {
+      setIsLoadingQuestions(true)
+      setLoadError(null)
+
+      try {
+        const loadedQuestions = await fetchRopeQuestionsByCategory(categoryId)
+
+        if (cancelled) return
+
+        if (loadedQuestions.length === 0) {
+          throw new Error('題庫目前沒有題目')
+        }
+
+        const shuffledQuestions = [...loadedQuestions].sort(() => Math.random() - 0.5)
+        setQuestions(shuffledQuestions)
+        startGame(categoryId, shuffledQuestions)
+        setSelectedAnswer(null)
+        setShowResult(false)
+        setCorrectCount(0)
+        setGameEnded(false)
+        setFinalResult(null)
+      } catch (error) {
+        if (!cancelled) {
+          const message = error instanceof Error ? error.message : '題目載入失敗'
+          setLoadError(message)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingQuestions(false)
+        }
       }
     }
-  }, [categoryId, startGame])
+
+    loadQuestions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [categoryId, router, startGame])
 
   const handleBack = () => {
     Alert.alert('確定離開？', '你的進度將不會被保存', [
@@ -319,10 +507,9 @@ export default function LearnScreen() {
     ])
   }
 
-  const handleSelectAnswer = (index: number) => {
-    if (showResult) return
-    setSelectedAnswer(index)
-  }
+  const handleSelectAnswer = useCallback((answer: string | string[]) => {
+    setSelectedAnswer(answer)
+  }, [])
 
   const handleSubmit = () => {
     if (selectedAnswer === null) return
@@ -357,9 +544,9 @@ export default function LearnScreen() {
   }
 
   const handleRestart = () => {
-    if (categoryId) {
-      const questions = MOCK_QUESTIONS[categoryId] || []
-      startGame(categoryId, questions)
+    if (categoryId && questions.length > 0) {
+      const shuffledQuestions = [...questions].sort(() => Math.random() - 0.5)
+      startGame(categoryId, shuffledQuestions)
       setSelectedAnswer(null)
       setShowResult(false)
       setCorrectCount(0)
@@ -372,14 +559,33 @@ export default function LearnScreen() {
     router.back()
   }
 
-  if (!currentSession && !gameEnded) {
+  if (isLoadingQuestions) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text color="textMuted">載入中...</Text>
+          <Text color="textMuted">正在載入題目...</Text>
         </View>
       </SafeAreaView>
     )
+  }
+
+  if (loadError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text variant="body" color="textMuted" style={styles.errorMessage}>
+            {loadError}
+          </Text>
+          <Button variant="secondary" onPress={() => router.back()}>
+            返回
+          </Button>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (!currentSession && !gameEnded) {
+    return null
   }
 
   if (gameEnded && finalResult) {
@@ -501,15 +707,35 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: SPACING.lg,
+    gap: SPACING.md,
+  },
+  errorMessage: {
+    textAlign: 'center',
   },
   questionCard: {
     backgroundColor: SEMANTIC_COLORS.cardBg,
     borderRadius: RADIUS.lg,
     padding: SPACING.lg,
   },
+  sectionLabel: {
+    marginBottom: SPACING.xs,
+  },
+  scenarioBox: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
   questionText: {
     marginBottom: SPACING.lg,
     lineHeight: 28,
+  },
+  questionImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.lg,
   },
   optionsContainer: {
     gap: SPACING.sm,
@@ -541,6 +767,12 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
   },
+  optionImage: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.sm,
+    marginRight: SPACING.sm,
+  },
   optionTextCorrect: {
     color: '#10B981',
     fontWeight: '600',
@@ -554,6 +786,59 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     backgroundColor: '#F5F5F5',
     borderRadius: RADIUS.md,
+    gap: SPACING.md,
+  },
+  explanationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  explanationSection: {
+    gap: SPACING.xs,
+  },
+  explanationLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  hintBox: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    gap: SPACING.xs,
+  },
+  hintTitle: {
+    color: '#F59E0B',
+  },
+  orderingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FAFAFA',
+  },
+  orderingIndex: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFE70C',
+  },
+  orderingIndexCorrect: {
+    backgroundColor: '#10B981',
+  },
+  orderingIndexWrong: {
+    backgroundColor: '#EF4444',
+  },
+  orderingIndexText: {
+    color: SEMANTIC_COLORS.textMain,
+  },
+  orderingControls: {
+    flexDirection: 'row',
   },
   footer: {
     padding: SPACING.md,

@@ -8,6 +8,7 @@ import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/botto
 import { BRAND_YELLOW, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import {
   Bell,
@@ -39,6 +40,12 @@ enum NotificationType {
   POST_LIKED = 'post_liked',
   POST_COMMENTED = 'post_commented',
   SYSTEM_ANNOUNCEMENT = 'system_announcement',
+  CORE_STORY_LIKED = 'core_story_liked',
+  CORE_STORY_COMMENTED = 'core_story_commented',
+  ONE_LINER_LIKED = 'one_liner_liked',
+  ONE_LINER_COMMENTED = 'one_liner_commented',
+  STORY_LIKED = 'story_liked',
+  STORY_COMMENTED = 'story_commented',
 }
 
 interface Notification {
@@ -48,6 +55,12 @@ interface Notification {
   message: string
   is_read: number
   created_at: string
+  target_id?: string | null
+  actor_avatar?: string | null
+  actor_name?: string | null
+  actor_slug?: string | null
+  target_slug?: string | null
+  owner_slug?: string | null
   data?: Record<string, unknown>
 }
 
@@ -62,6 +75,12 @@ const notificationIcons: Record<string, React.ComponentType<{ size: number; colo
   [NotificationType.POST_LIKED]: Mountain,
   [NotificationType.POST_COMMENTED]: FileText,
   [NotificationType.SYSTEM_ANNOUNCEMENT]: Megaphone,
+  [NotificationType.CORE_STORY_LIKED]: Sparkles,
+  [NotificationType.CORE_STORY_COMMENTED]: MessageCircle,
+  [NotificationType.ONE_LINER_LIKED]: Sparkles,
+  [NotificationType.ONE_LINER_COMMENTED]: MessageCircle,
+  [NotificationType.STORY_LIKED]: Sparkles,
+  [NotificationType.STORY_COMMENTED]: MessageCircle,
 }
 
 // 通知類型對應的顏色
@@ -75,6 +94,61 @@ const notificationColors: Record<string, { text: string; bg: string }> = {
   [NotificationType.POST_LIKED]: { text: WB_COLORS[100], bg: 'rgba(255, 231, 12, 0.2)' },
   [NotificationType.POST_COMMENTED]: { text: '#06B6D4', bg: '#ECFEFF' },
   [NotificationType.SYSTEM_ANNOUNCEMENT]: { text: WB_COLORS[100], bg: 'rgba(255, 231, 12, 0.3)' },
+  [NotificationType.CORE_STORY_LIKED]: { text: '#A855F7', bg: '#FAF5FF' },
+  [NotificationType.CORE_STORY_COMMENTED]: { text: SEMANTIC_COLORS.info, bg: '#EFF6FF' },
+  [NotificationType.ONE_LINER_LIKED]: { text: '#A855F7', bg: '#FAF5FF' },
+  [NotificationType.ONE_LINER_COMMENTED]: { text: SEMANTIC_COLORS.info, bg: '#EFF6FF' },
+  [NotificationType.STORY_LIKED]: { text: '#A855F7', bg: '#FAF5FF' },
+  [NotificationType.STORY_COMMENTED]: { text: SEMANTIC_COLORS.info, bg: '#EFF6FF' },
+}
+
+function getNotificationField(notification: Notification, key: keyof Notification): string | null {
+  const value = notification[key] ?? notification.data?.[key]
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+function getNotificationRoute(notification: Notification): string | null {
+  const targetId = getNotificationField(notification, 'target_id')
+  const targetSlug = getNotificationField(notification, 'target_slug')
+  const ownerSlug = getNotificationField(notification, 'owner_slug')
+  const actorSlug = getNotificationField(notification, 'actor_slug')
+
+  switch (notification.type) {
+    case NotificationType.POST_LIKED:
+    case NotificationType.POST_COMMENTED:
+      return targetId ? `/blog/${targetId}` : null
+    case NotificationType.GOAL_LIKED:
+    case NotificationType.GOAL_COMMENTED:
+    case NotificationType.GOAL_REFERENCED:
+      return targetId ? `/bucket-list/${targetId}` : null
+    case NotificationType.CORE_STORY_LIKED:
+    case NotificationType.CORE_STORY_COMMENTED:
+      return targetId
+        ? `/story/core-stories/${targetId}`
+        : ownerSlug
+          ? `/biography/profile/${ownerSlug}`
+          : null
+    case NotificationType.ONE_LINER_LIKED:
+    case NotificationType.ONE_LINER_COMMENTED:
+      return targetId
+        ? `/story/one-liners/${targetId}`
+        : ownerSlug
+          ? `/biography/profile/${ownerSlug}`
+          : null
+    case NotificationType.STORY_LIKED:
+    case NotificationType.STORY_COMMENTED:
+      return targetId
+        ? `/story/stories/${targetId}`
+        : ownerSlug
+          ? `/biography/profile/${ownerSlug}`
+          : null
+    case NotificationType.BIOGRAPHY_COMMENTED:
+      return targetSlug ? `/biography/profile/${targetSlug}` : null
+    case NotificationType.NEW_FOLLOWER:
+      return actorSlug ? `/biography/profile/${actorSlug}` : null
+    default:
+      return null
+  }
 }
 
 interface NotificationCenterProps {
@@ -83,7 +157,7 @@ interface NotificationCenterProps {
 }
 
 export function NotificationCenter({ style }: NotificationCenterProps) {
-  const _router = useRouter()
+  const router = useRouter()
   const bottomSheetRef = useRef<BottomSheet>(null)
   const { isAuthenticated, status } = useAuthStore()
   const isInitialized = status !== 'idle'
@@ -208,6 +282,15 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
     }
   }
 
+  const handleNotificationPress = async (notification: Notification) => {
+    await handleMarkAsRead(notification.id)
+    const route = getNotificationRoute(notification)
+    if (route) {
+      bottomSheetRef.current?.close()
+      router.push(route as never)
+    }
+  }
+
   // 載入更多
   const handleLoadMore = () => {
     if (isLoading || !hasMore) return
@@ -240,23 +323,58 @@ export function NotificationCenter({ style }: NotificationCenterProps) {
   const renderNotificationItem = ({ item }: { item: Notification }) => {
     const Icon = notificationIcons[item.type] || Bell
     const colors = notificationColors[item.type] || { text: '#6B7280', bg: '#F3F4F6' }
+    const actorAvatar = getNotificationField(item, 'actor_avatar')
+    const actorName = getNotificationField(item, 'actor_name')
+    const actorSlug = getNotificationField(item, 'actor_slug')
+    const isFollower = item.type === NotificationType.NEW_FOLLOWER
+
+    const handleActorPress = () => {
+      if (!actorSlug) return
+      bottomSheetRef.current?.close()
+      router.push(`/biography/profile/${actorSlug}` as never)
+    }
 
     return (
       <Pressable
         style={[styles.notificationItem, !item.is_read && styles.notificationItemUnread]}
-        onPress={() => handleMarkAsRead(item.id)}
+        onPress={() => handleNotificationPress(item)}
       >
-        <View style={[styles.iconContainer, { backgroundColor: colors.bg }]}>
-          <Icon size={20} color={colors.text} />
-        </View>
+        <Pressable
+          style={[styles.iconContainer, { backgroundColor: colors.bg }]}
+          onPress={actorSlug ? handleActorPress : undefined}
+          disabled={!actorSlug}
+        >
+          {actorAvatar ? (
+            <Image source={{ uri: actorAvatar }} style={styles.actorAvatar} contentFit="cover" />
+          ) : actorName ? (
+            <Text fontWeight="600" style={[styles.actorInitial, { color: colors.text }]}>
+              {actorName.slice(0, 1).toUpperCase()}
+            </Text>
+          ) : (
+            <Icon size={20} color={colors.text} />
+          )}
+        </Pressable>
 
         <View style={styles.notificationContent}>
-          <Text fontWeight="500" numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text variant="small" color="textSubtle" numberOfLines={2} style={styles.message}>
-            {item.message}
-          </Text>
+          {isFollower && actorName ? (
+            <>
+              <Text fontWeight="500" numberOfLines={1}>
+                {actorName}
+              </Text>
+              <Text variant="small" color="textSubtle" numberOfLines={2} style={styles.message}>
+                開始追蹤你了
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text fontWeight="500" numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text variant="small" color="textSubtle" numberOfLines={2} style={styles.message}>
+                {item.message}
+              </Text>
+            </>
+          )}
           <Text variant="small" color="textMuted" style={styles.time}>
             {formatTime(item.created_at)}
           </Text>
@@ -446,6 +564,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  actorAvatar: {
+    width: '100%',
+    height: '100%',
+  },
+  actorInitial: {
+    fontSize: 14,
   },
   notificationContent: {
     flex: 1,

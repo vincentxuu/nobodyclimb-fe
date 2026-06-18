@@ -197,9 +197,12 @@ export function useCragAreas(cragId: string) {
       Array<{
         id: string
         name: string
+        nameEn?: string
         description?: string
+        descriptionEn?: string
         difficulty?: string
         routes?: number
+        boltCount?: number
       }>
     > => {
       const response = await apiClient.get(`/crags/${cragId}/areas`)
@@ -207,13 +210,16 @@ export function useCragAreas(cragId: string) {
       return apiAreas.map((area: any) => ({
         id: area.id,
         name: area.name,
+        nameEn: area.name_en || area.nameEn || '',
         description: area.description || '',
+        descriptionEn: area.description_en || area.descriptionEn || '',
         difficulty: area.difficulty
           ? typeof area.difficulty === 'object'
             ? `${area.difficulty.min || ''} - ${area.difficulty.max || ''}`
             : area.difficulty
           : '',
         routes: area.route_count || area.routes_count || area.routesCount || 0,
+        boltCount: area.bolt_count || area.boltCount || 0,
       }))
     },
     enabled: !!cragId,

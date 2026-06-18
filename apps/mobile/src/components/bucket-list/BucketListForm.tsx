@@ -361,11 +361,13 @@ export function BucketListForm({
               </View>
             </View>
 
-            {/* 手動進度滑桿 */}
+            {/* 手動進度 */}
             {progressMode === 'manual' && (
               <View style={styles.field}>
                 <Label>目前進度：{watch('progress')}%</Label>
-                {/* TODO: 使用 Slider 組件 */}
+                <Text variant="caption" color="textSubtle" style={styles.fieldHint}>
+                  輸入 0 到 100 的百分比
+                </Text>
                 <Controller
                   control={control}
                   name="progress"
@@ -532,6 +534,10 @@ const styles = StyleSheet.create({
   },
   field: {
     marginBottom: SPACING[4],
+  },
+  fieldHint: {
+    marginTop: SPACING[1],
+    marginBottom: SPACING[2],
   },
   errorText: {
     color: '#DC2626',

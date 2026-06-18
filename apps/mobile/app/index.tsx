@@ -14,6 +14,7 @@ import {
   ExploreCragSection,
   FeaturedStoriesSection,
   FunFactSection,
+  HeroIntroSection,
 } from '@/components/home'
 import { ScrollLayout } from '@/components/layout'
 
@@ -32,6 +33,9 @@ export default function HomeScreen() {
     <ScrollLayout enableRefresh onRefresh={onRefresh} padding={0}>
       {/* 趣味冷知識 */}
       <FunFactSection key={`fun-${refreshKey}`} />
+
+      {/* 網站介紹 */}
+      <HeroIntroSection />
 
       {/* 查路線 - 探索岩場（對應 Web 第 2 區塊） */}
       <ExploreCragSection key={`crag-${refreshKey}`} />

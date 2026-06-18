@@ -17,10 +17,14 @@ function formatDate(dateStr: string): string {
 
 interface RecommendationCardProps {
   recommendation: Recommendation
+  defaultExpanded?: boolean
 }
 
-export function RecommendationCard({ recommendation: rec }: RecommendationCardProps) {
-  const [expanded, setExpanded] = useState(false)
+export function RecommendationCard({
+  recommendation: rec,
+  defaultExpanded = false,
+}: RecommendationCardProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
   const ascentCount = rec.recommendation.context_ascents?.length ?? 0
   const isFailed = rec.status === 'failed'
 

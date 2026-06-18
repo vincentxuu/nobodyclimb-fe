@@ -7,29 +7,40 @@
 
 import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
-import * as ImagePicker from 'expo-image-picker'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, ImageIcon, Plus, Trash2, X } from 'lucide-react-native'
-import { useCallback, useState } from 'react'
+import { ChevronLeft, Edit2, ImageIcon, Plus, Trash2, X } from 'lucide-react-native'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { UploadPhotoDialog } from '@/components/gallery'
 import { ProtectedRoute } from '@/components/shared'
-import { Button, IconButton, Text } from '@/components/ui'
-import { type GalleryPhoto, useDeletePhoto, useMyPhotos } from '@/lib/hooks'
+import { Button, IconButton, LoadMoreButton, Text } from '@/components/ui'
+import {
+  type GalleryPhoto,
+  uploadGalleryImage,
+  uploadGalleryPhoto,
+  useDeletePhoto,
+  useMyPhotos,
+  useUpdatePhoto,
+} from '@/lib/hooks'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 const NUM_COLUMNS = 3
 const ITEM_SIZE = (SCREEN_WIDTH - SPACING.md * 2 - SPACING.xs * (NUM_COLUMNS - 1)) / NUM_COLUMNS
+const PAGE_SIZE = 20
 
 interface PhotoItemProps {
   photo: GalleryPhoto
@@ -56,10 +67,11 @@ interface PhotoViewerProps {
   photo: GalleryPhoto | null
   visible: boolean
   onClose: () => void
+  onEdit: () => void
   onDelete: () => void
 }
 
-function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
+function PhotoViewer({ photo, visible, onClose, onEdit, onDelete }: PhotoViewerProps) {
   if (!photo) return null
 
   const handleDelete = () => {
@@ -75,11 +87,18 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
         {/* 頂部操作列 */}
         <SafeAreaView style={styles.modalHeader} edges={['top']}>
           <IconButton icon={<X size={24} color="#FFFFFF" />} onPress={onClose} variant="ghost" />
-          <IconButton
-            icon={<Trash2 size={24} color="#EF4444" />}
-            onPress={handleDelete}
-            variant="ghost"
-          />
+          <View style={styles.modalHeaderActions}>
+            <IconButton
+              icon={<Edit2 size={22} color="#FFFFFF" />}
+              onPress={onEdit}
+              variant="ghost"
+            />
+            <IconButton
+              icon={<Trash2 size={24} color="#EF4444" />}
+              onPress={handleDelete}
+              variant="ghost"
+            />
+          </View>
         </SafeAreaView>
 
         {/* 圖片 */}
@@ -106,15 +125,133 @@ function PhotoViewer({ photo, visible, onClose, onDelete }: PhotoViewerProps) {
   )
 }
 
+interface PhotoEditModalProps {
+  photo: GalleryPhoto | null
+  visible: boolean
+  isSaving: boolean
+  onClose: () => void
+  onSave: (payload: {
+    caption?: string
+    location_country?: string
+    location_city?: string
+    location_spot?: string
+  }) => void
+}
+
+function PhotoEditModal({ photo, visible, isSaving, onClose, onSave }: PhotoEditModalProps) {
+  const [caption, setCaption] = useState('')
+  const [country, setCountry] = useState('')
+  const [city, setCity] = useState('')
+  const [spot, setSpot] = useState('')
+
+  useEffect(() => {
+    if (!photo || !visible) return
+    setCaption(photo.caption || '')
+    setCountry(photo.location_country || '')
+    setCity(photo.location_city || '')
+    setSpot(photo.location_spot || '')
+  }, [photo, visible])
+
+  if (!photo) return null
+
+  const handleSave = () => {
+    onSave({
+      caption: caption.trim() || undefined,
+      location_country: country.trim() || undefined,
+      location_city: city.trim() || undefined,
+      location_spot: spot.trim() || undefined,
+    })
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.editModalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.editModal}>
+          <View style={styles.editModalHeader}>
+            <Text variant="h3" fontWeight="600">
+              編輯照片
+            </Text>
+            <IconButton icon={<X size={22} color={SEMANTIC_COLORS.textMain} />} onPress={onClose} />
+          </View>
+
+          <TextInput
+            style={[styles.editInput, styles.editTextArea]}
+            value={caption}
+            onChangeText={setCaption}
+            placeholder="照片說明"
+            placeholderTextColor={SEMANTIC_COLORS.textMuted}
+            multiline
+            textAlignVertical="top"
+          />
+          <TextInput
+            style={styles.editInput}
+            value={country}
+            onChangeText={setCountry}
+            placeholder="國家 / 地區"
+            placeholderTextColor={SEMANTIC_COLORS.textMuted}
+          />
+          <TextInput
+            style={styles.editInput}
+            value={city}
+            onChangeText={setCity}
+            placeholder="城市"
+            placeholderTextColor={SEMANTIC_COLORS.textMuted}
+          />
+          <TextInput
+            style={styles.editInput}
+            value={spot}
+            onChangeText={setSpot}
+            placeholder="岩場 / 地點"
+            placeholderTextColor={SEMANTIC_COLORS.textMuted}
+          />
+
+          <View style={styles.editActions}>
+            <Button variant="ghost" size="md" onPress={onClose} disabled={isSaving}>
+              取消
+            </Button>
+            <Button variant="primary" size="md" onPress={handleSave} disabled={isSaving}>
+              <Text fontWeight="600" style={styles.addButtonText}>
+                {isSaving ? '儲存中...' : '儲存'}
+              </Text>
+            </Button>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  )
+}
+
 export default function PhotosScreen() {
   const router = useRouter()
-  const { data, isLoading, isError, refetch } = useMyPhotos()
+  const [page, setPage] = useState(1)
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([])
+  const { data, isLoading, isFetching, isError, refetch } = useMyPhotos(page, PAGE_SIZE)
   const deletePhotoMutation = useDeletePhoto()
-
-  const photos = data?.photos ?? []
+  const updatePhotoMutation = useUpdatePhoto()
+  const pagination = data?.pagination
+  const hasMore = pagination ? pagination.page < pagination.total_pages : false
 
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryPhoto | null>(null)
   const [viewerVisible, setViewerVisible] = useState(false)
+  const [editVisible, setEditVisible] = useState(false)
+  const [uploadVisible, setUploadVisible] = useState(false)
+
+  useEffect(() => {
+    if (!data?.photos) return
+    if (page === 1) {
+      setPhotos(data.photos)
+      return
+    }
+
+    setPhotos((prev) => {
+      const existingIds = new Set(prev.map((photo) => photo.id))
+      const nextPhotos = data.photos.filter((photo) => !existingIds.has(photo.id))
+      return [...prev, ...nextPhotos]
+    })
+  }, [data?.photos, page])
 
   const handleBack = () => {
     router.back()
@@ -130,26 +267,63 @@ export default function PhotosScreen() {
     setSelectedPhoto(null)
   }
 
+  const handleOpenEdit = () => {
+    setEditVisible(true)
+  }
+
+  const handleCloseEdit = () => {
+    if (updatePhotoMutation.isPending) return
+    setEditVisible(false)
+  }
+
+  const handleSavePhoto = (payload: {
+    caption?: string
+    location_country?: string
+    location_city?: string
+    location_spot?: string
+  }) => {
+    if (!selectedPhoto) return
+    updatePhotoMutation.mutate(
+      { id: selectedPhoto.id, payload },
+      {
+        onSuccess: (updatedPhoto) => {
+          setPhotos((prev) =>
+            prev.map((photo) => (photo.id === updatedPhoto.id ? updatedPhoto : photo))
+          )
+          setSelectedPhoto(updatedPhoto)
+          setEditVisible(false)
+          Alert.alert('更新成功', '照片資訊已更新')
+        },
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : '請稍後再試'
+          Alert.alert('更新失敗', message)
+        },
+      }
+    )
+  }
+
   const handleDeletePhoto = () => {
     if (selectedPhoto) {
       deletePhotoMutation.mutate(selectedPhoto.id, {
         onSuccess: () => {
+          setPhotos((prev) => prev.filter((photo) => photo.id !== selectedPhoto.id))
           handleCloseViewer()
         },
       })
     }
   }
 
-  const handleAddPhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: false,
-      quality: 0.8,
-    })
+  const handleAddPhoto = () => {
+    setUploadVisible(true)
+  }
 
-    if (!result.canceled && result.assets.length > 0) {
-      // TODO: 實作上傳至後端 API（需先上傳圖片到 R2 取得 URL）
-      Alert.alert('上傳照片', '照片上傳功能開發中')
+  const handleUploadSuccess = (photo: GalleryPhoto) => {
+    setPhotos((prev) => [photo, ...prev.filter((item) => item.id !== photo.id)])
+  }
+
+  const handleLoadMore = () => {
+    if (!isFetching && hasMore) {
+      setPage((prev) => prev + 1)
     }
   }
 
@@ -214,6 +388,15 @@ export default function PhotosScreen() {
             numColumns={NUM_COLUMNS}
             contentContainerStyle={styles.gridContent}
             columnWrapperStyle={styles.gridRow}
+            ListFooterComponent={
+              <LoadMoreButton
+                onPress={handleLoadMore}
+                loading={isFetching && page > 1}
+                hasMore={hasMore}
+                text="載入更多照片"
+                noMoreText="已顯示全部照片"
+              />
+            }
           />
         )}
 
@@ -222,7 +405,22 @@ export default function PhotosScreen() {
           photo={selectedPhoto}
           visible={viewerVisible}
           onClose={handleCloseViewer}
+          onEdit={handleOpenEdit}
           onDelete={handleDeletePhoto}
+        />
+        <PhotoEditModal
+          photo={selectedPhoto}
+          visible={editVisible}
+          isSaving={updatePhotoMutation.isPending}
+          onClose={handleCloseEdit}
+          onSave={handleSavePhoto}
+        />
+        <UploadPhotoDialog
+          isOpen={uploadVisible}
+          onClose={() => setUploadVisible(false)}
+          onSuccess={handleUploadSuccess}
+          onUploadImage={uploadGalleryImage}
+          onUploadPhoto={uploadGalleryPhoto}
         />
       </SafeAreaView>
     </ProtectedRoute>
@@ -289,6 +487,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.sm,
   },
+  modalHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   modalImageContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -322,5 +524,41 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     opacity: 0.7,
+  },
+  editModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  editModal: {
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+    padding: SPACING.lg,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    gap: SPACING.sm,
+  },
+  editModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#D3D3D3',
+    borderRadius: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    color: SEMANTIC_COLORS.textMain,
+    backgroundColor: '#FFFFFF',
+  },
+  editTextArea: {
+    minHeight: 96,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: SPACING.sm,
+    marginTop: SPACING.sm,
   },
 })

@@ -14,7 +14,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { apiClient } from '@/lib/api'
 import { Spinner } from '../ui/Spinner'
 import { Text } from '../ui/Text'
-import { BucketListItemCard } from './BucketListItem'
+import { BucketListCardActions, BucketListItemCard } from './BucketListItem'
 
 export interface BiographyBucketListProps {
   /** 傳記 ID */
@@ -218,6 +218,12 @@ function CompletedBucketListCard({ item }: CompletedBucketListCardProps) {
           )}
         </View>
       )}
+
+      {item.is_public && (
+        <View style={styles.completedActions}>
+          <BucketListCardActions item={item} isOwner={false} />
+        </View>
+      )}
     </View>
   )
 }
@@ -317,5 +323,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING[1],
     alignSelf: 'flex-start',
+  },
+  completedActions: {
+    borderTopWidth: 1,
+    borderTopColor: `${SEMANTIC_COLORS.brand}33`,
+    paddingHorizontal: SPACING[4],
+    paddingVertical: SPACING[3],
+    backgroundColor: WB_COLORS[0],
   },
 })

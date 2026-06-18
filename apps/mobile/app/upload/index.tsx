@@ -44,6 +44,7 @@ const PREVIEW_SIZE = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.xs * 3) / 4
 const _MAX_FILE_SIZE = 500 * 1024 // 500KB
 const MAX_FILE_COUNT = 20
 const MAX_IMAGE_DIMENSION = 1920
+const VALID_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 interface FileWithPreview {
   id: string
@@ -90,6 +91,20 @@ async function compressImage(uri: string): Promise<{
     height: manipulated.height,
     wasCompressed: true,
   }
+}
+
+function validateAssetType(asset: ImagePicker.ImagePickerAsset): string | null {
+  if (!asset.mimeType) return null
+  if (!VALID_MIME_TYPES.has(asset.mimeType)) {
+    return '請上傳 JPG、PNG 或 WebP 格式的圖片'
+  }
+  return null
+}
+
+function formatFileSize(size?: number): string | null {
+  if (!size) return null
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)}KB`
+  return `${(size / (1024 * 1024)).toFixed(1)}MB`
 }
 
 /**
@@ -140,11 +155,13 @@ function PhotoPreview({
         </Pressable>
       )}
 
-      {/* 壓縮資訊 */}
-      {item.wasCompressed && item.originalSize && item.compressedSize && (
+      {/* 檔案大小 / 壓縮資訊 */}
+      {item.originalSize && (
         <View style={styles.sizeInfo}>
           <Text style={styles.sizeText}>
-            {Math.round(item.originalSize / 1024)}-{Math.round(item.compressedSize / 1024)}KB
+            {item.wasCompressed
+              ? `已壓縮 ${formatFileSize(item.originalSize)}`
+              : formatFileSize(item.originalSize)}
           </Text>
         </View>
       )}
@@ -206,10 +223,17 @@ export default function UploadScreen() {
       setCompressProgress({ current: i + 1, total: result.assets.length })
 
       try {
+        const typeError = validateAssetType(asset)
+        if (typeError) {
+          errors.push(typeError)
+          continue
+        }
+
         const compressed = await compressImage(asset.uri)
         newFiles.push({
           id: `file-${Date.now()}-${i}`,
           uri: compressed.uri,
+          originalSize: asset.fileSize,
           width: compressed.width,
           height: compressed.height,
           wasCompressed: compressed.wasCompressed,
@@ -256,12 +280,20 @@ export default function UploadScreen() {
     setError(null)
 
     try {
+      const typeError = validateAssetType(result.assets[0])
+      if (typeError) {
+        setError(typeError)
+        setIsCompressing(false)
+        return
+      }
+
       const compressed = await compressImage(result.assets[0].uri)
       setFiles((prev) => [
         ...prev,
         {
           id: `file-${Date.now()}`,
           uri: compressed.uri,
+          originalSize: result.assets[0].fileSize,
           width: compressed.width,
           height: compressed.height,
           wasCompressed: compressed.wasCompressed,
@@ -522,7 +554,12 @@ export default function UploadScreen() {
         {files.length > 0 && (
           <View style={styles.previewSection}>
             <View style={styles.previewHeader}>
-              <Label>已選擇 {files.length} 張照片</Label>
+              <Label>
+                已選擇 {files.length} 張照片
+                {files.some((file) => file.wasCompressed)
+                  ? `（已壓縮 ${files.filter((file) => file.wasCompressed).length} 張）`
+                  : ''}
+              </Label>
               {!isUploading && !isCompressing && (
                 <Pressable onPress={handleClearAll}>
                   <Text variant="small" color="textMuted" style={styles.clearText}>

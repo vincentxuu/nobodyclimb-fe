@@ -51,7 +51,7 @@ export default function SearchScreen() {
   const handleResultPress = (item: { type: string; slug?: string; id: string }) => {
     switch (item.type) {
       case 'biography':
-        router.push(`/biography/${item.slug || item.id}` as any)
+        router.push(`/biography/profile/${item.slug || item.id}` as any)
         break
       case 'crag':
         router.push(`/crag/${item.slug || item.id}` as any)
@@ -61,6 +61,12 @@ export default function SearchScreen() {
         break
       case 'blog':
         router.push(`/blog/${item.slug || item.id}` as any)
+        break
+      case 'gallery':
+        router.push('/gallery')
+        break
+      case 'video':
+        router.push('/videos')
         break
     }
   }

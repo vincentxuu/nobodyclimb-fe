@@ -15,17 +15,31 @@ export interface CreateAscentPayload {
   route_id: string
   ascent_type: AscentType
   date?: string
+  ascent_date?: string
   attempts?: number
-  rating?: number
-  notes?: string
+  attempts_count?: number
+  rating?: number | null
+  perceived_grade?: string | null
+  notes?: string | null
+  photos?: string[]
+  youtube_url?: string | null
+  instagram_url?: string | null
+  is_public?: boolean
 }
 
 export interface UpdateAscentPayload {
   ascent_type?: AscentType
   date?: string
+  ascent_date?: string
   attempts?: number
-  rating?: number
-  notes?: string
+  attempts_count?: number
+  rating?: number | null
+  perceived_grade?: string | null
+  notes?: string | null
+  photos?: string[]
+  youtube_url?: string | null
+  instagram_url?: string | null
+  is_public?: boolean
 }
 
 export function useMyAscents(filters: AscentFilters = {}) {

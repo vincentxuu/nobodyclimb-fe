@@ -16,6 +16,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated'
 import { YStack } from 'tamagui'
 import { Avatar, Button, Skeleton, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
+import { getTagOptionById, SYSTEM_TAG_DIMENSIONS } from '@/lib/constants/biography-tags'
 import { useAuthStore } from '@/store/authStore'
 
 // ============================================
@@ -98,6 +99,88 @@ interface DisplayTag {
   isCustom: boolean
 }
 
+interface TagSelection {
+  tag_id: string
+  source?: 'system' | 'user'
+}
+
+interface TagOptionLike {
+  id: string
+  label: string
+  dimension_id?: string
+}
+
+interface TagsDataStorage {
+  selections?: TagSelection[]
+  display_tags?: string[]
+  custom_tags?: TagOptionLike[]
+  custom_dimensions?: Array<{ options: TagOptionLike[] }>
+}
+
+const DEFAULT_DISPLAY_DIMENSIONS = [
+  SYSTEM_TAG_DIMENSIONS.STYLE_CULT,
+  SYSTEM_TAG_DIMENSIONS.SHOE_FACTION,
+  SYSTEM_TAG_DIMENSIONS.TRAINING_APPROACH,
+]
+
+function getDefaultDisplayTags(
+  selections: TagSelection[],
+  maxCount = 3,
+  customTagsMap?: Map<string, TagOptionLike>
+): DisplayTag[] {
+  const result: DisplayTag[] = []
+  const usedTagIds = new Set<string>()
+
+  const findTagOption = (tagId: string): TagOptionLike | undefined =>
+    customTagsMap?.get(tagId) || getTagOptionById(tagId)
+
+  const isCustomTag = (selection: TagSelection) =>
+    selection.source === 'user' ||
+    customTagsMap?.has(selection.tag_id) ||
+    selection.tag_id.startsWith('usr_')
+
+  for (const selection of selections) {
+    if (result.length >= maxCount) break
+    if (!isCustomTag(selection)) continue
+    const option = findTagOption(selection.tag_id)
+    if (option) {
+      result.push({ id: selection.tag_id, label: option.label, isCustom: true })
+      usedTagIds.add(selection.tag_id)
+    }
+  }
+
+  for (const dimensionId of DEFAULT_DISPLAY_DIMENSIONS) {
+    if (result.length >= maxCount) break
+    const tagInDimension = selections.find((selection) => {
+      const option = findTagOption(selection.tag_id)
+      return option?.dimension_id === dimensionId && !usedTagIds.has(selection.tag_id)
+    })
+    if (tagInDimension) {
+      const option = findTagOption(tagInDimension.tag_id)
+      if (option) {
+        result.push({ id: tagInDimension.tag_id, label: option.label, isCustom: false })
+        usedTagIds.add(tagInDimension.tag_id)
+      }
+    }
+  }
+
+  for (const selection of selections) {
+    if (result.length >= maxCount) break
+    if (usedTagIds.has(selection.tag_id)) continue
+    const option = findTagOption(selection.tag_id)
+    if (option) {
+      result.push({
+        id: selection.tag_id,
+        label: option.label,
+        isCustom: isCustomTag(selection),
+      })
+      usedTagIds.add(selection.tag_id)
+    }
+  }
+
+  return result
+}
+
 /**
  * 從 tags_data JSON 取得最多 maxCount 個標籤
  */
@@ -105,71 +188,42 @@ function getDisplayTags(tagsJson: string | null | undefined, maxCount = 3): Disp
   if (!tagsJson) return []
 
   try {
-    const parsed = JSON.parse(tagsJson)
-    const result: DisplayTag[] = []
+    const parsed = JSON.parse(tagsJson) as TagsDataStorage | TagSelection[]
 
-    // 陣列格式：[{ dimension_id, tag_id, label }]
     if (Array.isArray(parsed)) {
-      for (const item of parsed) {
-        if (result.length >= maxCount) break
-        if (item && item.label) {
-          result.push({
-            id: item.tag_id || item.id || String(result.length),
-            label: item.label,
-            isCustom: false,
-          })
-        }
-      }
-      return result
+      return getDefaultDisplayTags(parsed, maxCount)
     }
 
-    // 物件格式：{ selections: [...], custom_tags: [...], custom_dimensions: [...] }
-    if (typeof parsed === 'object' && parsed !== null) {
-      // 先加入 selections
-      if (Array.isArray(parsed.selections)) {
-        for (const item of parsed.selections) {
-          if (result.length >= maxCount) break
-          if (item && item.label) {
-            result.push({
-              id: item.tag_id || item.id || String(result.length),
-              label: item.label,
-              isCustom: false,
-            })
-          }
-        }
+    const customTagsMap = new Map<string, TagOptionLike>()
+    if (parsed.custom_tags) {
+      for (const tag of parsed.custom_tags) {
+        customTagsMap.set(tag.id, tag)
       }
-
-      // 再加入自訂標籤
-      if (Array.isArray(parsed.custom_tags)) {
-        for (const item of parsed.custom_tags) {
-          if (result.length >= maxCount) break
-          const label = typeof item === 'string' ? item : item?.label
-          if (label) {
-            result.push({
-              id: `custom-${result.length}`,
-              label,
-              isCustom: true,
-            })
-          }
-        }
-      }
-
-      // 自訂維度的標籤
-      if (Array.isArray(parsed.custom_dimensions)) {
-        for (const dim of parsed.custom_dimensions) {
-          if (result.length >= maxCount) break
-          if (dim && dim.label) {
-            result.push({
-              id: `dim-${result.length}`,
-              label: dim.label,
-              isCustom: true,
-            })
-          }
+    }
+    if (parsed.custom_dimensions) {
+      for (const dimension of parsed.custom_dimensions) {
+        for (const tag of dimension.options) {
+          customTagsMap.set(tag.id, tag)
         }
       }
     }
 
-    return result
+    const selections = parsed.selections ?? []
+    if (parsed.display_tags && parsed.display_tags.length > 0) {
+      return parsed.display_tags.slice(0, maxCount).flatMap((tagId) => {
+        const option = customTagsMap.get(tagId) || getTagOptionById(tagId)
+        if (!option) return []
+        const selection = selections.find((item) => item.tag_id === tagId)
+        return {
+          id: tagId,
+          label: option.label,
+          isCustom:
+            selection?.source === 'user' || customTagsMap.has(tagId) || tagId.startsWith('usr_'),
+        }
+      })
+    }
+
+    return getDefaultDisplayTags(selections, maxCount, customTagsMap)
   } catch {
     return []
   }
@@ -183,7 +237,7 @@ function BiographyCard({ item, index }: { item: Biography; index: number }) {
   const router = useRouter()
 
   const handlePress = () => {
-    router.push(`/biography/${item.slug}`)
+    router.push(`/biography/profile/${item.slug}`)
   }
 
   // 顯示名稱

@@ -9,7 +9,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { SearchInput, Text } from '@/components/ui'
 
-export type SearchType = 'all' | 'biography' | 'crag' | 'gym' | 'blog'
+export type SearchType = 'all' | 'biography' | 'crag' | 'gym' | 'blog' | 'gallery' | 'video'
 
 export const TYPE_LABELS: Record<SearchType, string> = {
   all: '全部',
@@ -17,9 +17,11 @@ export const TYPE_LABELS: Record<SearchType, string> = {
   crag: '岩場介紹',
   gym: '岩館',
   blog: '部落格',
+  gallery: '攝影集',
+  video: '影片',
 }
 
-export const SEARCH_TYPES: SearchType[] = ['all', 'biography', 'crag', 'gym', 'blog']
+export const SEARCH_TYPES: SearchType[] = ['all', 'biography', 'crag', 'gym', 'blog', 'gallery']
 
 interface TabButtonProps {
   label: string

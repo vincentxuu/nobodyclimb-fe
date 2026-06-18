@@ -9,7 +9,7 @@ import { SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import type { GalleryPhoto } from '@nobodyclimb/types'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, ImageIcon, Plus } from 'lucide-react-native'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
@@ -20,18 +20,29 @@ import {
   type PhotoPopupPhoto,
   UploadPhotoDialog,
 } from '@/components/gallery'
-import { EmptyState, IconButton, Text } from '@/components/ui'
-import { useGallery, useRefreshGallery } from '@/lib/hooks'
+import { EmptyState, IconButton, LoadMoreButton, Text } from '@/components/ui'
+import {
+  updateGalleryPhoto,
+  uploadGalleryImage,
+  uploadGalleryPhoto,
+  useGallery,
+  useRefreshGallery,
+} from '@/lib/hooks'
 import { useAuthStore } from '@/store/authStore'
+
+const PAGE_SIZE = 18
 
 export default function GalleryScreen() {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
 
   // API 資料
-  const { data, isLoading, isError } = useGallery(1, 30)
+  const [page, setPage] = useState(1)
+  const [photos, setPhotos] = useState<GalleryGridPhoto[]>([])
+  const { data, isLoading, isFetching, isError } = useGallery(page, PAGE_SIZE)
   const refreshGallery = useRefreshGallery()
-  const photos = data?.photos ?? []
+  const pagination = data?.pagination
+  const hasMore = pagination ? pagination.page < pagination.total_pages : false
 
   // 刷新狀態
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -45,6 +56,20 @@ export default function GalleryScreen() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [editingPhoto, setEditingPhoto] = useState<GalleryPhoto | null>(null)
 
+  useEffect(() => {
+    if (!data?.photos) return
+    if (page === 1) {
+      setPhotos(data.photos)
+      return
+    }
+
+    setPhotos((prev) => {
+      const existingIds = new Set(prev.map((photo) => photo.id))
+      const nextPhotos = data.photos.filter((photo) => !existingIds.has(photo.id))
+      return [...prev, ...nextPhotos]
+    })
+  }, [data?.photos, page])
+
   // 當前選中的照片
   const selectedPhoto = useMemo<PhotoPopupPhoto | null>(() => {
     if (selectedPhotoIndex === null || !photos[selectedPhotoIndex]) return null
@@ -54,6 +79,7 @@ export default function GalleryScreen() {
       src: photo.src,
       alt: photo.alt,
       location: photo.location,
+      uploadDate: photo.uploadDate,
       author: photo.author,
     }
   }, [selectedPhotoIndex, photos])
@@ -77,28 +103,30 @@ export default function GalleryScreen() {
 
   // 下一張
   const handleNext = useCallback(() => {
-    if (selectedPhotoIndex !== null && selectedPhotoIndex < photos.length - 1) {
-      setSelectedPhotoIndex(selectedPhotoIndex + 1)
+    if (selectedPhotoIndex !== null && photos.length > 0) {
+      setSelectedPhotoIndex((selectedPhotoIndex + 1) % photos.length)
     }
   }, [selectedPhotoIndex, photos.length])
 
   // 上一張
   const handlePrev = useCallback(() => {
-    if (selectedPhotoIndex !== null && selectedPhotoIndex > 0) {
-      setSelectedPhotoIndex(selectedPhotoIndex - 1)
+    if (selectedPhotoIndex !== null && photos.length > 0) {
+      setSelectedPhotoIndex((selectedPhotoIndex - 1 + photos.length) % photos.length)
     }
-  }, [selectedPhotoIndex])
+  }, [selectedPhotoIndex, photos.length])
 
   // 下拉刷新
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true)
+    setPage(1)
     refreshGallery()
     setIsRefreshing(false)
   }, [refreshGallery])
 
   // 上傳成功
   const handleUploadSuccess = useCallback(
-    (photo: GalleryPhoto) => {
+    (_photo: GalleryPhoto) => {
+      setPage(1)
       refreshGallery()
     },
     [refreshGallery]
@@ -106,7 +134,8 @@ export default function GalleryScreen() {
 
   // 編輯成功
   const handleEditSuccess = useCallback(
-    (photo: GalleryPhoto) => {
+    (_photo: GalleryPhoto) => {
+      setPage(1)
       refreshGallery()
     },
     [refreshGallery]
@@ -116,6 +145,12 @@ export default function GalleryScreen() {
   const handleOpenUpload = useCallback(() => {
     setUploadDialogOpen(true)
   }, [])
+
+  const handleLoadMore = useCallback(() => {
+    if (!isFetching && hasMore) {
+      setPage((prev) => prev + 1)
+    }
+  }, [hasMore, isFetching])
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -141,7 +176,7 @@ export default function GalleryScreen() {
       </View>
 
       {/* 圖片網格 */}
-      {isLoading ? (
+      {isLoading && page === 1 && photos.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={SEMANTIC_COLORS.textMain} />
         </View>
@@ -151,6 +186,17 @@ export default function GalleryScreen() {
           onPhotoClick={handlePhotoClick}
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
+          ListFooterComponent={
+            photos.length > 0 ? (
+              <LoadMoreButton
+                onPress={handleLoadMore}
+                loading={isFetching && page > 1}
+                hasMore={hasMore}
+                text="載入更多照片"
+                noMoreText="已顯示全部照片"
+              />
+            ) : null
+          }
           ListEmptyComponent={
             <EmptyState
               icon={ImageIcon}
@@ -170,8 +216,8 @@ export default function GalleryScreen() {
         onClose={handleCloseViewer}
         onNext={handleNext}
         onPrev={handlePrev}
-        hasNext={selectedPhotoIndex !== null && selectedPhotoIndex < photos.length - 1}
-        hasPrev={selectedPhotoIndex !== null && selectedPhotoIndex > 0}
+        hasNext={photos.length > 1}
+        hasPrev={photos.length > 1}
       />
 
       {/* 上傳 Dialog */}
@@ -179,6 +225,8 @@ export default function GalleryScreen() {
         isOpen={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
         onSuccess={handleUploadSuccess}
+        onUploadImage={uploadGalleryImage}
+        onUploadPhoto={uploadGalleryPhoto}
       />
 
       {/* 編輯 Dialog */}
@@ -190,6 +238,7 @@ export default function GalleryScreen() {
           setEditingPhoto(null)
         }}
         onSuccess={handleEditSuccess}
+        onUpdatePhoto={updateGalleryPhoto}
       />
     </SafeAreaView>
   )

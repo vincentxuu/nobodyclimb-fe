@@ -4,6 +4,7 @@
  * 取得當前用戶的照片列表
  * 對應後端 GET /galleries/photos/me
  */
+import type { ApiResponse } from '@nobodyclimb/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
 
@@ -20,6 +21,13 @@ export interface GalleryPhoto {
   username: string
   display_name?: string
   author_avatar?: string
+}
+
+export interface GalleryPhotoUpdatePayload {
+  caption?: string
+  location_country?: string
+  location_city?: string
+  location_spot?: string
 }
 
 interface PaginationInfo {
@@ -78,6 +86,62 @@ export function useUploadPhoto() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-photos'] })
+    },
+  })
+}
+
+/**
+ * 更新照片資訊
+ */
+export function useUpdatePhoto() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: GalleryPhotoUpdatePayload }) => {
+      const response = await apiClient.put<ApiResponse<GalleryPhoto>>(
+        `/galleries/photos/${id}`,
+        payload
+      )
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.message || response.data.error || '照片更新失敗')
+      }
+      return response.data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-photos'] })
+      queryClient.invalidateQueries({ queryKey: ['gallery-photos'] })
+    },
+  })
+}
+
+/**
+ * 上傳照片檔案到媒體儲存，回傳可寫入 gallery 的 URL。
+ */
+export function useUploadPhotoImage() {
+  return useMutation({
+    mutationFn: async (uri: string) => {
+      const formData = new FormData()
+      formData.append('image', {
+        uri,
+        type: 'image/jpeg',
+        name: `photo-${Date.now()}.jpg`,
+      } as unknown as Blob)
+
+      const response = await apiClient.post<ApiResponse<{ url: string }>>(
+        '/media/upload?type=gallery',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
+      if (!response.data.success || !response.data.data?.url) {
+        throw new Error(response.data.message || response.data.error || '圖片上傳失敗')
+      }
+
+      return response.data.data.url
     },
   })
 }

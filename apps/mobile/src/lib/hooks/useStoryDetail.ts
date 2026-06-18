@@ -18,13 +18,16 @@ export function isValidStoryType(type: string): type is StoryType {
   return ['core-stories', 'one-liners', 'stories'].includes(type)
 }
 
-export function useStoryDetail(type: StoryType, id: string) {
+export function useStoryDetail(type: StoryType | null | undefined, id: string) {
   return useQuery({
     queryKey: ['story', type, id],
     queryFn: async () => {
+      if (!type) {
+        throw new Error('Invalid story type')
+      }
       const { data } = await apiClient.get(STORY_ENDPOINTS[type](id))
       return data.data
     },
-    enabled: isValidStoryType(type) && !!id,
+    enabled: !!type && isValidStoryType(type) && !!id,
   })
 }

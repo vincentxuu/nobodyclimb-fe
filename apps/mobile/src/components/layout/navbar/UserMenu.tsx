@@ -4,26 +4,69 @@
  * 用戶選單，對應 apps/web/src/components/layout/navbar/UserMenu.tsx
  */
 
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet'
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
 import {
-  Bell,
+  BarChart3,
   Bookmark,
+  Brain,
+  Dumbbell,
   FileText,
   Image,
   ListChecks,
   LogOut,
+  Mountain,
   PenSquare,
   Settings,
+  Sparkles,
   Upload,
   User,
+  Video,
 } from 'lucide-react-native'
 import React, { useCallback, useRef } from 'react'
 import { Pressable, StyleSheet } from 'react-native'
 import { XStack, YStack } from 'tamagui'
-import { Avatar, Button, Divider, IconButton, Text } from '@/components/ui'
+import { NotificationCenter } from '@/components/shared/NotificationCenter'
+import { Avatar, Button, Divider, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
+
+const EXPLORE_ITEMS = [
+  {
+    icon: <Sparkles size={20} color={SEMANTIC_COLORS.textMain} />,
+    label: '人物誌',
+    path: '/biography',
+  },
+  {
+    icon: <Mountain size={20} color={SEMANTIC_COLORS.textMain} />,
+    label: '岩場',
+    path: '/crag',
+  },
+  {
+    icon: <Dumbbell size={20} color={SEMANTIC_COLORS.textMain} />,
+    label: '岩館',
+    path: '/gym',
+  },
+  {
+    icon: <Image size={20} color={SEMANTIC_COLORS.textMain} />,
+    label: '照片牆',
+    path: '/gallery',
+  },
+  {
+    icon: <Video size={20} color={SEMANTIC_COLORS.textMain} />,
+    label: '影片',
+    path: '/videos',
+  },
+  {
+    icon: <FileText size={20} color={SEMANTIC_COLORS.textMain} />,
+    label: '文章',
+    path: '/blog',
+  },
+] as const
 
 /**
  * 用戶選單組件
@@ -102,12 +145,7 @@ export function UserMenu() {
           <Text fontWeight="500">創作</Text>
         </Button>
 
-        {/* 通知按鈕 */}
-        <IconButton
-          icon={<Bell size={20} color={SEMANTIC_COLORS.textMain} />}
-          onPress={() => router.push('/notifications' as any)}
-          variant="ghost"
-        />
+        <NotificationCenter />
 
         {/* 用戶頭像 */}
         <Pressable onPress={handleOpenUserMenu}>
@@ -119,13 +157,13 @@ export function UserMenu() {
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        snapPoints={['60%']}
+        snapPoints={['80%']}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         backgroundStyle={styles.sheetBackground}
         handleIndicatorStyle={styles.sheetIndicator}
       >
-        <BottomSheetView style={styles.sheetContent}>
+        <BottomSheetScrollView contentContainerStyle={styles.sheetScrollContent}>
           {/* 用戶資訊 */}
           <XStack alignItems="center" gap={SPACING.sm} marginBottom={SPACING.md}>
             <Avatar size="lg" source={user?.avatar ? { uri: user.avatar } : undefined} />
@@ -140,6 +178,25 @@ export function UserMenu() {
           <Divider spacing={SPACING.sm} />
 
           {/* 選單項目 */}
+          <Text variant="small" color="textSubtle" marginBottom={SPACING.xs}>
+            探索
+          </Text>
+          <YStack gap={2}>
+            {EXPLORE_ITEMS.map((item) => (
+              <MenuItem
+                key={item.path}
+                icon={item.icon}
+                label={item.label}
+                onPress={() => handleMenuItemPress(item.path)}
+              />
+            ))}
+          </YStack>
+
+          <Divider spacing={SPACING.sm} />
+
+          <Text variant="small" color="textSubtle" marginBottom={SPACING.xs}>
+            個人
+          </Text>
           <YStack gap={2}>
             <MenuItem
               icon={<User size={20} color={SEMANTIC_COLORS.textMain} />}
@@ -150,6 +207,26 @@ export function UserMenu() {
               icon={<ListChecks size={20} color={SEMANTIC_COLORS.textMain} />}
               label="人生清單"
               onPress={() => handleMenuItemPress('/profile/bucket-list')}
+            />
+            <MenuItem
+              icon={<Dumbbell size={20} color={SEMANTIC_COLORS.textMain} />}
+              label="攀爬紀錄"
+              onPress={() => handleMenuItemPress('/profile/ascents')}
+            />
+            <MenuItem
+              icon={<Sparkles size={20} color={SEMANTIC_COLORS.textMain} />}
+              label="推薦"
+              onPress={() => handleMenuItemPress('/profile/recommendations')}
+            />
+            <MenuItem
+              icon={<Brain size={20} color={SEMANTIC_COLORS.textMain} />}
+              label="AI 記憶"
+              onPress={() => handleMenuItemPress('/profile/ai-memory')}
+            />
+            <MenuItem
+              icon={<BarChart3 size={20} color={SEMANTIC_COLORS.textMain} />}
+              label="成就統計"
+              onPress={() => handleMenuItemPress('/profile/stats')}
             />
             <MenuItem
               icon={<Image size={20} color={SEMANTIC_COLORS.textMain} />}
@@ -183,7 +260,7 @@ export function UserMenu() {
               labelColor="#D94A4A"
             />
           </YStack>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheet>
 
       {/* 創作選單 BottomSheet */}
@@ -260,6 +337,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.sm,
+  },
+  sheetScrollContent: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xl,
   },
   menuItem: {
     flexDirection: 'row',

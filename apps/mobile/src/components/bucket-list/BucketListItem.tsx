@@ -7,10 +7,13 @@
 
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
 import type { BucketListCategory, BucketListItem as BucketListItemType } from '@nobodyclimb/types'
+import { useRouter } from 'expo-router'
 import type { LucideIcon } from 'lucide-react-native'
 import {
   Activity,
   Award,
+  BookmarkMinus,
+  BookmarkPlus,
   Calendar,
   Check,
   Dumbbell,
@@ -25,8 +28,13 @@ import {
   Trophy,
 } from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
+import { apiClient } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { FadeIn } from '../animations'
+import { ContentCommentSheet } from '../biography/display/ContentCommentSheet'
+import { ContentLikeButton } from '../biography/display/ContentLikeButton'
+import { ShareButton } from '../shared/ShareButton'
 import { Button } from '../ui/Button'
 import { Text } from '../ui/Text'
 import { ProgressBar, ProgressTracker } from './ProgressTracker'
@@ -269,8 +277,164 @@ export function BucketListItemCard({
             完成於 {new Date(item.completed_at).toLocaleDateString('zh-TW')}
           </Text>
         )}
+
+        {item.is_public && variant !== 'compact' && (
+          <BucketListCardActions item={item} isOwner={isOwner} />
+        )}
       </View>
     </Pressable>
+  )
+}
+
+interface BucketListComment {
+  id: string
+  content: string
+  user_id?: string
+  username?: string
+  display_name?: string
+  avatar_url?: string | null
+  created_at: string
+}
+
+function mapComment(comment: BucketListComment) {
+  return {
+    id: comment.id,
+    user_id: comment.user_id,
+    content: comment.content,
+    user_name: comment.display_name || comment.username || '匿名用戶',
+    user_avatar: comment.avatar_url || undefined,
+    created_at: comment.created_at,
+  }
+}
+
+export function BucketListCardActions({
+  item,
+  isOwner,
+}: {
+  item: BucketListItemType
+  isOwner: boolean
+}) {
+  const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
+  const initialLiked = !!(item as BucketListItemType & { is_liked?: boolean }).is_liked
+  const initialReferenced = !!(item as BucketListItemType & { is_referenced?: boolean })
+    .is_referenced
+  const [liked, setLiked] = useState(initialLiked)
+  const [likeCount, setLikeCount] = useState(item.likes_count || 0)
+  const [isReferenced, setIsReferenced] = useState(initialReferenced)
+  const [referenceCount, setReferenceCount] = useState(item.inspired_count || 0)
+  const [isReferencing, setIsReferencing] = useState(false)
+
+  const requireSignIn = () => {
+    if (isAuthenticated) return true
+    router.push('/auth/login' as never)
+    return false
+  }
+
+  const handleToggleLike = async () => {
+    if (!requireSignIn()) {
+      return { liked, like_count: likeCount }
+    }
+
+    const nextLiked = !liked
+    if (nextLiked) {
+      await apiClient.post(`/bucket-list/${item.id}/like`, {})
+    } else {
+      await apiClient.delete(`/bucket-list/${item.id}/like`)
+    }
+
+    const nextCount = Math.max(0, likeCount + (nextLiked ? 1 : -1))
+    setLiked(nextLiked)
+    setLikeCount(nextCount)
+    return { liked: nextLiked, like_count: nextCount }
+  }
+
+  const handleFetchComments = async () => {
+    const response = await apiClient.get(`/bucket-list/${item.id}/comments`)
+    const comments: BucketListComment[] = response.data?.data ?? response.data ?? []
+    return comments.map(mapComment)
+  }
+
+  const handleAddComment = async (content: string) => {
+    if (!requireSignIn()) {
+      throw new Error('Login required')
+    }
+
+    const response = await apiClient.post(`/bucket-list/${item.id}/comments`, { content })
+    return mapComment(response.data?.data ?? response.data)
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    await apiClient.delete(`/bucket-list/comments/${commentId}`)
+  }
+
+  const handleToggleReference = async () => {
+    if (isReferencing || !requireSignIn()) return
+
+    const previousReferenced = isReferenced
+    const previousCount = referenceCount
+    const nextReferenced = !previousReferenced
+    setIsReferenced(nextReferenced)
+    setReferenceCount((count) => Math.max(0, count + (nextReferenced ? 1 : -1)))
+    setIsReferencing(true)
+
+    try {
+      if (nextReferenced) {
+        await apiClient.post(`/bucket-list/${item.id}/reference`, {})
+      } else {
+        await apiClient.delete(`/bucket-list/${item.id}/reference`)
+      }
+    } catch (error) {
+      console.error('Failed to toggle bucket-list reference:', error)
+      setIsReferenced(previousReferenced)
+      setReferenceCount(previousCount)
+    } finally {
+      setIsReferencing(false)
+    }
+  }
+
+  return (
+    <View style={styles.actionsRow}>
+      <View style={styles.actionsLeft}>
+        <ContentLikeButton
+          isLiked={liked}
+          likeCount={likeCount}
+          onToggle={handleToggleLike}
+          size="sm"
+        />
+        <ContentCommentSheet
+          commentCount={item.comments_count || 0}
+          onFetchComments={handleFetchComments}
+          onAddComment={handleAddComment}
+          onDeleteComment={handleDeleteComment}
+          size="sm"
+        />
+        <ShareButton
+          url={`https://nobodyclimb.cc/bucket-list/${item.id}`}
+          title={item.title}
+          size="sm"
+        />
+      </View>
+      {!isOwner && (
+        <Pressable
+          style={[styles.referenceButton, isReferenced && styles.referenceButtonActive]}
+          onPress={handleToggleReference}
+          disabled={isReferencing}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          {isReferencing ? (
+            <ActivityIndicator size="small" color={SEMANTIC_COLORS.textMuted} />
+          ) : isReferenced ? (
+            <BookmarkMinus size={16} color="#D97706" />
+          ) : (
+            <BookmarkPlus size={16} color={SEMANTIC_COLORS.textMuted} />
+          )}
+          <Text variant="small" color={isReferenced ? 'accent' : 'textMuted'}>
+            {referenceCount}
+          </Text>
+        </Pressable>
+      )}
+    </View>
   )
 }
 
@@ -498,6 +662,32 @@ const styles = StyleSheet.create({
   },
   completedDate: {
     marginTop: SPACING[2],
+  },
+  actionsRow: {
+    marginTop: SPACING[3],
+    paddingTop: SPACING[2],
+    borderTopWidth: 1,
+    borderTopColor: WB_COLORS[20],
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING[2],
+  },
+  actionsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[2],
+  },
+  referenceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[1],
+    paddingHorizontal: SPACING[2],
+    paddingVertical: SPACING[1],
+    borderRadius: RADIUS.full,
+  },
+  referenceButtonActive: {
+    backgroundColor: '#FEF3C7',
   },
   sectionHeader: {
     flexDirection: 'row',

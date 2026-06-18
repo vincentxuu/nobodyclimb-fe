@@ -8,11 +8,13 @@ import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { Building2, ChevronRight, MapPin, Mountain, Video } from 'lucide-react-native'
-import { useCallback, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Card, SearchInput, Text } from '@/components/ui'
+import { useCrags } from '@/lib/hooks/useCrags'
+import { useGyms } from '@/lib/hooks/useGyms'
 
 // 探索類別
 const EXPLORE_CATEGORIES = [
@@ -45,12 +47,14 @@ const EXPLORE_CATEGORIES = [
   },
 ]
 
-// 熱門地點
-const POPULAR_LOCATIONS = [
-  { id: '1', name: '龍洞', type: '戶外岩場', image: 'https://picsum.photos/200/150?random=1' },
-  { id: '2', name: '大砲岩', type: '戶外岩場', image: 'https://picsum.photos/200/150?random=2' },
-  { id: '3', name: 'RedRock', type: '岩館', image: 'https://picsum.photos/200/150?random=3' },
-]
+interface PopularLocation {
+  id: string
+  name: string
+  type: '戶外岩場' | '岩館'
+  meta: string
+  image?: string
+  route: string
+}
 
 interface CategoryCardProps {
   category: (typeof EXPLORE_CATEGORIES)[0]
@@ -86,6 +90,33 @@ function CategoryCard({ category, onPress, index }: CategoryCardProps) {
 export default function ExploreScreen() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
+  const { data: crags = [], isLoading: isLoadingCrags } = useCrags({ limit: 4 })
+  const { data: gyms = [], isLoading: isLoadingGyms } = useGyms({ limit: 20 })
+
+  const popularLocations = useMemo<PopularLocation[]>(() => {
+    const cragItems = crags.slice(0, 2).map((crag) => ({
+      id: crag.id,
+      name: crag.name,
+      type: '戶外岩場' as const,
+      meta: crag.location,
+      image: crag.image,
+      route: `/crag/${crag.id}`,
+    }))
+
+    const gymItems = [...gyms]
+      .sort((a, b) => Number(b.featured) - Number(a.featured) || b.rating - a.rating)
+      .slice(0, 2)
+      .map((gym) => ({
+        id: gym.id,
+        name: gym.name,
+        type: '岩館' as const,
+        meta: gym.location || gym.typeLabel,
+        image: gym.image,
+        route: `/gym/${gym.id}`,
+      }))
+
+    return [...cragItems, ...gymItems].slice(0, 4)
+  }, [crags, gyms])
 
   const handleSearch = useCallback(
     (value: string) => {
@@ -104,13 +135,7 @@ export default function ExploreScreen() {
     [router]
   )
 
-  const handleLocationPress = useCallback(
-    (id: string, type: string) => {
-      const route = type === '岩館' ? `/gym/${id}` : `/crag/${id}`
-      router.push(route as any)
-    },
-    [router]
-  )
+  const handleLocationPress = useCallback((route: string) => router.push(route as any), [router])
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -153,44 +178,67 @@ export default function ExploreScreen() {
             <Text variant="h4" fontWeight="600">
               熱門地點
             </Text>
-            <Pressable>
+            <Pressable onPress={() => router.push('/crag' as any)}>
               <Text variant="small" color="textSubtle">
                 查看更多
               </Text>
             </Pressable>
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.popularList}
-          >
-            {POPULAR_LOCATIONS.map((location) => (
-              <Pressable
-                key={location.id}
-                style={styles.locationCard}
-                onPress={() => handleLocationPress(location.id, location.type)}
-              >
-                <Image
-                  source={{ uri: location.image }}
-                  style={styles.locationImage}
-                  contentFit="cover"
-                  transition={300}
-                />
-                <View style={styles.locationInfo}>
-                  <Text variant="body" fontWeight="500">
-                    {location.name}
-                  </Text>
-                  <View style={styles.locationMeta}>
-                    <MapPin size={12} color={SEMANTIC_COLORS.textMuted} />
-                    <Text variant="small" color="textMuted">
+          {isLoadingCrags || isLoadingGyms ? (
+            <View style={styles.popularLoading}>
+              <ActivityIndicator color={SEMANTIC_COLORS.textMain} />
+            </View>
+          ) : popularLocations.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.popularList}
+            >
+              {popularLocations.map((location) => (
+                <Pressable
+                  key={`${location.type}-${location.id}`}
+                  style={styles.locationCard}
+                  onPress={() => handleLocationPress(location.route)}
+                >
+                  {location.image ? (
+                    <Image
+                      source={{ uri: location.image }}
+                      style={styles.locationImage}
+                      contentFit="cover"
+                      transition={300}
+                    />
+                  ) : (
+                    <View style={styles.locationImagePlaceholder}>
+                      <Text variant="h3" fontWeight="700" style={styles.locationInitial}>
+                        {location.name.charAt(0)}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.locationInfo}>
+                    <Text variant="body" fontWeight="500" numberOfLines={1}>
+                      {location.name}
+                    </Text>
+                    <View style={styles.locationMeta}>
+                      <MapPin size={12} color={SEMANTIC_COLORS.textMuted} />
+                      <Text variant="small" color="textMuted" numberOfLines={1}>
+                        {location.meta || location.type}
+                      </Text>
+                    </View>
+                    <Text variant="small" color="textSubtle">
                       {location.type}
                     </Text>
                   </View>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
+                </Pressable>
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.emptyPopular}>
+              <Text variant="small" color="textMuted">
+                目前沒有可顯示的熱門地點
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.bottomPadding} />
@@ -250,6 +298,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     gap: SPACING.sm,
   },
+  popularLoading: {
+    paddingVertical: SPACING.lg,
+  },
+  emptyPopular: {
+    marginHorizontal: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+  },
   locationCard: {
     width: 160,
     borderRadius: RADIUS.md,
@@ -264,6 +321,16 @@ const styles = StyleSheet.create({
   locationImage: {
     width: '100%',
     height: 100,
+  },
+  locationImagePlaceholder: {
+    width: '100%',
+    height: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E5E7EB',
+  },
+  locationInitial: {
+    color: SEMANTIC_COLORS.textMuted,
   },
   locationInfo: {
     padding: SPACING.sm,

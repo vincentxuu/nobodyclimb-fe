@@ -20,6 +20,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { XStack, YStack } from 'tamagui'
+import { GOOGLE_AUTH_CONFIGURED, GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
 import { Button, Link, Spinner, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
 
@@ -61,8 +62,12 @@ export default function RegisterScreen() {
 
     setError('')
     try {
-      await register(username, email, password)
-      router.replace('/auth/profile-setup/basic-info')
+      const result = await register(username, email, password)
+      if (result.success) {
+        router.replace('/auth/profile-setup/basic-info')
+      } else {
+        setError(result.error || '註冊失敗，請稍後再試')
+      }
     } catch (err: any) {
       setError(err.message || '註冊失敗，請稍後再試')
     }
@@ -203,19 +208,20 @@ export default function RegisterScreen() {
                 </Button>
               </YStack>
 
-              {/* 分隔線 */}
-              <XStack alignItems="center" width="100%" gap={SPACING.md}>
-                <View style={styles.divider} />
-                <Text variant="caption" color="textMuted">
-                  或
-                </Text>
-                <View style={styles.divider} />
-              </XStack>
+              {GOOGLE_AUTH_CONFIGURED && (
+                <>
+                  {/* 分隔線 */}
+                  <XStack alignItems="center" width="100%" gap={SPACING.md}>
+                    <View style={styles.divider} />
+                    <Text variant="caption" color="textMuted">
+                      或
+                    </Text>
+                    <View style={styles.divider} />
+                  </XStack>
 
-              {/* Google 註冊 (TODO: 實作 expo-auth-session) */}
-              <Button variant="secondary" style={styles.googleButton}>
-                <Text>使用 Google 註冊</Text>
-              </Button>
+                  <GoogleAuthButton mode="register" onError={setError} />
+                </>
+              )}
 
               {/* 登入連結 */}
               <XStack gap={SPACING.xs}>
@@ -301,9 +307,5 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     backgroundColor: '#D3D3D3',
-  },
-  googleButton: {
-    width: '100%',
-    height: 44,
   },
 })

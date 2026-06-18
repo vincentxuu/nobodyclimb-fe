@@ -37,7 +37,7 @@ type ViewMode = 'list' | 'edit' | 'complete'
 export default function AnonymousShareScreen() {
   const router = useRouter()
   const { status } = useAuthStore()
-  const { session, isEligibleToShare, sessionId } = useGuestSession()
+  const { session, isEligibleToShare, getSessionId } = useGuestSession()
 
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [stories, setStories] = useState<StoryInput[]>([])
@@ -120,6 +120,7 @@ export default function AnonymousShareScreen() {
       return
     }
 
+    const sessionId = getSessionId()
     if (!sessionId) {
       setError('Session 遺失，請重新開啟頁面')
       return

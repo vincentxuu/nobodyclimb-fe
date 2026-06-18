@@ -24,11 +24,12 @@ import { apiClient } from '@/lib/api'
 
 // 類型定義
 interface Visitor {
-  id: string
-  name: string
+  biography_id: string
+  biography_name: string
+  biography_slug: string
   avatar_url: string | null
-  slug: string
-  climbing_years?: number
+  visit_year: string | null
+  notes: string | null
 }
 
 interface BucketListItem {
@@ -275,23 +276,27 @@ export default function LocationDetailScreen() {
             <View style={styles.visitorGrid}>
               {visitors.map((visitor, index) => (
                 <Animated.View
-                  key={visitor.id}
+                  key={visitor.biography_id}
                   entering={FadeInDown.delay(index * 50).duration(400)}
                 >
                   <Pressable
                     style={styles.visitorCard}
-                    onPress={() => router.push(`/biography/${visitor.slug}` as any)}
+                    onPress={() =>
+                      router.push(
+                        `/biography/profile/${visitor.biography_slug || visitor.biography_id}` as any
+                      )
+                    }
                   >
                     <Avatar
                       size="md"
                       source={visitor.avatar_url ? { uri: visitor.avatar_url } : undefined}
                     />
                     <Text variant="small" fontWeight="500" numberOfLines={1}>
-                      {visitor.name}
+                      {visitor.biography_name}
                     </Text>
-                    {visitor.climbing_years && (
+                    {visitor.visit_year && (
                       <Text variant="small" color="textMuted">
-                        {visitor.climbing_years} 年
+                        {visitor.visit_year}
                       </Text>
                     )}
                   </Pressable>
@@ -329,7 +334,7 @@ export default function LocationDetailScreen() {
                   {item.author_name && (
                     <Pressable
                       style={styles.authorLink}
-                      onPress={() => router.push(`/biography/${item.author_slug}` as any)}
+                      onPress={() => router.push(`/biography/profile/${item.author_slug}` as any)}
                     >
                       <Text variant="small" color="textMuted">
                         由 {item.author_name} 設立

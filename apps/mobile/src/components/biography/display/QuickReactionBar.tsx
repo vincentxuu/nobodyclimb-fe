@@ -19,10 +19,11 @@ import { apiClient } from '@/lib/api'
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 type ContentType = 'core-stories' | 'one-liners' | 'stories'
+type ReactionType = 'me_too' | 'plus_one' | 'well_said'
 
 // 快速回應類型
 interface QuickReaction {
-  id: string
+  id: ReactionType
   label: string
   emoji: string
 }
@@ -90,36 +91,57 @@ interface QuickReactionBarProps {
 }
 
 export function QuickReactionBar({ contentType, contentId, size = 'sm' }: QuickReactionBarProps) {
-  const [reactions, setReactions] = useState<Record<string, { count: number; isReacted: boolean }>>(
-    {
-      me_too: { count: 0, isReacted: false },
-      plus_one: { count: 0, isReacted: false },
-      well_said: { count: 0, isReacted: false },
-    }
-  )
+  const [reactions, setReactions] = useState<
+    Record<ReactionType, { count: number; isReacted: boolean }>
+  >({
+    me_too: { count: 0, isReacted: false },
+    plus_one: { count: 0, isReacted: false },
+    well_said: { count: 0, isReacted: false },
+  })
 
   // 從 API 獲取初始回應狀態
   useEffect(() => {
     const fetchReactions = async () => {
       try {
         const response = await apiClient.get(`/content/${contentType}/${contentId}/reactions`)
-        const data = response.data?.data ?? response.data ?? []
+        const data = response.data?.data ?? response.data
+
         if (Array.isArray(data)) {
-          const mapped: Record<string, { count: number; isReacted: boolean }> = {
+          const mapped: Record<ReactionType, { count: number; isReacted: boolean }> = {
             me_too: { count: 0, isReacted: false },
             plus_one: { count: 0, isReacted: false },
             well_said: { count: 0, isReacted: false },
           }
           data.forEach((item: any) => {
-            if (mapped[item.reaction_id]) {
-              mapped[item.reaction_id] = {
+            const reactionId = item.reaction_id as ReactionType
+            if (mapped[reactionId]) {
+              mapped[reactionId] = {
                 count: item.count ?? 0,
                 isReacted: item.is_reacted ?? false,
               }
             }
           })
           setReactions(mapped)
+          return
         }
+
+        const counts = data?.counts ?? data?.reaction_counts ?? {}
+        const userReactions = new Set<ReactionType>(data?.user_reactions ?? [])
+
+        setReactions({
+          me_too: {
+            count: counts.me_too ?? 0,
+            isReacted: userReactions.has('me_too'),
+          },
+          plus_one: {
+            count: counts.plus_one ?? 0,
+            isReacted: userReactions.has('plus_one'),
+          },
+          well_said: {
+            count: counts.well_said ?? 0,
+            isReacted: userReactions.has('well_said'),
+          },
+        })
       } catch (_error) {
         // 靜默失敗，保持預設值
       }
@@ -128,7 +150,7 @@ export function QuickReactionBar({ contentType, contentId, size = 'sm' }: QuickR
   }, [contentType, contentId])
 
   const handleReaction = useCallback(
-    async (reactionId: string) => {
+    async (reactionId: ReactionType) => {
       // 樂觀更新
       setReactions((prev) => {
         const current = prev[reactionId]
@@ -143,9 +165,19 @@ export function QuickReactionBar({ contentType, contentId, size = 'sm' }: QuickR
       })
 
       try {
-        await apiClient.post(`/content/${contentType}/${contentId}/reactions`, {
-          reaction_id: reactionId,
+        const response = await apiClient.post(`/content/${contentType}/${contentId}/reaction`, {
+          reaction_type: reactionId,
         })
+        const data = response.data?.data ?? response.data
+        const counts = data?.reaction_counts
+        if (counts) {
+          setReactions((prev) => ({
+            ...prev,
+            me_too: { ...prev.me_too, count: counts.me_too ?? prev.me_too.count },
+            plus_one: { ...prev.plus_one, count: counts.plus_one ?? prev.plus_one.count },
+            well_said: { ...prev.well_said, count: counts.well_said ?? prev.well_said.count },
+          }))
+        }
       } catch (_error) {
         // 回滾
         setReactions((prev) => {

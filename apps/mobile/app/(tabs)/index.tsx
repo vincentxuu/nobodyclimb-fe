@@ -19,31 +19,28 @@ import {
 import { ScrollLayout } from '@/components/layout'
 
 export default function HomeScreen() {
-  const [_refreshing, setRefreshing] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true)
-    // TODO: 實作資料刷新邏輯
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setRefreshing(false)
+    setRefreshKey((key) => key + 1)
   }, [])
 
   return (
     <ScrollLayout enableRefresh onRefresh={onRefresh} padding={0}>
       {/* 趣味冷知識 */}
-      <FunFactSection />
+      <FunFactSection key={`fun-${refreshKey}`} />
 
       {/* 品牌介紹 */}
       <HeroIntroSection />
 
       {/* 查路線 - 探索岩場 */}
-      <ExploreCragSection />
+      <ExploreCragSection key={`crag-${refreshKey}`} />
 
       {/* 看故事 - 精選故事 */}
-      <FeaturedStoriesSection />
+      <FeaturedStoriesSection key={`stories-${refreshKey}`} />
 
       {/* 寫紀錄 - 人物誌精選 */}
-      <BiographySection />
+      <BiographySection key={`bio-${refreshKey}`} />
 
       {/* 關於小人物攀岩 */}
       <AboutSection />

@@ -5,7 +5,10 @@
  */
 
 import { SPACING, WB_COLORS } from '@nobodyclimb/constants'
+import { useRouter } from 'expo-router'
 import { StyleSheet, View } from 'react-native'
+import { ShareButton } from '@/components/shared'
+import { apiClient } from '@/lib/api'
 import { ContentCommentSheet } from './ContentCommentSheet'
 import { ContentLikeButton } from './ContentLikeButton'
 import { QuickReactionBar } from './QuickReactionBar'
@@ -46,6 +49,10 @@ interface ContentInteractionBarProps {
   showBorder?: boolean
   /** 是否置中對齊 */
   centered?: boolean
+  /** 分享連結 */
+  shareUrl?: string
+  /** 分享標題 */
+  shareTitle?: string
 }
 
 export function ContentInteractionBar({
@@ -61,7 +68,16 @@ export function ContentInteractionBar({
   size = 'sm',
   showBorder = true,
   centered = false,
+  shareUrl,
+  shareTitle,
 }: ContentInteractionBarProps) {
+  const router = useRouter()
+
+  const handleFetchLikers = async () => {
+    const response = await apiClient.get(`/content/${contentType}/${contentId}/likers`)
+    return response.data?.data?.likers ?? []
+  }
+
   return (
     <View style={[styles.container, showBorder && styles.withBorder, centered && styles.centered]}>
       <QuickReactionBar contentType={contentType} contentId={contentId} size={size} />
@@ -70,6 +86,8 @@ export function ContentInteractionBar({
           isLiked={isLiked}
           likeCount={likeCount}
           onToggle={onToggleLike}
+          onFetchLikers={handleFetchLikers}
+          onPressLiker={(user) => router.push(`/biography/profile/${user.username}` as never)}
           size={size}
         />
         <ContentCommentSheet
@@ -79,6 +97,9 @@ export function ContentInteractionBar({
           onDeleteComment={onDeleteComment}
           size={size}
         />
+        {shareUrl || shareTitle ? (
+          <ShareButton url={shareUrl} title={shareTitle} size={size === 'sm' ? 'sm' : 'md'} />
+        ) : null}
       </View>
     </View>
   )

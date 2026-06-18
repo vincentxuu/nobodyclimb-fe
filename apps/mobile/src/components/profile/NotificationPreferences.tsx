@@ -1,67 +1,167 @@
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
-import { StyleSheet, View } from 'react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native'
+import { apiClient } from '@/lib/api'
 import { Switch } from '../ui/Switch'
 import { Text } from '../ui/Text'
 
-interface NotificationSetting {
-  id: string
-  label: string
-  description: string
-  enabled: boolean
+interface NotificationPreferencesState {
+  goal_liked: boolean
+  goal_commented: boolean
+  goal_referenced: boolean
+  post_liked: boolean
+  post_commented: boolean
+  biography_commented: boolean
+  new_follower: boolean
+  story_featured: boolean
+  goal_completed: boolean
+  email_digest: boolean
 }
 
-interface NotificationPreferencesProps {
-  settings?: NotificationSetting[]
-  onToggle?: (id: string, enabled: boolean) => void
+type NotificationPreferenceKey = keyof NotificationPreferencesState
+
+interface NotificationSetting {
+  id: NotificationPreferenceKey
+  label: string
+  description: string
+  disabled?: boolean
+}
+
+const DEFAULT_PREFERENCES: NotificationPreferencesState = {
+  goal_liked: true,
+  goal_commented: true,
+  goal_referenced: true,
+  post_liked: true,
+  post_commented: true,
+  biography_commented: true,
+  new_follower: true,
+  story_featured: true,
+  goal_completed: true,
+  email_digest: false,
 }
 
 const DEFAULT_SETTINGS: NotificationSetting[] = [
   {
-    id: 'new_followers',
+    id: 'goal_liked',
+    label: '目標被按讚',
+    description: '有人按讚你的人生清單目標時通知',
+  },
+  {
+    id: 'goal_commented',
+    label: '目標被留言',
+    description: '有人在你的目標下留言時通知',
+  },
+  {
+    id: 'goal_referenced',
+    label: '目標被引用',
+    description: '有人受到你的目標啟發時通知',
+  },
+  {
+    id: 'post_liked',
+    label: '文章被按讚',
+    description: '有人按讚你的文章時通知',
+  },
+  {
+    id: 'post_commented',
+    label: '文章被留言',
+    description: '有人在你的文章下留言時通知',
+  },
+  {
+    id: 'biography_commented',
+    label: '人物誌被留言',
+    description: '有人在你的人物誌留言時通知',
+  },
+  {
+    id: 'new_follower',
     label: '新追蹤者',
-    description: '有人追蹤你時收到通知',
-    enabled: true,
+    description: '有人追蹤你時通知',
   },
   {
-    id: 'comments',
-    label: '留言',
-    description: '有人在你的內容下留言時收到通知',
-    enabled: true,
+    id: 'goal_completed',
+    label: '目標完成',
+    description: '你的目標完成狀態更新時通知',
   },
   {
-    id: 'likes',
-    label: '按讚',
-    description: '有人按讚你的內容時收到通知',
-    enabled: false,
+    id: 'story_featured',
+    label: '故事精選',
+    description: '你的故事被精選時通知',
   },
   {
-    id: 'mentions',
-    label: '提及',
-    description: '有人提及你時收到通知',
-    enabled: true,
-  },
-  {
-    id: 'updates',
-    label: '系統更新',
-    description: '收到新功能和重要更新通知',
-    enabled: true,
+    id: 'email_digest',
+    label: 'Email 摘要',
+    description: '定期接收通知摘要',
+    disabled: true,
   },
 ]
 
-export default function NotificationPreferences({
-  settings = DEFAULT_SETTINGS,
-  onToggle,
-}: NotificationPreferencesProps) {
+export default function NotificationPreferences() {
+  const [preferences, setPreferences] = useState<NotificationPreferencesState>(DEFAULT_PREFERENCES)
+  const [isLoading, setIsLoading] = useState(true)
+  const [savingKeys, setSavingKeys] = useState<Set<NotificationPreferenceKey>>(new Set())
+
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const response = await apiClient.get('/notifications/preferences')
+        const data = response.data?.data ?? response.data
+        if (data) {
+          setPreferences({ ...DEFAULT_PREFERENCES, ...data })
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '請稍後再試'
+        Alert.alert('通知設定載入失敗', message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadPreferences()
+  }, [])
+
+  const handleToggle = useCallback(async (key: NotificationPreferenceKey, value: boolean) => {
+    setPreferences((current) => ({ ...current, [key]: value }))
+    setSavingKeys((current) => new Set(current).add(key))
+
+    try {
+      const response = await apiClient.put('/notifications/preferences', { [key]: value })
+      const success = response.data?.success ?? true
+      if (!success) {
+        throw new Error(response.data?.message ?? '通知設定更新失敗')
+      }
+    } catch (error) {
+      setPreferences((current) => ({ ...current, [key]: !value }))
+      const message = error instanceof Error ? error.message : '請稍後再試'
+      Alert.alert('通知設定更新失敗', message)
+    } finally {
+      setSavingKeys((current) => {
+        const next = new Set(current)
+        next.delete(key)
+        return next
+      })
+    }
+  }, [])
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="small" color={SEMANTIC_COLORS.textMain} />
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <Text variant="bodyBold" style={{ color: SEMANTIC_COLORS.textMain, marginBottom: 16 }}>
         通知設定
       </Text>
 
-      {settings.map((setting, index) => (
+      {DEFAULT_SETTINGS.map((setting, index) => (
         <View
           key={setting.id}
-          style={[styles.settingRow, index < settings.length - 1 && styles.settingRowBorder]}
+          style={[
+            styles.settingRow,
+            index < DEFAULT_SETTINGS.length - 1 && styles.settingRowBorder,
+          ]}
         >
           <View style={styles.settingInfo}>
             <Text variant="body" style={{ color: SEMANTIC_COLORS.textMain }}>
@@ -72,8 +172,9 @@ export default function NotificationPreferences({
             </Text>
           </View>
           <Switch
-            checked={setting.enabled}
-            onCheckedChange={(checked) => onToggle?.(setting.id, checked)}
+            checked={preferences[setting.id]}
+            disabled={setting.disabled || savingKeys.has(setting.id)}
+            onCheckedChange={(checked) => handleToggle(setting.id, checked)}
           />
         </View>
       ))}
@@ -86,6 +187,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 16,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 120,
   },
   settingRow: {
     flexDirection: 'row',

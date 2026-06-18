@@ -4,7 +4,7 @@ import { Brain, ChevronLeft, Trash2 } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ConfirmDialog, Text } from '@/components/ui'
+import { Button, ConfirmDialog, Text } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import {
   type MemoryKey,
@@ -40,7 +40,7 @@ const ListSeparator = () => <View style={{ height: SPACING.sm }} />
 
 export default function AiMemoryScreen() {
   const router = useRouter()
-  const { data: memories, isLoading, isError } = useAiMemory()
+  const { data: memories, isLoading, isError, refetch, isRefetching } = useAiMemory()
   const deleteMemory = useDeleteAiMemory()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const toast = useToast()
@@ -92,7 +92,11 @@ export default function AiMemoryScreen() {
     if (isError) {
       return (
         <View style={styles.center}>
+          <Brain size={48} color={WB_COLORS[30]} />
           <Text style={styles.emptyText}>載入失敗，請稍後再試</Text>
+          <Button onPress={() => refetch()} loading={isRefetching} style={styles.retryButton}>
+            重新載入
+          </Button>
         </View>
       )
     }
@@ -121,7 +125,10 @@ export default function AiMemoryScreen() {
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <ChevronLeft size={24} color={WB_COLORS[70]} />
         </Pressable>
-        <Text style={styles.title}>AI 記憶</Text>
+        <View style={styles.titleBlock}>
+          <Text style={styles.title}>AI 記憶</Text>
+          <Text style={styles.subtitle}>管理 AI 從對話中學到的攀岩偏好</Text>
+        </View>
         <View style={{ width: 40 }} />
       </View>
 
@@ -153,7 +160,9 @@ const styles = StyleSheet.create({
     borderBottomColor: SEMANTIC_COLORS.border,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '600' },
+  titleBlock: { flex: 1, alignItems: 'center', gap: 2 },
+  title: { textAlign: 'center', fontSize: 18, fontWeight: '600', color: SEMANTIC_COLORS.textMain },
+  subtitle: { textAlign: 'center', fontSize: 12, color: SEMANTIC_COLORS.textMuted },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -182,4 +191,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
+  retryButton: { marginTop: SPACING.xs },
 })

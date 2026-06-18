@@ -7,25 +7,11 @@
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import {
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-  Instagram,
-  MapPin,
-  Play,
-  Plus,
-  Ruler,
-  Share2,
-  Shield,
-  User,
-  Youtube,
-} from 'lucide-react-native'
-import React, { useState } from 'react'
+import { ChevronLeft, ChevronRight, MapPin, Ruler, Share2, Shield, User } from 'lucide-react-native'
+import { useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
-  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -34,58 +20,37 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { RoutePhotosSection } from '@/components/crag'
+import { RouteInstagramSection, RoutePhotosSection, RouteYouTubeSection } from '@/components/crag'
 import { RouteAscentsSection } from '@/components/crag/RouteAscentsSection'
-import { RouteMediaForm, type RouteMediaFormRef } from '@/components/crag/RouteMediaForm'
 import { RouteStoriesSection } from '@/components/crag/RouteStoriesSection'
 import { IconButton, Text } from '@/components/ui'
 import { useRouteDetail } from '@/lib/hooks/useCrags'
-import { useCreateRouteStory } from '@/lib/hooks/useRouteStories'
-import { useAuthStore } from '@/store/authStore'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
-// 將 YouTube URL 轉換為縮圖 URL
-function getYoutubeThumbnail(url: string): string | null {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/)
-  if (match) {
-    return `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg`
-  }
-  return null
-}
-
 export default function RouteDetailScreen() {
   const router = useRouter()
-  const { id, routeId } = useLocalSearchParams<{ id: string; routeId: string }>()
+  const {
+    id,
+    routeId,
+    q,
+    area: areaFilter,
+    sector,
+    grade,
+    type,
+  } = useLocalSearchParams<{
+    id: string
+    routeId: string
+    q?: string
+    area?: string
+    sector?: string
+    grade?: string
+    type?: string
+  }>()
 
   const { data: routeData, isLoading, refetch } = useRouteDetail(id, routeId)
   const [refreshing, setRefreshing] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
-
-  // 媒體分享
-  const youtubeFormRef = React.useRef<RouteMediaFormRef>(null)
-  const instagramFormRef = React.useRef<RouteMediaFormRef>(null)
-  const createStory = useCreateRouteStory()
-  const { status } = useAuthStore()
-  const isLoggedIn = status === 'signIn'
-
-  const handleShareYoutube = async (data: { content?: string; youtube_url?: string }) => {
-    await createStory.mutateAsync({
-      route_id: routeId,
-      content: data.content || '分享影片',
-      youtube_url: data.youtube_url,
-      visibility: 'public',
-    })
-  }
-
-  const handleShareInstagram = async (data: { content?: string; instagram_url?: string }) => {
-    await createStory.mutateAsync({
-      route_id: routeId,
-      content: data.content || '分享貼文',
-      instagram_url: data.instagram_url,
-      visibility: 'public',
-    })
-  }
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -114,16 +79,19 @@ export default function RouteDetailScreen() {
     router.push(`/crag/${id}/area/${routeData.area.id}` as any)
   }
 
+  const getRouteFilterQueryString = () => {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (areaFilter) params.set('area', areaFilter)
+    if (sector) params.set('sector', sector)
+    if (grade) params.set('grade', grade)
+    if (type) params.set('type', type)
+    const queryString = params.toString()
+    return queryString ? `?${queryString}` : ''
+  }
+
   const handleRelatedRoutePress = (relatedRouteId: string) => {
-    router.push(`/crag/${id}/route/${relatedRouteId}` as any)
-  }
-
-  const handleYoutubePress = (url: string) => {
-    Linking.openURL(url)
-  }
-
-  const handleInstagramPress = (url: string) => {
-    Linking.openURL(url)
+    router.push(`/crag/${id}/route/${relatedRouteId}${getRouteFilterQueryString()}` as any)
   }
 
   if (isLoading) {
@@ -155,38 +123,6 @@ export default function RouteDetailScreen() {
 
   const { route, crag, area, relatedRoutes } = routeData
   const hasImages = route.images && route.images.length > 0
-  const hasInstagramPosts = route.instagramPosts && route.instagramPosts.length > 0
-
-  // 合併關聯影片 (videos from route_videos table) 和 youtubeVideos (URL list)
-  const allVideos: Array<
-    | {
-        type: 'linked'
-        id: string
-        title: string
-        youtubeId: string
-        thumbnailUrl?: string
-        channel?: string
-      }
-    | { type: 'url'; url: string }
-  > = [
-    // API 關聯影片（有完整資訊）
-    ...(route.videos || [])
-      .filter((v: any) => v.youtubeId || v.youtube_id)
-      .map((v: any) => ({
-        type: 'linked' as const,
-        id: v.id,
-        title: v.title,
-        youtubeId: v.youtubeId || v.youtube_id,
-        thumbnailUrl: v.thumbnailUrl || v.thumbnail_url,
-        channel: v.channel,
-      })),
-    // youtubeVideos URL 列表
-    ...(route.youtubeVideos || []).map((url: string) => ({
-      type: 'url' as const,
-      url,
-    })),
-  ]
-  const hasVideos = allVideos.length > 0
 
   return (
     <>
@@ -270,47 +206,73 @@ export default function RouteDetailScreen() {
 
           {/* 照片輪播 */}
           {hasImages && (
-            <View style={styles.photoSection}>
-              <Image
-                source={{ uri: route.images[currentPhotoIndex] }}
-                style={styles.mainPhoto}
-                contentFit="cover"
-              />
+            <View style={styles.photoGallery}>
+              <View style={styles.photoSection}>
+                <Image
+                  source={{ uri: route.images[currentPhotoIndex] }}
+                  style={styles.mainPhoto}
+                  contentFit="cover"
+                />
+                {route.images.length > 1 && (
+                  <>
+                    <Pressable
+                      style={[styles.photoNav, styles.photoNavLeft]}
+                      onPress={() =>
+                        setCurrentPhotoIndex((prev) =>
+                          prev === 0 ? route.images.length - 1 : prev - 1
+                        )
+                      }
+                    >
+                      <ChevronLeft size={24} color="#FFFFFF" />
+                    </Pressable>
+                    <Pressable
+                      style={[styles.photoNav, styles.photoNavRight]}
+                      onPress={() =>
+                        setCurrentPhotoIndex((prev) =>
+                          prev === route.images.length - 1 ? 0 : prev + 1
+                        )
+                      }
+                    >
+                      <ChevronRight size={24} color="#FFFFFF" />
+                    </Pressable>
+                    <View style={styles.photoDots}>
+                      {route.images.map((_: string, index: number) => (
+                        <Pressable
+                          key={index}
+                          onPress={() => setCurrentPhotoIndex(index)}
+                          style={[
+                            styles.photoDot,
+                            currentPhotoIndex === index && styles.photoDotActive,
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </>
+                )}
+              </View>
               {route.images.length > 1 && (
-                <>
-                  <Pressable
-                    style={[styles.photoNav, styles.photoNavLeft]}
-                    onPress={() =>
-                      setCurrentPhotoIndex((prev) =>
-                        prev === 0 ? route.images.length - 1 : prev - 1
-                      )
-                    }
-                  >
-                    <ChevronLeft size={24} color="#FFFFFF" />
-                  </Pressable>
-                  <Pressable
-                    style={[styles.photoNav, styles.photoNavRight]}
-                    onPress={() =>
-                      setCurrentPhotoIndex((prev) =>
-                        prev === route.images.length - 1 ? 0 : prev + 1
-                      )
-                    }
-                  >
-                    <ChevronRight size={24} color="#FFFFFF" />
-                  </Pressable>
-                  <View style={styles.photoDots}>
-                    {route.images.map((_: string, index: number) => (
-                      <Pressable
-                        key={index}
-                        onPress={() => setCurrentPhotoIndex(index)}
-                        style={[
-                          styles.photoDot,
-                          currentPhotoIndex === index && styles.photoDotActive,
-                        ]}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.photoThumbnailStrip}
+                >
+                  {route.images.map((image: string, index: number) => (
+                    <Pressable
+                      key={`${image}-${index}`}
+                      onPress={() => setCurrentPhotoIndex(index)}
+                      style={[
+                        styles.photoThumbnailButton,
+                        currentPhotoIndex === index && styles.photoThumbnailButtonActive,
+                      ]}
+                    >
+                      <Image
+                        source={{ uri: image }}
+                        style={styles.photoThumbnail}
+                        contentFit="cover"
                       />
-                    ))}
-                  </View>
-                </>
+                    </Pressable>
+                  ))}
+                </ScrollView>
               )}
             </View>
           )}
@@ -426,139 +388,18 @@ export default function RouteDetailScreen() {
           />
 
           {/* YouTube 影片 */}
-          {hasVideos && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}
-                >
-                  <View style={styles.sectionBar} />
-                  <Youtube size={18} color="#FF0000" />
-                  <Text variant="body" fontWeight="600">
-                    YouTube 影片
-                  </Text>
-                </View>
-                {isLoggedIn && (
-                  <Pressable
-                    style={styles.addButton}
-                    onPress={() => youtubeFormRef.current?.open()}
-                  >
-                    <Plus size={16} color="#2563EB" />
-                    <Text variant="caption" style={{ color: '#2563EB' }}>
-                      分享
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-              <View style={styles.videoList}>
-                {allVideos.map((video, index) => {
-                  if (video.type === 'linked') {
-                    const thumbnailUrl =
-                      video.thumbnailUrl ||
-                      `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`
-                    return (
-                      <Pressable
-                        key={`linked-${video.id}`}
-                        style={styles.videoCard}
-                        onPress={() =>
-                          handleYoutubePress(`https://www.youtube.com/watch?v=${video.youtubeId}`)
-                        }
-                      >
-                        <View style={styles.videoThumbnailContainer}>
-                          <Image
-                            source={{ uri: thumbnailUrl }}
-                            style={styles.videoThumbnail}
-                            contentFit="cover"
-                          />
-                          <View style={styles.mediaPlayIcon}>
-                            <Play size={24} color="#FFFFFF" />
-                          </View>
-                        </View>
-                        <View style={styles.videoInfo}>
-                          <Text variant="body" fontWeight="500" numberOfLines={2}>
-                            {video.title}
-                          </Text>
-                          {video.channel && (
-                            <Text variant="small" color="textMuted" style={{ marginTop: 2 }}>
-                              {video.channel}
-                            </Text>
-                          )}
-                        </View>
-                      </Pressable>
-                    )
-                  } else {
-                    const thumbnail = getYoutubeThumbnail(video.url)
-                    return (
-                      <Pressable
-                        key={`url-${index}`}
-                        style={styles.mediaCard}
-                        onPress={() => handleYoutubePress(video.url)}
-                      >
-                        {thumbnail ? (
-                          <Image
-                            source={{ uri: thumbnail }}
-                            style={styles.mediaThumbnail}
-                            contentFit="cover"
-                          />
-                        ) : (
-                          <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
-                            <Youtube size={32} color="#FF0000" />
-                          </View>
-                        )}
-                        <View style={styles.mediaPlayIcon}>
-                          <Play size={24} color="#FFFFFF" />
-                        </View>
-                      </Pressable>
-                    )
-                  }
-                })}
-              </View>
-            </View>
-          )}
+          <RouteYouTubeSection
+            routeId={routeId}
+            routeName={route.name}
+            staticVideos={[...(route.videos || []), ...(route.youtubeVideos || [])]}
+          />
 
           {/* Instagram 貼文 */}
-          {hasInstagramPosts && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flex: 1 }}
-                >
-                  <View style={styles.sectionBar} />
-                  <Instagram size={18} color="#E4405F" />
-                  <Text variant="body" fontWeight="600">
-                    Instagram 貼文
-                  </Text>
-                </View>
-                {isLoggedIn && (
-                  <Pressable
-                    style={styles.addButton}
-                    onPress={() => instagramFormRef.current?.open()}
-                  >
-                    <Plus size={16} color="#2563EB" />
-                    <Text variant="caption" style={{ color: '#2563EB' }}>
-                      分享
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-              <View style={styles.mediaGrid}>
-                {route.instagramPosts.map((url: string, index: number) => (
-                  <Pressable
-                    key={index}
-                    style={styles.mediaCard}
-                    onPress={() => handleInstagramPress(url)}
-                  >
-                    <View style={[styles.mediaThumbnail, styles.mediaPlaceholder]}>
-                      <Instagram size={32} color="#E4405F" />
-                    </View>
-                    <View style={styles.mediaLinkIcon}>
-                      <ExternalLink size={16} color="#FFFFFF" />
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
+          <RouteInstagramSection
+            routeId={routeId}
+            routeName={route.name}
+            staticPosts={route.instagramPosts || []}
+          />
 
           {/* 攀爬記錄 */}
           <RouteAscentsSection routeId={routeId} routeName={route.name} routeGrade={route.grade} />
@@ -601,28 +442,6 @@ export default function RouteDetailScreen() {
           <View style={styles.bottomPadding} />
         </ScrollView>
       </SafeAreaView>
-
-      {/* 媒體分享表單 */}
-      {isLoggedIn && (
-        <RouteMediaForm
-          ref={youtubeFormRef}
-          routeId={routeId}
-          routeName={route.name}
-          mediaType="youtube"
-          onSubmit={handleShareYoutube}
-          isLoading={createStory.isPending}
-        />
-      )}
-      {isLoggedIn && (
-        <RouteMediaForm
-          ref={instagramFormRef}
-          routeId={routeId}
-          routeName={route.name}
-          mediaType="instagram"
-          onSubmit={handleShareInstagram}
-          isLoading={createStory.isPending}
-        />
-      )}
     </>
   )
 }
@@ -701,10 +520,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 16,
   },
+  photoGallery: {
+    marginBottom: SPACING.md,
+  },
   photoSection: {
     position: 'relative',
     aspectRatio: 16 / 9,
-    marginBottom: SPACING.md,
   },
   mainPhoto: {
     width: '100%',
@@ -744,6 +565,27 @@ const styles = StyleSheet.create({
   },
   photoDotActive: {
     backgroundColor: '#FFE70C',
+  },
+  photoThumbnailStrip: {
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: 2,
+  },
+  photoThumbnailButton: {
+    width: 96,
+    height: 64,
+    borderRadius: RADIUS.sm,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    overflow: 'hidden',
+  },
+  photoThumbnailButtonActive: {
+    borderColor: '#FFE70C',
+  },
+  photoThumbnail: {
+    width: '100%',
+    height: '100%',
   },
   infoCards: {
     flexDirection: 'row',

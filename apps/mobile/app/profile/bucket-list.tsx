@@ -6,30 +6,117 @@
  */
 
 import { RADIUS, SEMANTIC_COLORS, SPACING } from '@nobodyclimb/constants'
+import type { CompleteBucketListInput, CreateBucketListInput } from '@nobodyclimb/schemas'
+import type { BucketListItem as SharedBucketListItem } from '@nobodyclimb/types'
 import { useRouter } from 'expo-router'
-import { CheckCircle2, ChevronLeft, Circle, MapPin, Mountain, Plus } from 'lucide-react-native'
-import { useCallback } from 'react'
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native'
+import {
+  CheckCircle2,
+  ChevronLeft,
+  Circle,
+  Edit2,
+  MapPin,
+  Mountain,
+  Plus,
+  Trash2,
+} from 'lucide-react-native'
+import { useCallback, useMemo, useState } from 'react'
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { BucketListCompletionForm } from '@/components/bucket-list/BucketListCompletionForm'
+import { BucketListForm } from '@/components/bucket-list/BucketListForm'
+import { ProgressBar, ProgressTracker } from '@/components/bucket-list/ProgressTracker'
 import { ProtectedRoute } from '@/components/shared'
-import { IconButton, Text } from '@/components/ui'
+import { Button, IconButton, Text } from '@/components/ui'
 import {
   type BucketListItem,
   useBucketList,
+  useCompleteBucketItem,
+  useCreateBucketItem,
   useDeleteBucketItem,
   useToggleBucketItem,
+  useUpdateBucketItem,
+  useUpdateBucketMilestone,
 } from '@/lib/hooks'
+
+type TabValue = 'all' | 'active' | 'completed' | 'archived'
+
+const STATUS_TABS: { value: TabValue; label: string }[] = [
+  { value: 'all', label: '全部' },
+  { value: 'active', label: '進行中' },
+  { value: 'completed', label: '已完成' },
+  { value: 'archived', label: '已封存' },
+]
+
+const CATEGORY_LABELS: Record<string, string> = {
+  outdoor_route: '戶外路線',
+  indoor_grade: '室內難度',
+  competition: '比賽目標',
+  training: '訓練目標',
+  adventure: '冒險挑戰',
+  skill: '技能學習',
+  injury_recovery: '受傷復原',
+  other: '其他',
+}
 
 interface BucketCardProps {
   item: BucketListItem
   onToggle: () => void
+  onEdit: () => void
   onDelete: () => void
+  onMilestoneToggle: (milestoneId: string, completed: boolean) => void
   index: number
 }
 
-function BucketCard({ item, onToggle, onDelete, index }: BucketCardProps) {
+function parseMilestones(item: BucketListItem) {
+  if (!item.enable_progress || item.progress_mode !== 'milestone' || !item.milestones) return null
+
+  if (typeof item.milestones === 'string') {
+    try {
+      const parsed = JSON.parse(item.milestones)
+      return Array.isArray(parsed) ? parsed : null
+    } catch {
+      return null
+    }
+  }
+
+  return Array.isArray(item.milestones) ? item.milestones : null
+}
+
+function getDisplayProgress(item: BucketListItem) {
+  if (!item.enable_progress) return null
+
+  const milestones = parseMilestones(item)
+  if (item.progress_mode === 'milestone' && milestones?.length) {
+    const completed = milestones.filter((milestone) => milestone.completed).length
+    return Math.round((completed / milestones.length) * 100)
+  }
+
+  return item.progress
+}
+
+function BucketCard({
+  item,
+  onToggle,
+  onEdit,
+  onDelete,
+  onMilestoneToggle,
+  index,
+}: BucketCardProps) {
   const isCompleted = item.status === 'completed'
+  const isArchived = item.status === 'archived'
+  const categoryLabel = CATEGORY_LABELS[item.category] ?? item.category
+  const milestones = parseMilestones(item)
+  const displayProgress = getDisplayProgress(item)
 
   const handleLongPress = () => {
     Alert.alert('刪除項目', `確定要刪除「${item.title}」嗎？`, [
@@ -44,6 +131,7 @@ function BucketCard({ item, onToggle, onDelete, index }: BucketCardProps) {
         style={({ pressed }) => [
           styles.bucketCard,
           isCompleted && styles.bucketCardCompleted,
+          isArchived && styles.bucketCardArchived,
           pressed && styles.bucketCardPressed,
         ]}
         onLongPress={handleLongPress}
@@ -83,14 +171,45 @@ function BucketCard({ item, onToggle, onDelete, index }: BucketCardProps) {
               目標日期：{item.target_date.split('T')[0]}
             </Text>
           ) : null}
-        </View>
-        {item.category && (
-          <View style={styles.typeBadge}>
-            <Text variant="small" color="textMuted">
-              {item.category}
-            </Text>
+          {item.enable_progress && displayProgress !== null && !isCompleted && (
+            <View style={styles.progressSection}>
+              {item.progress_mode === 'milestone' && milestones ? (
+                <ProgressTracker
+                  mode="milestone"
+                  progress={displayProgress}
+                  milestones={milestones}
+                  size="sm"
+                  editable
+                  showLabels
+                  onMilestoneToggle={onMilestoneToggle}
+                />
+              ) : (
+                <ProgressBar progress={displayProgress} size="sm" />
+              )}
+            </View>
+          )}
+          <View style={styles.cardActions}>
+            {!isArchived && (
+              <Button variant="secondary" size="sm" onPress={onEdit} leftIcon={Edit2}>
+                編輯
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onPress={handleLongPress}
+              leftIcon={Trash2}
+              style={styles.deleteButton}
+            >
+              刪除
+            </Button>
           </View>
-        )}
+        </View>
+        <View style={styles.typeBadge}>
+          <Text variant="small" color="textMuted">
+            {categoryLabel}
+          </Text>
+        </View>
       </Pressable>
     </Animated.View>
   )
@@ -99,24 +218,101 @@ function BucketCard({ item, onToggle, onDelete, index }: BucketCardProps) {
 export default function BucketListScreen() {
   const router = useRouter()
   const { data: bucketList = [], isLoading, isError, refetch } = useBucketList()
+  const createMutation = useCreateBucketItem()
+  const completeMutation = useCompleteBucketItem()
   const toggleMutation = useToggleBucketItem()
   const deleteMutation = useDeleteBucketItem()
+  const updateMutation = useUpdateBucketItem()
+  const updateMilestoneMutation = useUpdateBucketMilestone()
+  const [isFormVisible, setIsFormVisible] = useState(false)
+  const [editingItem, setEditingItem] = useState<BucketListItem | null>(null)
+  const [completingItem, setCompletingItem] = useState<BucketListItem | null>(null)
+  const [activeTab, setActiveTab] = useState<TabValue>('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
   const handleBack = () => {
     router.back()
   }
 
   const handleAddItem = () => {
-    // TODO: 打開新增心願的表單
-    Alert.alert('新增心願', '此功能開發中')
+    setEditingItem(null)
+    setIsFormVisible(true)
   }
+
+  const handleCloseForm = useCallback(() => {
+    setIsFormVisible(false)
+    setEditingItem(null)
+  }, [])
+
+  const handleEditItem = useCallback((item: BucketListItem) => {
+    setEditingItem(item)
+    setIsFormVisible(true)
+  }, [])
+
+  const handleSubmitItem = useCallback(
+    (data: CreateBucketListInput) => {
+      if (editingItem) {
+        updateMutation.mutate(
+          { id: editingItem.id, data },
+          {
+            onSuccess: () => {
+              handleCloseForm()
+              Alert.alert('更新成功', '心願已更新')
+            },
+            onError: (error) => {
+              const message = error instanceof Error ? error.message : '請稍後再試'
+              Alert.alert('更新失敗', message)
+            },
+          }
+        )
+        return
+      }
+
+      createMutation.mutate(data, {
+        onSuccess: () => {
+          handleCloseForm()
+          Alert.alert('新增成功', '心願已加入清單')
+        },
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : '請稍後再試'
+          Alert.alert('新增失敗', message)
+        },
+      })
+    },
+    [createMutation, editingItem, handleCloseForm, updateMutation]
+  )
 
   const handleToggleItem = useCallback(
     (item: BucketListItem) => {
-      const willComplete = item.status !== 'completed'
-      toggleMutation.mutate({ id: item.id, completed: willComplete })
+      if (item.status === 'completed') {
+        toggleMutation.mutate({ id: item.id, completed: false })
+        return
+      }
+
+      setCompletingItem(item)
     },
     [toggleMutation]
+  )
+
+  const handleCompleteItem = useCallback(
+    (data: CompleteBucketListInput) => {
+      if (!completingItem) return
+
+      completeMutation.mutate(
+        { id: completingItem.id, data },
+        {
+          onSuccess: () => {
+            setCompletingItem(null)
+            Alert.alert('已標記完成', '完成故事已儲存')
+          },
+          onError: (error) => {
+            const message = error instanceof Error ? error.message : '請稍後再試'
+            Alert.alert('儲存失敗', message)
+          },
+        }
+      )
+    },
+    [completeMutation, completingItem]
   )
 
   const handleDeleteItem = useCallback(
@@ -126,14 +322,61 @@ export default function BucketListScreen() {
     [deleteMutation]
   )
 
-  const completedCount = bucketList.filter((i) => i.status === 'completed').length
-  const pendingCount = bucketList.filter((i) => i.status !== 'completed').length
+  const handleMilestoneToggle = useCallback(
+    (itemId: string, milestoneId: string, completed: boolean) => {
+      updateMilestoneMutation.mutate(
+        { id: itemId, milestoneId, completed },
+        {
+          onError: (error) => {
+            const message = error instanceof Error ? error.message : '請稍後再試'
+            Alert.alert('更新里程碑失敗', message)
+          },
+        }
+      )
+    },
+    [updateMilestoneMutation]
+  )
+
+  const stats = useMemo(
+    () => ({
+      total: bucketList.length,
+      active: bucketList.filter((i) => i.status === 'active').length,
+      completed: bucketList.filter((i) => i.status === 'completed').length,
+      archived: bucketList.filter((i) => i.status === 'archived').length,
+    }),
+    [bucketList]
+  )
+
+  const categoryOptions = useMemo(() => {
+    const categories = Array.from(new Set(bucketList.map((item) => item.category).filter(Boolean)))
+    return categories.map((value) => ({
+      value,
+      label: CATEGORY_LABELS[value] ?? value,
+      count: bucketList.filter((item) => item.category === value).length,
+    }))
+  }, [bucketList])
+
+  const filteredBucketList = useMemo(() => {
+    return bucketList
+      .filter((item) => activeTab === 'all' || item.status === activeTab)
+      .filter((item) => categoryFilter === 'all' || item.category === categoryFilter)
+      .sort((a, b) => {
+        const statusOrder = { active: 0, completed: 1, archived: 2 }
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status]
+        if (statusDiff !== 0) return statusDiff
+        return (a.sort_order || 0) - (b.sort_order || 0)
+      })
+  }, [activeTab, bucketList, categoryFilter])
 
   const renderItem = ({ item, index }: { item: BucketListItem; index: number }) => (
     <BucketCard
       item={item}
       onToggle={() => handleToggleItem(item)}
+      onEdit={() => handleEditItem(item)}
       onDelete={() => handleDeleteItem(item.id)}
+      onMilestoneToggle={(milestoneId, completed) =>
+        handleMilestoneToggle(item.id, milestoneId, completed)
+      }
       index={index}
     />
   )
@@ -163,7 +406,25 @@ export default function BucketListScreen() {
           <View style={styles.statsBar}>
             <View style={styles.statBox}>
               <Text variant="h4" fontWeight="700" style={styles.completedNumber}>
-                {completedCount}
+                {stats.total}
+              </Text>
+              <Text variant="small" color="textMuted">
+                全部
+              </Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text variant="h4" fontWeight="700">
+                {stats.active}
+              </Text>
+              <Text variant="small" color="textMuted">
+                進行中
+              </Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text variant="h4" fontWeight="700" style={styles.completedNumber}>
+                {stats.completed}
               </Text>
               <Text variant="small" color="textMuted">
                 已完成
@@ -171,13 +432,80 @@ export default function BucketListScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text variant="h4" fontWeight="700">
-                {pendingCount}
+              <Text variant="h4" fontWeight="700" color="textMuted">
+                {stats.archived}
               </Text>
               <Text variant="small" color="textMuted">
-                進行中
+                已封存
               </Text>
             </View>
+          </View>
+        )}
+
+        {!isLoading && !isError && bucketList.length > 0 && (
+          <View style={styles.filters}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.filterRow}>
+                {STATUS_TABS.map((tab) => {
+                  const count = tab.value === 'all' ? stats.total : stats[tab.value]
+                  const isActive = activeTab === tab.value
+                  return (
+                    <Pressable
+                      key={tab.value}
+                      onPress={() => setActiveTab(tab.value)}
+                      style={[styles.filterChip, isActive && styles.filterChipActive]}
+                    >
+                      <Text
+                        variant="small"
+                        fontWeight={isActive ? '600' : '400'}
+                        style={isActive && styles.filterChipTextActive}
+                      >
+                        {tab.label} ({count})
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </ScrollView>
+            {categoryOptions.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.filterRow}>
+                  <Pressable
+                    onPress={() => setCategoryFilter('all')}
+                    style={[
+                      styles.categoryChip,
+                      categoryFilter === 'all' && styles.filterChipActive,
+                    ]}
+                  >
+                    <Text
+                      variant="small"
+                      fontWeight={categoryFilter === 'all' ? '600' : '400'}
+                      style={categoryFilter === 'all' && styles.filterChipTextActive}
+                    >
+                      全部分類
+                    </Text>
+                  </Pressable>
+                  {categoryOptions.map((category) => {
+                    const isActive = categoryFilter === category.value
+                    return (
+                      <Pressable
+                        key={category.value}
+                        onPress={() => setCategoryFilter(category.value)}
+                        style={[styles.categoryChip, isActive && styles.filterChipActive]}
+                      >
+                        <Text
+                          variant="small"
+                          fontWeight={isActive ? '600' : '400'}
+                          style={isActive && styles.filterChipTextActive}
+                        >
+                          {category.label} ({category.count})
+                        </Text>
+                      </Pressable>
+                    )
+                  })}
+                </View>
+              </ScrollView>
+            )}
           </View>
         )}
 
@@ -204,18 +532,65 @@ export default function BucketListScreen() {
             <Text variant="body" color="textSubtle" style={styles.emptyText}>
               還沒有心願清單
             </Text>
-            <Text variant="small" color="textMuted">
-              點擊右上角新增目標
+            <Button variant="primary" size="md" onPress={handleAddItem}>
+              <Text fontWeight="600" style={styles.addButtonText}>
+                新增目標
+              </Text>
+            </Button>
+          </View>
+        ) : filteredBucketList.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Mountain size={48} color={SEMANTIC_COLORS.textMuted} />
+            <Text variant="body" color="textSubtle" style={styles.emptyText}>
+              目前篩選沒有符合的目標
             </Text>
+            <Button
+              variant="secondary"
+              size="md"
+              onPress={() => {
+                setActiveTab('all')
+                setCategoryFilter('all')
+              }}
+            >
+              清除篩選
+            </Button>
           </View>
         ) : (
           <FlatList
-            data={bucketList}
+            data={filteredBucketList}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
           />
         )}
+
+        <Modal visible={isFormVisible} animationType="slide" onRequestClose={handleCloseForm}>
+          <SafeAreaView style={styles.formContainer} edges={['top', 'bottom']}>
+            <BucketListForm
+              item={editingItem as SharedBucketListItem | null}
+              onSubmit={handleSubmitItem}
+              onCancel={handleCloseForm}
+              isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+          </SafeAreaView>
+        </Modal>
+
+        <Modal
+          visible={!!completingItem}
+          animationType="slide"
+          onRequestClose={() => setCompletingItem(null)}
+        >
+          <SafeAreaView style={styles.formContainer} edges={['top', 'bottom']}>
+            {completingItem && (
+              <BucketListCompletionForm
+                item={completingItem}
+                onSubmit={handleCompleteItem}
+                onCancel={() => setCompletingItem(null)}
+                isLoading={completeMutation.isPending}
+              />
+            )}
+          </SafeAreaView>
+        </Modal>
       </SafeAreaView>
     </ProtectedRoute>
   )
@@ -272,6 +647,10 @@ const styles = StyleSheet.create({
   bucketCardCompleted: {
     backgroundColor: '#F0FDF4',
   },
+  bucketCardArchived: {
+    backgroundColor: '#F3F4F6',
+    opacity: 0.82,
+  },
   bucketCardPressed: {
     opacity: 0.7,
   },
@@ -303,11 +682,59 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
+  cardActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    marginTop: SPACING.xs,
+  },
+  progressSection: {
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  deleteButton: {
+    borderColor: '#FCA5A5',
+  },
   typeBadge: {
     backgroundColor: '#F5F5F5',
     paddingHorizontal: SPACING.xs,
     paddingVertical: 2,
     borderRadius: RADIUS.sm,
+  },
+  filters: {
+    backgroundColor: SEMANTIC_COLORS.cardBg,
+    paddingVertical: SPACING.sm,
+    gap: SPACING.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+  },
+  filterChip: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  categoryChip: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  filterChipActive: {
+    backgroundColor: SEMANTIC_COLORS.textMain,
+    borderColor: SEMANTIC_COLORS.textMain,
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
@@ -322,5 +749,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: SPACING.sm,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+  },
+  formContainer: {
+    flex: 1,
+    backgroundColor: SEMANTIC_COLORS.pageBg,
   },
 })

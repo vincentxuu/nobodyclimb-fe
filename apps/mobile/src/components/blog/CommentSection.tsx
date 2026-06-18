@@ -32,6 +32,8 @@ interface CommentSectionProps {
   postId: string
   /** 是否已登入 */
   isLoggedIn?: boolean
+  /** 評論數量變更時通知父層 */
+  onCommentCountChange?: (count: number) => void
 }
 
 /**
@@ -186,7 +188,11 @@ function LoadingComments() {
 // CommentSection 主組件
 // ============================================
 
-export function CommentSection({ postId, isLoggedIn = false }: CommentSectionProps) {
+export function CommentSection({
+  postId,
+  isLoggedIn = false,
+  onCommentCountChange,
+}: CommentSectionProps) {
   const toast = useToast()
   const { user } = useAuthStore()
   const [comments, setComments] = useState<CommentData[]>([])
@@ -204,13 +210,14 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
       if (response.data.success && response.data.data) {
         setComments(response.data.data)
         setTotalComments(response.data.data.length)
+        onCommentCountChange?.(response.data.data.length)
       }
     } catch (err) {
       console.error('Failed to fetch comments:', err)
     } finally {
       setIsLoading(false)
     }
-  }, [postId])
+  }, [postId, onCommentCountChange])
 
   useEffect(() => {
     fetchComments()
@@ -228,7 +235,11 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
         if (response.data.success && response.data.data) {
           const newComment = response.data.data
           setComments((prev) => [newComment, ...prev])
-          setTotalComments((prev) => prev + 1)
+          setTotalComments((prev) => {
+            const next = prev + 1
+            onCommentCountChange?.(next)
+            return next
+          })
           toast.show({
             message: '留言發表成功',
             variant: 'success',
@@ -244,7 +255,7 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
         setIsSubmitting(false)
       }
     },
-    [postId, toast]
+    [postId, toast, onCommentCountChange]
   )
 
   // 刪除評論
@@ -253,7 +264,11 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
       try {
         await api.delete(`/posts/${postId}/comments/${commentId}`)
         setComments((prev) => prev.filter((c) => c.id !== commentId))
-        setTotalComments((prev) => Math.max(0, prev - 1))
+        setTotalComments((prev) => {
+          const next = Math.max(0, prev - 1)
+          onCommentCountChange?.(next)
+          return next
+        })
         toast.show({
           message: '留言已刪除',
           variant: 'success',
@@ -266,7 +281,7 @@ export function CommentSection({ postId, isLoggedIn = false }: CommentSectionPro
         })
       }
     },
-    [postId, toast]
+    [postId, toast, onCommentCountChange]
   )
 
   // 渲染單個評論

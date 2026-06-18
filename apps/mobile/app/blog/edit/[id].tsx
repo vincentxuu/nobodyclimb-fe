@@ -22,81 +22,62 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { ArticleHtmlContent } from '@/components/blog'
+import { RichTextEditor } from '@/components/editor'
 import { ProtectedRoute } from '@/components/shared'
-import { Button, IconButton, Text } from '@/components/ui'
+import { Button, IconButton, Select, TagInput, Text } from '@/components/ui'
+import {
+  htmlToEditableArticleText,
+  markdownToArticleHtml,
+  plainTextSummary,
+} from '@/lib/articleFormatting'
+import {
+  POST_CATEGORIES,
+  type PostPayload,
+  usePost,
+  useUpdatePost,
+  useUploadPostImage,
+} from '@/lib/hooks/usePosts'
 
 type ArticleStatus = 'draft' | 'published' | 'archived'
 
-interface ArticleData {
-  id: string
-  title: string
-  content: string
-  coverImage?: string | null
-  category?: string
-  tags?: string[]
-  status: ArticleStatus
-  excerpt?: string
+function generateSummary(content: string, fallback: string) {
+  return plainTextSummary(content, fallback)
 }
 
 export default function EditArticleScreen() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { data: article, isLoading, error } = usePost(id)
+  const updatePost = useUpdatePost()
+  const uploadPostImage = useUploadPostImage()
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [category, setCategory] = useState<PostPayload['category']>(null)
+  const [tags, setTags] = useState<string[]>([])
+  const [summary, setSummary] = useState('')
   const [coverImage, setCoverImage] = useState<string | null>(null)
   const [status, setStatus] = useState<ArticleStatus>('draft')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(false)
+  const isSubmitting = updatePost.isPending || uploadPostImage.isPending
 
   // 載入文章資料
   useEffect(() => {
-    const loadArticle = async () => {
-      if (!id) {
-        router.back()
-        return
-      }
-
-      try {
-        // TODO: 整合 postService.getPostById(id)
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // 模擬資料
-        const mockArticle: ArticleData = {
-          id,
-          title: '攀岩入門指南：從零開始的完整攻略',
-          content: `攀岩是一項結合力量、技巧和心理素質的運動。
-
-## 什麼是攀岩？
-
-攀岩是指使用手腳攀爬岩壁或人工岩牆的運動。
-
-## 開始前的準備
-
-- 攀岩鞋：最重要的裝備
-- 粉袋：用於吸收手汗
-- 安全吊帶：如果進行上攀`,
-          coverImage: 'https://picsum.photos/800/400?random=30',
-          status: 'draft',
-        }
-
-        setTitle(mockArticle.title)
-        setContent(mockArticle.content)
-        setCoverImage(mockArticle.coverImage || null)
-        setStatus(mockArticle.status)
-      } catch (error) {
-        console.error('載入文章時出錯:', error)
-        Alert.alert('載入失敗', '無法載入文章，請稍後再試', [
-          { text: '確定', onPress: () => router.back() },
-        ])
-      } finally {
-        setIsLoading(false)
-      }
+    if (!id) {
+      router.back()
+      return
     }
+    if (!article) return
 
-    loadArticle()
-  }, [id, router])
+    setTitle(article.title)
+    setContent(htmlToEditableArticleText(article.content))
+    setSummary(article.excerpt || '')
+    setCoverImage(article.cover_image || null)
+    setTags(article.tags || [])
+    setStatus(article.status)
+    setCategory((article.category || null) as PostPayload['category'])
+  }, [article, id, router])
 
   const handleBack = () => {
     if (title || content) {
@@ -126,6 +107,23 @@ export default function EditArticleScreen() {
     setCoverImage(null)
   }
 
+  const handleInsertContentImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.85,
+    })
+
+    if (result.canceled || !result.assets[0]) return
+
+    try {
+      const imageUrl = await uploadPostImage.mutateAsync({ uri: result.assets[0].uri })
+      setContent((current) => `${current.trim()}\n\n![image](${imageUrl})\n\n`)
+    } catch (_error) {
+      Alert.alert('圖片上傳失敗', '請稍後再試')
+    }
+  }
+
   const handleSubmit = useCallback(
     async (newStatus: ArticleStatus) => {
       if (!title.trim()) {
@@ -137,27 +135,41 @@ export default function EditArticleScreen() {
         return
       }
 
-      setIsSubmitting(true)
       try {
-        // TODO: 整合 postService.updatePost(id, postData)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const uploadedCover =
+          coverImage && !coverImage.startsWith('http')
+            ? await uploadPostImage.mutateAsync({ uri: coverImage })
+            : coverImage
+
+        await updatePost.mutateAsync({
+          id,
+          payload: {
+            title: title.trim(),
+            content: markdownToArticleHtml(content),
+            excerpt: generateSummary(content, summary),
+            cover_image: uploadedCover || '',
+            category,
+            tags,
+            status: newStatus,
+          },
+        })
 
         const successMessage = newStatus === 'published' ? '文章更新成功！' : '草稿儲存成功！'
-        Alert.alert('成功', successMessage, [{ text: '好', onPress: () => router.back() }])
+        Alert.alert('成功', successMessage, [
+          { text: '好', onPress: () => router.replace('/profile/articles' as never) },
+        ])
       } catch (error) {
         console.error('更新文章時出錯:', error)
         Alert.alert('更新失敗', '請稍後再試')
-      } finally {
-        setIsSubmitting(false)
       }
     },
-    [id, title, content, coverImage, router]
+    [category, content, coverImage, id, router, summary, tags, title, updatePost, uploadPostImage]
   )
 
   const handleSaveDraft = () => handleSubmit('draft')
   const handlePublish = () => handleSubmit(status === 'published' ? 'published' : 'published')
 
-  const isValid = title.trim() && content.trim()
+  const isValid = Boolean(title.trim() && content.trim())
 
   // 載入中狀態
   if (isLoading) {
@@ -168,6 +180,19 @@ export default function EditArticleScreen() {
           <Text variant="body" color="textSubtle" style={styles.loadingText}>
             載入中...
           </Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (error || !article) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Text variant="body" color="textSubtle" style={styles.loadingText}>
+            無法載入文章
+          </Text>
+          <Button onPress={() => router.replace('/profile/articles' as never)}>返回文章列表</Button>
         </View>
       </SafeAreaView>
     )
@@ -199,12 +224,32 @@ export default function EditArticleScreen() {
             />
           )}
           <View style={styles.previewContent}>
+            <View style={styles.previewMetaRow}>
+              {category ? (
+                <View style={styles.categoryChip}>
+                  <Text variant="small" style={styles.categoryChipText}>
+                    {POST_CATEGORIES.find((item) => item.value === category)?.label ?? category}
+                  </Text>
+                </View>
+              ) : null}
+              {tags.map((tag) => (
+                <View key={tag} style={styles.previewTagChip}>
+                  <Text variant="small" color="textSubtle">
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
             <Text variant="h2" fontWeight="700">
               {title || '未命名文章'}
             </Text>
-            <Text variant="body" style={styles.previewText}>
-              {content || '尚無內容'}
-            </Text>
+            {content.trim() ? (
+              <ArticleHtmlContent html={markdownToArticleHtml(content)} />
+            ) : (
+              <Text variant="body" style={styles.previewText}>
+                尚無內容
+              </Text>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -284,18 +329,55 @@ export default function EditArticleScreen() {
               />
             </View>
 
+            <View style={styles.metaSection}>
+              <View style={styles.fieldBlock}>
+                <Text variant="bodyBold">分類</Text>
+                <Select
+                  value={category ?? ''}
+                  onValueChange={(value) => setCategory(value as PostPayload['category'])}
+                  title="文章分類"
+                  placeholder="選擇分類"
+                  options={POST_CATEGORIES}
+                />
+              </View>
+              <View style={styles.fieldBlock}>
+                <Text variant="bodyBold">標籤</Text>
+                <TagInput
+                  tags={tags}
+                  onTagsChange={setTags}
+                  maxTags={5}
+                  placeholder="輸入標籤後按完成"
+                />
+              </View>
+              <View style={styles.fieldBlock}>
+                <Text variant="bodyBold">摘要（選填）</Text>
+                <TextInput
+                  style={styles.summaryInput}
+                  value={summary}
+                  onChangeText={setSummary}
+                  placeholder="留空會自動從內容產生摘要..."
+                  placeholderTextColor={SEMANTIC_COLORS.textMuted}
+                  multiline
+                  maxLength={200}
+                />
+                <Text variant="caption" color="textMuted" align="right">
+                  {summary.length}/200
+                </Text>
+              </View>
+            </View>
+
             {/* 內容輸入 */}
             <View style={styles.contentSection}>
-              <TextInput
-                style={styles.contentInput}
+              <RichTextEditor
                 value={content}
-                onChangeText={setContent}
+                onChange={setContent}
                 placeholder="開始寫你的文章..."
-                placeholderTextColor={SEMANTIC_COLORS.textMuted}
-                multiline
-                textAlignVertical="top"
+                minHeight={300}
+                maxHeight={520}
+                onImageInsert={handleInsertContentImage}
               />
             </View>
+            <View style={styles.bottomPadding} />
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -423,6 +505,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.md,
   },
+  metaSection: {
+    gap: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.md,
+  },
+  fieldBlock: {
+    gap: SPACING.sm,
+  },
+  summaryInput: {
+    minHeight: 96,
+    padding: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: '#D3D3D3',
+    color: SEMANTIC_COLORS.textMain,
+    backgroundColor: '#FFFFFF',
+    textAlignVertical: 'top',
+  },
   titleInput: {
     fontSize: 24,
     fontWeight: '700',
@@ -472,7 +572,31 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     gap: SPACING.md,
   },
+  previewMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+  },
+  categoryChip: {
+    borderRadius: RADIUS.full,
+    backgroundColor: SEMANTIC_COLORS.textMain,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+  },
+  categoryChipText: {
+    color: '#FFFFFF',
+  },
+  previewTagChip: {
+    borderWidth: 1,
+    borderColor: '#D3D3D3',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+  },
   previewText: {
     lineHeight: 26,
+  },
+  bottomPadding: {
+    height: 96,
   },
 })

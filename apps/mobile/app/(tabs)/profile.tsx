@@ -16,7 +16,9 @@ import {
   ListChecks,
   LogOut,
   Mountain,
+  PenLine,
   Settings,
+  Shield,
   Sparkles,
   User,
 } from 'lucide-react-native'
@@ -56,6 +58,7 @@ function MenuItem({ icon, label, onPress, showArrow = true, destructive = false 
 export default function ProfileScreen() {
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuthStore()
+  const canAccessAdmin = user?.role === 'admin' || user?.role === 'moderator'
 
   const handleLogin = useCallback(() => {
     router.push('/auth/login')
@@ -125,6 +128,11 @@ export default function ProfileScreen() {
             onPress={() => handleNavigate('/profile/biography')}
           />
           <MenuItem
+            icon={<PenLine size={20} color={SEMANTIC_COLORS.textMain} />}
+            label="編輯人物誌"
+            onPress={() => handleNavigate('/profile/editor')}
+          />
+          <MenuItem
             icon={<ListChecks size={20} color={SEMANTIC_COLORS.textMain} />}
             label="人生清單"
             onPress={() => handleNavigate('/profile/bucket-list')}
@@ -164,6 +172,13 @@ export default function ProfileScreen() {
             label="路線推薦"
             onPress={() => handleNavigate('/profile/recommendations')}
           />
+          {canAccessAdmin && (
+            <MenuItem
+              icon={<Shield size={20} color={SEMANTIC_COLORS.textMain} />}
+              label="管理後台"
+              onPress={() => handleNavigate('/admin')}
+            />
+          )}
         </View>
 
         <Divider style={styles.divider} />

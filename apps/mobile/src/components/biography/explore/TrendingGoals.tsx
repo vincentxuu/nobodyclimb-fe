@@ -44,9 +44,18 @@ const BUCKET_LIST_CATEGORIES = [
 interface TrendingGoalsProps {
   searchTerm?: string
   filter?: string
+  category?: string
+  title?: string
+  emptyMessage?: string
 }
 
-export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
+export function TrendingGoals({
+  searchTerm,
+  filter,
+  category,
+  title,
+  emptyMessage,
+}: TrendingGoalsProps) {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
   const [items, setItems] = useState<TrendingItem[]>([])
@@ -60,7 +69,9 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     setError(null)
 
     try {
-      const response = await apiClient.get('/content/popular/bucket-list')
+      const response = await apiClient.get('/bucket-list/explore/trending', {
+        params: { limit: 10 },
+      })
       const rawData: TrendingItem[] = response.data?.data ?? response.data ?? []
 
       let filteredData = rawData
@@ -74,6 +85,10 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
             item.target_location?.toLowerCase().includes(search) ||
             item.author_name?.toLowerCase().includes(search)
         )
+      }
+
+      if (category) {
+        filteredData = filteredData.filter((item) => item.category === category)
       }
 
       // 依分類過濾
@@ -97,7 +112,7 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     } finally {
       setLoading(false)
     }
-  }, [searchTerm, filter])
+  }, [searchTerm, filter, category])
 
   useEffect(() => {
     loadTrendingItems()
@@ -112,15 +127,20 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
     setAddingItems((prev) => new Set(prev).add(itemId))
 
     try {
-      await apiClient.post(`/bucket-list/reference`, { item_id: itemId })
+      await apiClient.post(`/bucket-list/${itemId}/reference`)
       setAddedItems((prev) => new Set(prev).add(itemId))
       setItems((prev) =>
         prev.map((item) =>
           item.id === itemId ? { ...item, inspired_count: (item.inspired_count || 0) + 1 } : item
         )
       )
-    } catch (err) {
-      console.error('Failed to add to list:', err)
+    } catch (err: unknown) {
+      const error = err as { response?: { status?: number } }
+      if (error?.response?.status === 409) {
+        setAddedItems((prev) => new Set(prev).add(itemId))
+      } else {
+        console.error('Failed to add to list:', err)
+      }
     } finally {
       setAddingItems((prev) => {
         const newSet = new Set(prev)
@@ -163,14 +183,15 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
       <View style={styles.header}>
         <Flame size={24} color={WB_COLORS[100]} />
         <Text variant="h4" fontWeight="700">
-          本週熱門目標
+          {title ?? '本週熱門目標'}
         </Text>
       </View>
 
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text color="textSubtle">
-            {searchTerm ? `找不到符合「${searchTerm}」的熱門目標` : '目前沒有熱門目標'}
+            {emptyMessage ??
+              (searchTerm ? `找不到符合「${searchTerm}」的熱門目標` : '目前沒有熱門目標')}
           </Text>
         </View>
       ) : (
@@ -233,7 +254,9 @@ export function TrendingGoals({ searchTerm, filter }: TrendingGoalsProps) {
                       <Pressable
                         style={styles.authorRow}
                         onPress={() =>
-                          router.push(`/biography/${item.author_slug || item.biography_id}` as any)
+                          router.push(
+                            `/biography/profile/${item.author_slug || item.biography_id}` as any
+                          )
                         }
                       >
                         <Avatar size="xs" />

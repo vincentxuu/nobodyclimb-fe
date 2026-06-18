@@ -82,6 +82,16 @@ export interface QuestionsData {
   stories: StoryQuestion[]
 }
 
+export interface PromptStoryQuestion {
+  id: string
+  field: string
+  category: string
+  title: string
+  subtitle: string
+  placeholder: string
+  difficulty?: StoryQuestion['difficulty']
+}
+
 // ═══════════════════════════════════════════
 // Hook: useQuestions
 // ═══════════════════════════════════════════
@@ -192,6 +202,54 @@ export function useStoriesByCategory() {
   }))
 
   return { groupedStories, isLoading, error }
+}
+
+/**
+ * 將故事題目轉成登入推題可用格式
+ */
+export function convertToPromptQuestions(data: QuestionsData): PromptStoryQuestion[] {
+  return data.stories.map((question) => ({
+    id: question.id,
+    field: question.id,
+    category: question.category_id,
+    title: question.title,
+    subtitle: question.subtitle ?? '',
+    placeholder: question.placeholder ?? '寫下你的攀岩故事...',
+    difficulty: question.difficulty,
+  }))
+}
+
+/**
+ * 找出人物誌尚未填寫的推題
+ */
+export function getUnfilledPromptQuestions(
+  questions: PromptStoryQuestion[],
+  biography: Record<string, unknown>
+): PromptStoryQuestion[] {
+  return questions.filter((question) => {
+    const value = biography[question.field]
+    return typeof value !== 'string' || value.trim().length === 0
+  })
+}
+
+/**
+ * 計算推題完成進度
+ */
+export function calculatePromptProgress(
+  questions: PromptStoryQuestion[],
+  biography: Record<string, unknown>
+) {
+  const completed = questions.filter((question) => {
+    const value = biography[question.field]
+    return typeof value === 'string' && value.trim().length > 0
+  }).length
+  const total = questions.length
+
+  return {
+    completed,
+    total,
+    percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+  }
 }
 
 // ═══════════════════════════════════════════

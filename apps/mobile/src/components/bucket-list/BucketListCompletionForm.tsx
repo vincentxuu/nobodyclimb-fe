@@ -7,17 +7,35 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { RADIUS, SEMANTIC_COLORS, SPACING, WB_COLORS } from '@nobodyclimb/constants'
-import { type CompleteBucketListInput, completeBucketListSchema } from '@nobodyclimb/schemas'
-import type { BucketListItem } from '@nobodyclimb/types'
+import type { CompleteBucketListInput } from '@nobodyclimb/schemas'
 import { Check, Image as ImageIcon, Plus, X, Youtube } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { z } from 'zod'
+import type { BucketListItem } from '@/lib/hooks/useBucketList'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Label } from '../ui/Label'
 import { Text } from '../ui/Text'
 import { TextArea } from '../ui/TextArea'
+
+const bucketListCompleteFormSchema = z.object({
+  completion_story: z.string().max(5000, '故事過長').optional(),
+  psychological_insights: z.string().max(2000, '內容過長').optional(),
+  technical_insights: z.string().max(2000, '內容過長').optional(),
+  completion_media: z
+    .object({
+      youtube_videos: z
+        .array(z.string().regex(/^[a-zA-Z0-9_-]{11}$/, '無效的 YouTube 影片 ID'))
+        .optional(),
+      instagram_posts: z
+        .array(z.string().regex(/^[a-zA-Z0-9_-]+$/, '無效的 Instagram 貼文代碼'))
+        .optional(),
+      photos: z.array(z.string().url('無效的照片網址')).optional(),
+    })
+    .optional(),
+})
 
 export interface BucketListCompletionFormProps {
   /** 要完成的目標 */
@@ -46,7 +64,7 @@ export function BucketListCompletionForm({
     setValue,
     formState: { errors },
   } = useForm<CompleteBucketListInput>({
-    resolver: zodResolver(completeBucketListSchema),
+    resolver: zodResolver(bucketListCompleteFormSchema),
     defaultValues: {
       completion_story: item.completion_story || '',
       psychological_insights: item.psychological_insights || '',
@@ -73,7 +91,7 @@ export function BucketListCompletionForm({
 
     const videoId = extractYoutubeVideoId(newYoutubeUrl)
     if (!videoId) {
-      // TODO: 顯示錯誤提示
+      Alert.alert('網址格式錯誤', '請輸入有效的 YouTube 影片網址')
       return
     }
 
@@ -105,7 +123,7 @@ export function BucketListCompletionForm({
 
     const shortcode = extractInstagramShortcode(newInstagramUrl)
     if (!shortcode) {
-      // TODO: 顯示錯誤提示
+      Alert.alert('網址格式錯誤', '請輸入有效的 Instagram 貼文網址')
       return
     }
 

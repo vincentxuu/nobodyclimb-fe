@@ -12,6 +12,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { Avatar, Card, Text } from '@/components/ui'
 import { apiClient } from '@/lib/api'
+import { getTagOptionById, SYSTEM_TAG_DIMENSIONS } from '@/lib/constants/biography-tags'
 
 // 模擬類型定義 (實際應從 @nobodyclimb/types 導入)
 interface Biography {
@@ -42,6 +43,24 @@ interface DisplayTag {
   isCustom?: boolean
 }
 
+interface TagSelection {
+  tag_id: string
+  source?: 'system' | 'user'
+}
+
+interface TagOptionLike {
+  id: string
+  label: string
+  dimension_id?: string
+}
+
+interface TagsDataStorage {
+  selections?: TagSelection[]
+  display_tags?: string[]
+  custom_tags?: TagOptionLike[]
+  custom_dimensions?: Array<{ options: TagOptionLike[] }>
+}
+
 // 解析 basic_info_data JSON
 function parseBasicInfoData(json: string | null | undefined): BasicInfoData | null {
   if (!json) return null
@@ -64,21 +83,115 @@ function calculateClimbingYears(startYear: string | null): number | null {
 // 取得顯示名稱
 function getDisplayNameForVisibility(visibility: string | undefined, name: string): string {
   if (visibility === 'anonymous') {
-    return '匿名攀岩者'
+    return '匿名岩友'
   }
   return name || '未知'
+}
+
+const DEFAULT_DISPLAY_DIMENSIONS = [
+  SYSTEM_TAG_DIMENSIONS.STYLE_CULT,
+  SYSTEM_TAG_DIMENSIONS.SHOE_FACTION,
+  SYSTEM_TAG_DIMENSIONS.TRAINING_APPROACH,
+]
+
+function getDefaultDisplayTags(
+  selections: TagSelection[],
+  maxCount = 3,
+  customTagsMap?: Map<string, TagOptionLike>
+): DisplayTag[] {
+  const result: DisplayTag[] = []
+  const usedTagIds = new Set<string>()
+
+  const findTagOption = (tagId: string): TagOptionLike | undefined =>
+    customTagsMap?.get(tagId) || getTagOptionById(tagId)
+
+  const isCustomTag = (selection: TagSelection) =>
+    selection.source === 'user' ||
+    customTagsMap?.has(selection.tag_id) ||
+    selection.tag_id.startsWith('usr_')
+
+  for (const selection of selections) {
+    if (result.length >= maxCount) break
+    if (!isCustomTag(selection)) continue
+    const option = findTagOption(selection.tag_id)
+    if (option) {
+      result.push({ id: selection.tag_id, label: option.label, isCustom: true })
+      usedTagIds.add(selection.tag_id)
+    }
+  }
+
+  for (const dimensionId of DEFAULT_DISPLAY_DIMENSIONS) {
+    if (result.length >= maxCount) break
+    const tagInDimension = selections.find((selection) => {
+      const option = findTagOption(selection.tag_id)
+      return option?.dimension_id === dimensionId && !usedTagIds.has(selection.tag_id)
+    })
+    if (tagInDimension) {
+      const option = findTagOption(tagInDimension.tag_id)
+      if (option) {
+        result.push({ id: tagInDimension.tag_id, label: option.label, isCustom: false })
+        usedTagIds.add(tagInDimension.tag_id)
+      }
+    }
+  }
+
+  for (const selection of selections) {
+    if (result.length >= maxCount) break
+    if (usedTagIds.has(selection.tag_id)) continue
+    const option = findTagOption(selection.tag_id)
+    if (option) {
+      result.push({
+        id: selection.tag_id,
+        label: option.label,
+        isCustom: isCustomTag(selection),
+      })
+      usedTagIds.add(selection.tag_id)
+    }
+  }
+
+  return result
 }
 
 // 取得顯示標籤
 function getDisplayTags(tagsData: string | null | undefined): DisplayTag[] {
   if (!tagsData) return []
   try {
-    const tags = JSON.parse(tagsData) as Array<{ id: string; label: string; is_custom?: boolean }>
-    return tags.slice(0, 3).map((tag) => ({
-      id: tag.id,
-      label: tag.label,
-      isCustom: tag.is_custom,
-    }))
+    const parsed = JSON.parse(tagsData) as TagsDataStorage | TagSelection[]
+
+    if (Array.isArray(parsed)) {
+      return getDefaultDisplayTags(parsed, 3)
+    }
+
+    const customTagsMap = new Map<string, TagOptionLike>()
+    if (parsed.custom_tags) {
+      for (const tag of parsed.custom_tags) {
+        customTagsMap.set(tag.id, tag)
+      }
+    }
+    if (parsed.custom_dimensions) {
+      for (const dimension of parsed.custom_dimensions) {
+        for (const tag of dimension.options) {
+          customTagsMap.set(tag.id, tag)
+        }
+      }
+    }
+
+    const selections = parsed.selections ?? []
+    if (parsed.display_tags && parsed.display_tags.length > 0) {
+      return parsed.display_tags.slice(0, 3).flatMap((tagId) => {
+        const option = customTagsMap.get(tagId) || getTagOptionById(tagId)
+        if (!option) return []
+        const selection = selections.find((item) => item.tag_id === tagId)
+        return {
+          id: tagId,
+          label: option.label,
+          isCustom:
+            selection?.source === 'user' || customTagsMap.has(tagId) || tagId.startsWith('usr_'),
+        }
+      })
+    }
+
+    return getDefaultDisplayTags(selections, 3, customTagsMap)
   } catch {
     return []
   }
@@ -86,15 +199,18 @@ function getDisplayTags(tagsData: string | null | undefined): DisplayTag[] {
 
 // 預設引言
 const DEFAULT_QUOTES = [
-  '攀岩是一場與自己的對話',
-  '每一步都是成長',
-  '在岩壁上找到自由',
-  '挑戰自我，超越極限',
-  '享受攀登的每一刻',
+  '正在岩壁上尋找人生的意義...',
+  '手指還在長繭中，故事正在醞釀',
+  '專注攀爬，無暇寫字',
+  '話不多說，先爬再說',
+  '故事？都刻在岩壁上了',
+  '正忙著挑戰下一條路線',
+  '低調的小人物，低調的攀登',
 ]
 
 function getDefaultQuote(id: string): string {
-  const index = id.charCodeAt(0) % DEFAULT_QUOTES.length
+  const index =
+    id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % DEFAULT_QUOTES.length
   return DEFAULT_QUOTES[index]
 }
 
@@ -104,27 +220,118 @@ interface SelectedCardContent {
   questionId: string
 }
 
+const ONE_LINER_QUESTIONS: Record<string, string> = {
+  climbing_origin: '你與攀岩的相遇',
+  climbing_meaning: '攀岩對你來說是什麼？',
+  advice_to_self: '給剛開始攀岩的自己',
+  best_moment: '爬岩最爽的是？',
+  favorite_place: '最喜歡在哪裡爬？',
+  current_goal: '目前的攀岩小目標？',
+  climbing_takeaway: '攀岩教會我的一件事？',
+  climbing_style_desc: '用一句話形容你的攀岩風格？',
+  life_outside: '攀岩之外，你是誰？',
+  bucket_list: '攀岩人生清單上有什麼？',
+}
+
+const STORY_QUESTIONS: Record<string, string> = {
+  climbing_origin_story: '你與攀岩的故事',
+  memorable_route: '最難忘的一條路線',
+  climbing_philosophy: '攀岩教會你的事',
+  community_story: '岩友之間的故事',
+  injury_recovery: '受傷與復原的經歷',
+  memorable_moment: '最難忘的攀岩時刻',
+  biggest_challenge: '最大的挑戰',
+  breakthrough_story: '突破的故事',
+  first_outdoor: '第一次戶外攀岩',
+  first_grade: '第一次完成的難度',
+  frustrating_climb: '最挫折的一次',
+  fear_management: '如何面對恐懼',
+  climbing_lesson: '攀岩教會我的事',
+  flow_moment: '心流時刻',
+  life_balance: '攀岩與生活的平衡',
+  unexpected_gain: '意外的收穫',
+  climbing_mentor: '攀岩導師',
+  climbing_partner: '攀岩夥伴',
+  funny_moment: '有趣的攀岩經歷',
+  favorite_spot: '最愛的攀岩地點',
+  advice_to_group: '給岩友的建議',
+  climbing_space: '攀岩的空間',
+  training_method: '訓練方式',
+  effective_practice: '有效的練習',
+  technique_tip: '技巧心得',
+  gear_choice: '裝備選擇',
+  dream_climb: '夢想中的路線',
+  climbing_trip: '攀岩旅行',
+  bucket_list_story: '願望清單',
+  climbing_goal: '攀岩目標',
+  climbing_style: '攀岩風格',
+  climbing_inspiration: '攀岩的啟發',
+  life_outside_climbing: '攀岩以外的生活',
+}
+
+const CARD_QUESTION_PRIORITY = [
+  'climbing_meaning',
+  'climbing_origin',
+  'advice_to_self',
+  'best_moment',
+  'favorite_place',
+]
+
+function selectByHash(
+  id: string,
+  content: Array<{ key: string; question: string; answer: string }>
+): SelectedCardContent {
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const selected = content[hash % content.length]
+  return {
+    question: selected.question,
+    answer: selected.answer,
+    questionId: selected.key,
+  }
+}
+
 // 選擇卡片內容
 function selectCardContent(
   id: string,
   oneLinersData: string | null | undefined,
   storiesData: string | null | undefined
 ): SelectedCardContent | null {
+  const availableContent: Array<{ key: string; question: string; answer: string }> = []
+
   // 優先使用 one_liners
   if (oneLinersData) {
     try {
-      const oneLiners = JSON.parse(oneLinersData) as Array<{
-        id: string
-        question: string
-        answer: string
-      }>
-      const answered = oneLiners.filter((item) => item.answer)
-      if (answered.length > 0) {
-        const item = answered[0]
-        return {
-          question: item.question,
-          answer: item.answer,
-          questionId: item.id,
+      const oneLiners = JSON.parse(oneLinersData) as
+        | Record<string, { answer?: string; visibility?: string }>
+        | Array<{ id: string; question?: string; answer?: string }>
+
+      if (Array.isArray(oneLiners)) {
+        for (const item of oneLiners) {
+          if (item.answer?.trim()) {
+            availableContent.push({
+              key: item.id,
+              question: item.question || ONE_LINER_QUESTIONS[item.id] || '攀岩對你來說是什麼？',
+              answer: item.answer,
+            })
+          }
+        }
+      } else {
+        const oneLinerKeys = Object.keys(oneLiners)
+        const prioritySet = new Set(CARD_QUESTION_PRIORITY)
+        const orderedKeys = [
+          ...CARD_QUESTION_PRIORITY,
+          ...oneLinerKeys.filter((key) => !prioritySet.has(key)).sort(),
+        ]
+
+        for (const key of orderedKeys) {
+          const data = oneLiners[key]
+          if (data?.answer?.trim() && data.visibility === 'public') {
+            availableContent.push({
+              key,
+              question: ONE_LINER_QUESTIONS[key] || '攀岩對你來說是什麼？',
+              answer: data.answer,
+            })
+          }
         }
       }
     } catch {
@@ -135,18 +342,32 @@ function selectCardContent(
   // 嘗試使用 stories
   if (storiesData) {
     try {
-      const stories = JSON.parse(storiesData) as Array<{
-        id: string
-        title: string
-        content: string
-      }>
-      const hasContent = stories.filter((item) => item.content)
-      if (hasContent.length > 0) {
-        const item = hasContent[0]
-        return {
-          question: item.title,
-          answer: item.content.slice(0, 100),
-          questionId: item.id,
+      const stories = JSON.parse(storiesData) as
+        | Record<string, Record<string, { answer?: string; visibility?: string }>>
+        | Array<{ id: string; title?: string; content?: string }>
+
+      if (Array.isArray(stories)) {
+        for (const item of stories) {
+          if (item.content?.trim()) {
+            availableContent.push({
+              key: item.id,
+              question: item.title || STORY_QUESTIONS[item.id] || '攀岩故事',
+              answer: item.content.length > 100 ? `${item.content.slice(0, 100)}...` : item.content,
+            })
+          }
+        }
+      } else {
+        for (const category of Object.values(stories)) {
+          if (!category) continue
+          for (const [key, data] of Object.entries(category)) {
+            if (data?.answer?.trim() && data.visibility === 'public') {
+              availableContent.push({
+                key,
+                question: STORY_QUESTIONS[key] || '攀岩故事',
+                answer: data.answer.length > 100 ? `${data.answer.slice(0, 100)}...` : data.answer,
+              })
+            }
+          }
         }
       }
     } catch {
@@ -154,7 +375,7 @@ function selectCardContent(
     }
   }
 
-  return null
+  return availableContent.length > 0 ? selectByHash(id, availableContent) : null
 }
 
 interface BiographyCardProps {
@@ -341,7 +562,7 @@ export function BiographyList({ searchTerm = '', onTotalChange }: BiographyListP
     <BiographyCard
       person={item.person}
       selectedContent={item.content}
-      onPress={() => router.push(`/biography/${item.person.slug}` as any)}
+      onPress={() => router.push(`/biography/profile/${item.person.slug}` as any)}
     />
   )
 

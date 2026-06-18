@@ -110,7 +110,7 @@ export function CategoryExplorer() {
     const loadCategoryCounts = async () => {
       setLoading(true)
       try {
-        const response = await apiClient.get('/content/questions')
+        const response = await apiClient.get('/bucket-list/explore/category-counts')
         const data: CategoryCount[] = response.data?.data ?? response.data ?? []
         setCategoryCounts(data)
       } catch (err) {
