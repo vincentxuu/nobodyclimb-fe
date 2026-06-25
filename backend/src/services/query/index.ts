@@ -111,14 +111,19 @@ export class QueryService {
     let memorySummary: string | null = null
     let ascentContext: string | null = null
     let abilityLevel: number | null = null
+    let personalityType: string | null = null
     if (userId) {
-      const [memories, ascents] = await Promise.all([
+      const [memories, ascents, ptRow] = await Promise.all([
         getMemoriesSummary(userId, this.env.DB),
         getRecentAscents(userId, this.env.DB),
+        this.env.DB.prepare('SELECT personality_type FROM users WHERE id = ?')
+          .bind(userId)
+          .first<{ personality_type: string | null }>(),
       ])
       memorySummary = memories
       ascentContext = buildAscentContext(ascents)
       abilityLevel = estimateAbilityLevel(ascents)
+      personalityType = ptRow?.personality_type ?? null
     }
 
     // 快取鍵
@@ -254,6 +259,7 @@ export class QueryService {
       memorySummary,
       ascentContext,
       abilityLevel,
+      personalityType,
       streamingMode,
       onToken,
       waitUntilCtx: ctx,

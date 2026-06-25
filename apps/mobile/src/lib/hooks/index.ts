@@ -24,6 +24,14 @@ export { useCoreStories } from './useCoreStories'
 export { useCragAreas, useCragDetail, useCragRoutes, useCrags, useRouteDetail } from './useCrags'
 export { useDebounce } from './useDebounce'
 export { useDebouncedCallback } from './useDebouncedCallback'
+// 人格演化相關 hooks
+export {
+  useCalculateEvolution,
+  useEvolutionNotification,
+  useEvolutionTimeline,
+  useMarkNotificationRead,
+  useStyleSpectrum,
+} from './useEvolution'
 // 圖庫相關 hooks
 export {
   updateGalleryPhoto,

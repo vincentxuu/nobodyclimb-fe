@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PGS Forger | Pinch hold + Anvil sparks + Bull silhouette | #F4845F -->
+  <g id="layer-hold">
+    <path d="M55 80 Q65 50 100 45 Q135 50 145 80 L140 130 Q120 160 100 165 Q80 160 60 130 Z" fill="none" stroke="#F4845F" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M60 83 Q69 55 100 50 Q131 55 140 83 L136 128 Q118 155 100 160 Q82 155 64 128 Z" fill="#F4845F" opacity="0.08"/>
+  </g>
+  <g id="layer-symbol">
+    <rect x="80" y="105" width="40" height="12" rx="2" fill="#F4845F" opacity="0.8"/>
+    <path d="M75 105 L80 95 L120 95 L125 105" fill="none" stroke="#F4845F" stroke-width="2.5" stroke-linejoin="round" opacity="0.9"/>
+    <line x1="90" y1="90" x2="82" y2="72" stroke="#F4845F" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="100" y1="88" x2="100" y2="68" stroke="#F4845F" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+    <line x1="110" y1="90" x2="118" y2="72" stroke="#F4845F" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="82" cy="70" r="2" fill="#F4845F" opacity="0.5"/>
+    <circle cx="100" cy="66" r="2" fill="#F4845F" opacity="0.5"/>
+    <circle cx="118" cy="70" r="2" fill="#F4845F" opacity="0.5"/>
+  </g>
+  <g id="layer-animal" opacity="0.12">
+    <path d="M90 130 L90 150 Q100 158 110 150 L110 130" fill="none" stroke="#F4845F" stroke-width="2"/>
+    <path d="M85 128 C78 120 76 130 82 132" fill="#F4845F"/>
+    <path d="M115 128 C122 120 124 130 118 132" fill="#F4845F"/>
+    <circle cx="95" cy="136" r="1.5" fill="#F4845F" opacity="0.6"/>
+    <circle cx="105" cy="136" r="1.5" fill="#F4845F" opacity="0.6"/>
+  </g>
+</svg>

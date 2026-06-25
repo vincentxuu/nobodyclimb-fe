@@ -12,9 +12,11 @@ export * from './climbing'
 
 // 站點配置
 export * from './config'
-
+// 攀岩人格測驗
+export * from './quiz'
 // 路由
 export * from './routes'
-
 // 設計系統 (Design Tokens)
 export * from './theme'
+// 訓練計畫
+export * from './training-programs'

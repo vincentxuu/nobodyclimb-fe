@@ -24,6 +24,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="stats/index" options={{ headerShown: false }} />
       <Stack.Screen name="ai-memory/index" options={{ headerShown: false }} />
       <Stack.Screen name="recommendations/index" options={{ headerShown: false }} />
+      <Stack.Screen name="evolution/index" options={{ headerShown: false }} />
     </Stack>
   )
 }

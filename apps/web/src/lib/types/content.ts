@@ -316,6 +316,10 @@ export interface Biography {
 
   // 等級資訊
   user_rank_id?: string | null
+
+  // 人格測驗
+  personality_type?: string | null
+  personality_taken_at?: string | null
 }
 
 /**

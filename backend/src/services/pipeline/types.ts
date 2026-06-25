@@ -39,6 +39,7 @@ export type StepId =
   | 'cross-encoder'
   | 'mmr'
   | 'popularity-rerank'
+  | 'personality-rerank'
   | 'llm-generation'
   | 'judge'
   | 'self-reflection'
@@ -178,6 +179,11 @@ export interface PipelineConfig {
   adaptive_plan_enabled: boolean
   // Looping
   max_pipeline_loops: number
+  // Personality Rerank
+  personality_weight: number
+  personality_mode: 'balanced' | 'anti_style'
+  personality_anti_ratio: number
+  personality_anti_retrieve_count: number
   // Reranker 閾值過濾
   reranker_relevance_threshold: number
   reranker_min_keep: number
@@ -569,6 +575,7 @@ export interface PipelineContext {
   ascentContext?: string | null
   abilityLevel?: number | null
   climbed_route_ids?: string[] | null
+  personalityType?: string | null
 
   // Looping 控制
   loopCount: number

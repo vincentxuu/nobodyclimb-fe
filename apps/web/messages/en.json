@@ -1726,5 +1726,11 @@
       "default": "Story"
     },
     "metaDescription": "Read this {typeLabel} from the climbing community"
+  },
+  "Home": {
+    "meta": {
+      "title": "Taiwan Rock Climbing Community",
+      "description": "Taiwan's rock climbing community platform. Explore outdoor crags like Longdong, Kenting, Guanziling, and Defuolan, plus indoor climbing gyms with route info and climbing videos."
+    }
   }
 }

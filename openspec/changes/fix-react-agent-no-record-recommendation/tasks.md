@@ -1,11 +1,11 @@
 ## 1. System Prompt 修改
 
-- [ ] 1.1 在 `backend/src/utils/ai-prompts.ts` 的 `REACT_AGENT_SYSTEM_PROMPT_TEMPLATE` 規則 11 之後，新增【無完攀記錄時的處理規定】段落（見 design.md Decision 4 草稿），使用「禁止」語氣確保 LLM 遵從
+- [x] 1.1 在 `backend/src/utils/ai-prompts.ts` 的 `REACT_AGENT_SYSTEM_PROMPT_TEMPLATE` 規則 12 之後，新增規則 13【無完攀記錄時的處理規定】
 
 ## 2. Recommend Tool 描述修改
 
-- [ ] 2.1 修改 `backend/src/services/react-agent/tools/recommend.ts` 的 `prompt()` 方法，將已登入用戶的描述從「根據用戶的攀登歷史和能力，推薦適合的攀岩路線。會排除已完攀的路線。」改為「根據用戶的攀登歷史或訊息中提到的條件，推薦適合的攀岩路線。會排除已完攀的路線。」
-- [ ] 2.2 閱讀確認 `recommend` tool 的 `execute()` 在 0 ascents 時行為已正確（不需改程式碼）：`userMaxGrade` 為 null 時跳過難度過濾、`climbedRouteIds` 為空集合不影響結果
+- [x] 2.1 修改 `backend/src/services/react-agent/tools/recommend.ts` 的 `prompt()` 方法，將已登入用戶的描述改為「根據用戶的攀登歷史或訊息中提到的條件，推薦適合的攀岩路線。會排除已完攀的路線。」
+- [x] 2.2 閱讀確認 `recommend` tool 的 `execute()` 在 0 ascents 時行為已正確（不需改程式碼）：`userMaxGrade` 為 null 時跳過難度過濾、`climbedRouteIds` 為空集合不影響結果
 
 ## 3. 驗證
 

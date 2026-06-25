@@ -26,11 +26,13 @@ import { gymsRoutes } from './routes/gyms'
 import { mediaRoutes } from './routes/media'
 import { notificationsRoutes } from './routes/notifications'
 import { postsRoutes } from './routes/posts'
+import { quizRoutes } from './routes/quiz'
 import { routeStoriesRoutes } from './routes/route-stories'
 import { searchRoutes } from './routes/search'
 import { statsRoutes } from './routes/stats'
 import { storyPromptsRoutes } from './routes/story-prompts'
 import { trafficRoutes } from './routes/traffic'
+import { trainingRoutes } from './routes/training'
 import { usersRoutes } from './routes/users'
 import { videosRoutes } from './routes/videos'
 import { weatherRoutes } from './routes/weather'
@@ -124,6 +126,8 @@ v1.route('/route-stories', routeStoriesRoutes)
 v1.route('/admin/import', adminImportRoutes)
 v1.route('/admin/ai', adminAiRoutes)
 v1.route('/ai', aiRoutes)
+v1.route('/quiz', quizRoutes)
+v1.route('/training', trainingRoutes)
 
 // OpenAPI JSON 端點 - 自動從路由生成 OpenAPI 規格
 v1.get(
@@ -223,6 +227,7 @@ app.onError((err, c) => {
 // Cron Trigger Handler - 每日等級重置與積分重算
 // =============================================
 
+import { processEvolutionBatch } from './services/evolution'
 import { recalculateAllRanks, resetDailyUsage } from './services/rank'
 
 export default {
@@ -234,6 +239,16 @@ export default {
       await recalculateAllRanks(env.DB)
     } catch (err) {
       console.error('[cron] 每日等級任務失敗:', err)
+    }
+
+    // 每週一執行人格演化批次（UTC 週一 00:00 = 台灣週一 08:00）
+    const now = new Date()
+    if (now.getUTCDay() === 1) {
+      try {
+        await processEvolutionBatch(env)
+      } catch (err) {
+        console.error('[cron] 人格演化批次任務失敗:', err)
+      }
     }
   },
 }

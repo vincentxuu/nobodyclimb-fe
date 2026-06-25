@@ -60,6 +60,8 @@ export interface RankScoreBreakdown {
   route_ascents: number
   bucket_list_items: number
   bucket_list_completed: number
+  quiz_completed: number
+  training_completed: number
   total: number
 }
 

@@ -181,3 +181,13 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Quiz 模式：隱藏主站導覽列和 footer（由 QuizLayoutWrapper inline style 優先處理 FOUC） */
+body.quiz-mode > div nav,
+body.quiz-mode > div footer {
+  display: none !important;
+}
+body.quiz-mode main {
+  padding-top: 0 !important;
+  min-height: 100vh !important;
+}

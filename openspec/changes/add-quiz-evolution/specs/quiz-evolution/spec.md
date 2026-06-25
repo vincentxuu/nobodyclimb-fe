@@ -1,105 +1,185 @@
 ## ADDED Requirements
 
-### Requirement: 性格演化演算法
+### Requirement: 行為模式信號萃取（非路線標籤）
 
-系統 SHALL 提供性格演化演算法，從用戶攀登紀錄萃取行為訊號並調整三軸百分比。三個行為訊號為：路線類型偏好（overhang/roof 比例 → Power/Technique 軸）、onsight/redpoint 比率（→ Goal/Free 軸）、難度突破頻率（近 90 天新最高難度次數 → Bold/Steady 軸）。演化結果 SHALL 與原測驗結果加權混合：20~50 筆紀錄 quiz 70% / behavior 30%；51~100 筆 quiz 50% / behavior 50%；100+ 筆 quiz 30% / behavior 70%。
+系統 SHALL 從攀登紀錄萃取行為模式信號，不依賴路線類型標籤（避免環境限制偏差）。
 
-#### Scenario: 行為訊號計算——Power/Technique
+**Power/Technique 軸信號**：
+- 高難度完攀集中在哪類路線（突破點分析）
+- 各類路線的 onsight 成功率差異（直覺強項）
+- 各類路線的平均嘗試次數差異（哪種需要更多嘗試 = 非強項）
 
-- **WHEN** 用戶有 30 筆攀登紀錄，其中 20 筆為 overhang/roof 類型
-- **THEN** power_signal = 20/30 ≈ 0.67，表示偏 Power
+**Goal/Free 軸信號**：
+- 同一條路線嘗試次數 > 3 的比例（project 傾向）
+- unique 路線數 / 總攀爬數 比值（多樣性 vs 專注）
 
-#### Scenario: 行為訊號計算——Goal/Free
+**Bold/Steady 軸信號**：
+- 難度突破頻率（近 90 天新最高難度次數 / 活躍月數）
+- lead / top-rope 比例（敢不敢先鋒）
+- Style Spectrum（onsight vs redpoint 差距）
 
-- **WHEN** 用戶有 25 筆 redpoint 紀錄、15 筆 onsight 紀錄
-- **THEN** goal_signal = 25/40 = 0.625，表示偏 Goal
+#### Scenario: Power 信號 — 突破點集中在 overhang
 
-#### Scenario: 行為訊號計算——Bold/Steady
+- **WHEN** 用戶 30 筆完攀中，最高難度 3 筆都是 overhang，且 slab 完攀率 60% 而 overhang 完攀率 85%
+- **THEN** power_signal 偏高（完攀率差異顯示 overhang 是直覺強項）
 
-- **WHEN** 用戶近 90 天活躍 3 個月，期間有 4 次新最高難度
-- **THEN** bold_signal = 4/3 ≈ 1.33，clamp 至 1.0，表示極偏 Bold
+#### Scenario: Power 信號 — 環境限制下仍可判斷
 
-#### Scenario: 加權混合——新用戶（30 筆紀錄）
+- **WHEN** 用戶所在岩館只有 slab 牆，30 筆全是 slab，但平均嘗試次數 3.2 次（高於同等級平均 1.8 次）
+- **THEN** power_signal 仍偏高（高嘗試次數暗示 slab 不是強項風格）
 
-- **WHEN** 用戶原測驗 power_pct = 70，behavior power_signal = 0.4（40%），紀錄 30 筆
-- **THEN** final_power_pct = 0.7 * 70 + 0.3 * 40 = 61
+#### Scenario: Goal 信號 — project 傾向高
 
-#### Scenario: 加權混合——資深用戶（120 筆紀錄）
+- **WHEN** 用戶 40 筆攀爬中，15 筆的同路線嘗試次數 > 3（37.5%），unique 路線 20 條 / 總 40 次 = 0.5
+- **THEN** goal_signal 偏高（高 project 比例 + 低路線多樣性）
 
-- **WHEN** 用戶原測驗 power_pct = 70，behavior power_signal = 0.4（40%），紀錄 120 筆
-- **THEN** final_power_pct = 0.3 * 70 + 0.7 * 40 = 49
+#### Scenario: Bold 信號 — 敢先鋒
 
-#### Scenario: 最低資料門檻
+- **WHEN** 用戶 50 筆攀爬中 40 筆為 lead（80%），近 90 天有 3 次新最高難度（月均 1 次）
+- **THEN** bold_signal 偏高
 
-- **WHEN** 用戶攀登紀錄少於 20 筆
-- **THEN** 不執行演化計算，維持原測驗結果
+### Requirement: 三重門檻慣性機制
 
-### Requirement: Ego Grade 計算
+系統 SHALL 使用三重門檻防止人格頻繁跳動，讓進化成為「重大事件」：
 
-系統 SHALL 計算用戶的 Ego Grade，定義為 redpoint 最高難度與 onsight 最高難度的數值差距。難度 SHALL 轉換為數字序列（5.6=1, 5.7=2, ..., 5.15d=30）。正值表示用戶傾向挑戰超出 onsight 能力的路線；負值表示保守型；零表示平衡。
+1. **最低資料門檻**：至少 20 筆攀登記錄才啟動演化計算
+2. **穩定期**：同一型態至少維持 8 週才有資格進化
+3. **連續確認**：需要連續 3 次週計算都指向同一個新型態才觸發實際進化
 
-#### Scenario: 正 Ego Grade
+每週 cron 照常執行計算和記錄，但只在三重門檻都滿足時才更新 `users.personality_type` 並發送通知。
 
-- **WHEN** 用戶 redpoint 最高難度 5.12a（數值 13）、onsight 最高難度 5.10d（數值 9）
-- **THEN** Ego Grade = 13 - 9 = 4
+#### Scenario: 正常進化流程
 
-#### Scenario: 負 Ego Grade（保守型）
+- **WHEN** 用戶為 PGB 已 10 週，第 11、12、13 週的計算結果都指向 PGS
+- **THEN** 第 13 週觸發進化：INSERT personality_evolution，UPDATE users SET personality_type = 'PGS'，發送通知
 
-- **WHEN** 用戶 redpoint 最高難度 5.11a（數值 10）、onsight 最高難度 5.11c（數值 12）
-- **THEN** Ego Grade = 10 - 12 = -2
+#### Scenario: 穩定期內不進化
+
+- **WHEN** 用戶為 PGB 才 5 週，計算結果連續 3 次指向 PGS
+- **THEN** 不觸發進化（穩定期未滿 8 週），記錄計算結果但不更新 users
+
+#### Scenario: 連續確認中斷
+
+- **WHEN** 用戶為 PGB 已 10 週，第 11 週指向 PGS，第 12 週指向 PGB，第 13 週指向 PGS
+- **THEN** 不觸發進化（連續計數在第 12 週重置），consecutive_count 歸零重算
+
+#### Scenario: 最低資料不足
+
+- **WHEN** 用戶攀登紀錄 < 20 筆
+- **THEN** 跳過計算，回傳 `{ changed: false, reason: 'insufficient_records' }`
+
+### Requirement: 加權混合計算
+
+系統 SHALL 將測驗基線與行為信號加權混合，權重隨紀錄筆數漸進調整：
+
+- 20~50 筆：quiz 70% / behavior 30%
+- 51~100 筆：quiz 50% / behavior 50%
+- 100+ 筆：quiz 30% / behavior 70%
+
+無測驗結果時 SHALL 僅使用行為信號（behavior 100%）。
+
+#### Scenario: 新用戶 30 筆紀錄
+
+- **WHEN** 測驗 power_pct = 70，behavior power_signal = 40%，紀錄 30 筆
+- **THEN** final_power_pct = 0.7 × 70 + 0.3 × 40 = 61
+
+#### Scenario: 資深用戶 120 筆紀錄
+
+- **WHEN** 測驗 power_pct = 70，behavior power_signal = 40%，紀錄 120 筆
+- **THEN** final_power_pct = 0.3 × 70 + 0.7 × 40 = 49
+
+#### Scenario: 無測驗結果
+
+- **WHEN** 用戶從未做過測驗但有 50 筆攀登紀錄
+- **THEN** final_power_pct = behavior power_signal × 100（100% behavior）
+
+### Requirement: 攀岩光譜 Style Spectrum
+
+系統 SHALL 計算用戶的攀岩光譜（取代 Ego Grade 命名），定義為 redpoint 最高難度與 onsight 最高難度的數值差距。難度 SHALL 轉換為數字序列（5.6=1, 5.7=2, ..., 5.15d=30）。
+
+三種定位（全部正面）：
+
+| 差距 | 名稱 | 英文 | 描述 |
+|------|------|------|------|
+| > 3 子級 | 深耕者 | Deep Sender | 你在一條路線上能挖掘出別人看不到的可能性。極高的路線學習能力。 |
+| 0-3 子級 | 全能者 | All-Rounder | 你的 onsight 和 redpoint 同步成長。最均衡的攀岩狀態。 |
+| < 0 子級 | 即興者 | Flash Reader | 你在未知路線上的表現幾乎跟練過的一樣好。極強的動態 beta 閱讀能力。 |
+
+每種定位 SHALL 附帶正面的「成長方向」建議。
+
+#### Scenario: 深耕者
+
+- **WHEN** 用戶 redpoint 最高 5.12a（數值 13）、onsight 最高 5.10d（數值 9），差距 = 4
+- **THEN** style_spectrum = 4，定位為「深耕者 Deep Sender」，成長方向：嘗試更多 onsight
+
+#### Scenario: 全能者
+
+- **WHEN** 用戶 redpoint 最高 5.11c（數值 12）、onsight 最高 5.11a（數值 10），差距 = 2
+- **THEN** style_spectrum = 2，定位為「全能者 All-Rounder」
+
+#### Scenario: 即興者
+
+- **WHEN** 用戶 redpoint 最高 5.11a（數值 10）、onsight 最高 5.11c（數值 12），差距 = -2
+- **THEN** style_spectrum = -2，定位為「即興者 Flash Reader」
 
 #### Scenario: 無足夠資料
 
 - **WHEN** 用戶無 onsight 紀錄或無 redpoint 紀錄
-- **THEN** Ego Grade 為 null
+- **THEN** style_spectrum 為 null，不顯示定位
 
 ### Requirement: 週排程演化計算
 
-系統 SHALL 透過 Cloudflare Workers Cron Trigger 每週一 UTC 00:00 執行全站演化計算。計算對象為 `personality_type IS NOT NULL` 且 `last_active_at` 在 30 天內且攀登紀錄 >= 20 筆的用戶。每批處理 50 用戶以避免超出 CPU 時間限制。
+系統 SHALL 透過 Cloudflare Workers Cron Trigger 每週一 UTC 00:00 執行全站演化計算。計算對象為 `personality_type IS NOT NULL` 且 `last_active_at` 在 30 天內且攀登紀錄 >= 20 筆的用戶。每批處理 50 用戶。
+
+每次計算 SHALL 記錄「指向型態」到 personality_evolution 表（含 consecutive_count），但只在三重門檻全部滿足時才更新 users 表並發送通知。
 
 #### Scenario: Cron 正常執行
 
 - **WHEN** 每週一 UTC 00:00 觸發 cron
-- **THEN** 系統查詢符合條件的活躍用戶，批次執行演化計算，記錄結果
+- **THEN** 系統查詢符合條件的用戶，批次執行計算，記錄 personality_evolution
 
-#### Scenario: 性格類型改變
+#### Scenario: 三重門檻觸發進化
 
-- **WHEN** 演化計算後用戶的 personality_type 從 PGB 變為 TGB
-- **THEN** INSERT personality_evolution 記錄（from_type: PGB, to_type: TGB, trigger: cron），UPDATE users SET personality_type = TGB
+- **WHEN** 計算結果指向新型態，且穩定期 >= 8 週，且 consecutive_count 達到 3
+- **THEN** UPDATE users SET personality_type，發送進化通知
 
-#### Scenario: 性格類型未改變
+#### Scenario: 僅記錄不進化
 
-- **WHEN** 演化計算後用戶的 personality_type 仍為 PGB（三軸百分比微調但未跨越 50% 門檻）
-- **THEN** 不產生 personality_evolution 記錄，不更新 users 表
-
-#### Scenario: 批次處理
-
-- **WHEN** 符合條件的用戶有 120 人
-- **THEN** 分 3 批（50, 50, 20）依序處理
+- **WHEN** 計算結果指向新型態，但穩定期 < 8 週或 consecutive_count < 3
+- **THEN** INSERT personality_evolution 記錄（用於追蹤趨勢），不更新 users
 
 ### Requirement: 手動觸發演化計算 API
 
-系統 SHALL 提供 `POST /api/v1/quiz/evolution/calculate` 端點（Auth: Required），允許用戶手動觸發自身的演化計算。每用戶每天最多觸發 1 次。
+系統 SHALL 提供 `POST /api/v1/quiz/evolution/calculate` 端點（Auth: Required），允許用戶手動觸發自身的演化計算。每用戶每天最多觸發 1 次。手動觸發同樣受三重門檻限制。
 
 #### Scenario: 手動觸發成功
 
-- **WHEN** 已登入用戶且攀登紀錄 >= 20 筆，POST `/api/v1/quiz/evolution/calculate`
-- **THEN** 執行演化計算，回傳 `{ success: true, data: { personality_type, power_pct, goal_pct, bold_pct, ego_grade, changed: boolean } }`
+- **WHEN** 已登入用戶且攀登紀錄 >= 20 筆
+- **THEN** 執行演化計算，回傳 `{ personality_type, power_pct, goal_pct, bold_pct, style_spectrum, changed, consecutive_count, weeks_stable }`
 
 #### Scenario: 紀錄不足
 
 - **WHEN** 用戶攀登紀錄 < 20 筆
-- **THEN** 回傳 400 `{ error: "insufficient_records", message: "需要至少 20 筆攀登紀錄" }`
+- **THEN** 回傳 400
 
 #### Scenario: 速率限制
 
 - **WHEN** 用戶同一天內第 2 次呼叫
 - **THEN** 回傳 429
 
-#### Scenario: 未登入被拒絕
+### Requirement: 攀岩光譜查詢 API
 
-- **WHEN** 未驗證用戶 POST
-- **THEN** 回傳 401
+系統 SHALL 提供 `GET /api/v1/quiz/evolution/style-spectrum` 端點（Auth: Required）。
+
+#### Scenario: 有攀岩光譜
+
+- **WHEN** 已登入用戶且有足夠紀錄
+- **THEN** 回傳 `{ style_spectrum, onsight_max, redpoint_max, position: 'deep_sender' | 'all_rounder' | 'flash_reader', description, growth_direction }`
+
+#### Scenario: 無足夠資料
+
+- **WHEN** 用戶無 onsight 或無 redpoint 紀錄
+- **THEN** 回傳 `{ data: null }`
 
 ### Requirement: 演化歷史時間軸 API
 
@@ -107,90 +187,64 @@
 
 #### Scenario: 有演化歷史
 
-- **WHEN** 已登入用戶 GET `/api/v1/quiz/evolution/timeline`
-- **THEN** 回傳 `{ success: true, data: EvolutionRecord[] }`，每筆含 from_type、to_type、power_pct、goal_pct、bold_pct、ego_grade、trigger、calculated_at
+- **WHEN** 已登入用戶 GET
+- **THEN** 回傳 EvolutionRecord[]，每筆含 from_type、to_type、三軸百分比、style_spectrum、trigger、calculated_at
 
 #### Scenario: 無演化歷史
 
 - **WHEN** 用戶從未經歷演化
-- **THEN** 回傳 `{ success: true, data: [] }`
-
-#### Scenario: 未登入被拒絕
-
-- **WHEN** 未驗證用戶 GET
-- **THEN** 回傳 401
-
-### Requirement: Ego Grade 查詢 API
-
-系統 SHALL 提供 `GET /api/v1/quiz/evolution/ego-grade` 端點（Auth: Required），回傳用戶當前的 Ego Grade 及相關分析。
-
-#### Scenario: 有 Ego Grade
-
-- **WHEN** 已登入用戶且有足夠紀錄
-- **THEN** 回傳 `{ success: true, data: { ego_grade: number, onsight_max: string, redpoint_max: string, interpretation: string } }`
-
-#### Scenario: 無足夠資料
-
-- **WHEN** 用戶無 onsight 或無 redpoint 紀錄
-- **THEN** 回傳 `{ success: true, data: null }`
+- **THEN** 回傳空陣列
 
 ### Requirement: 演化通知
 
-系統 SHALL 在性格類型改變時產生 in-app 通知。通知內容包含舊型態名稱、新型態名稱、演化觸發因素。通知 SHALL 在用戶下次進入 profile 頁面時以 banner 形式顯示。
+系統 SHALL 在性格類型改變（三重門檻全部滿足）時產生 in-app 通知。通知 SHALL 使用正面語氣：「你從 {舊型態中文名} 進化為 {新型態中文名} 了！」。Profile 頁面以 banner 形式顯示，附帶「查看演化歷程」連結。用戶關閉或點擊後標記已讀。
 
 #### Scenario: 進化通知顯示
 
-- **WHEN** 用戶的性格從「碎岩者 (PGB)」演化為「鍛造者 (PGS)」，用戶下次進入 profile
-- **THEN** 顯示 banner「你從碎岩者進化為鍛造者！」，附帶「查看演化歷程」連結
+- **WHEN** 用戶從碎岩者進化為鍛造者，下次進入 profile
+- **THEN** 顯示 banner「你從碎岩者進化為鍛造者了！」
 
 #### Scenario: 通知已讀
 
-- **WHEN** 用戶關閉 banner 或點擊查看
-- **THEN** 通知標記為已讀，不再顯示
+- **WHEN** 用戶關閉 banner
+- **THEN** 標記已讀，不再顯示
 
-### Requirement: 演化歷史時間軸 UI（Web）
+### Requirement: 演化時間軸 UI（Web + Mobile）
 
-系統 SHALL 在 Web 端提供 `/profile/evolution` 頁面（需登入），以垂直時間軸視覺化用戶的性格演化歷史。每個節點顯示日期、前後型態圖示與名稱、三軸百分比變化、Ego Grade。無演化記錄時顯示引導文案。
+系統 SHALL 在 Web（`/profile/evolution`）和 Mobile（`profile/evolution`）提供垂直時間軸頁面（需登入），視覺化演化歷史。每個節點顯示：日期、前後型態圖示與名稱、三軸百分比變化、攀岩光譜定位。無記錄時顯示引導文案。
 
-#### Scenario: 有演化歷史的時間軸
+#### Scenario: 有記錄的時間軸
 
-- **WHEN** 已登入用戶進入 `/profile/evolution`，有 3 筆演化記錄
-- **THEN** 顯示垂直時間軸，3 個節點，最新在上，每個節點含型態圖示轉換動畫、日期、三軸百分比柱狀圖
+- **WHEN** 已登入用戶有 3 筆演化記錄
+- **THEN** 顯示垂直時間軸，3 個節點，最新在上
 
-#### Scenario: 無演化歷史
+#### Scenario: 無記錄
 
-- **WHEN** 已登入用戶進入 `/profile/evolution`，無演化記錄
-- **THEN** 顯示引導文案「持續攀登，你的性格會隨著經驗演化！需要至少 20 筆攀登紀錄。」
-
-#### Scenario: 未登入重導向
-
-- **WHEN** 未登入用戶訪問 `/profile/evolution`
-- **THEN** 重導向至登入頁
-
-### Requirement: 演化歷史時間軸 UI（Mobile）
-
-系統 SHALL 在 Mobile 端提供 `profile/evolution` 路由，功能與 Web 端對齊：垂直時間軸、型態轉換視覺化、三軸百分比變化、Ego Grade 顯示。
-
-#### Scenario: Mobile 時間軸顯示
-
-- **WHEN** 已登入用戶在 Mobile App 進入演化歷史頁面
-- **THEN** 顯示垂直時間軸，功能與 Web 版相同，適應行動裝置螢幕寬度
-
-#### Scenario: Mobile 進化通知
-
-- **WHEN** 用戶性格類型改變
-- **THEN** Mobile App 下次開啟 profile 時顯示通知 banner
+- **WHEN** 已登入用戶無演化記錄
+- **THEN** 顯示「持續攀登，你的性格會隨著經驗演化！需要至少 20 筆攀登紀錄和 8 週穩定期。」
 
 ### Requirement: 演化資料表
 
-系統 SHALL 提供 D1 資料表 `personality_evolution` 儲存演化歷史，包含 id、user_id、from_type、to_type、power_pct、goal_pct、bold_pct、ego_grade、trigger（`cron` | `manual` | `quiz`）、calculated_at。系統 SHALL 在 `users` 表新增 `ego_grade REAL` 欄位。
+系統 SHALL 提供 D1 資料表：
+
+```sql
+CREATE TABLE personality_evolution (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  from_type TEXT,
+  to_type TEXT NOT NULL,
+  power_pct REAL NOT NULL,
+  goal_pct REAL NOT NULL,
+  bold_pct REAL NOT NULL,
+  style_spectrum REAL,
+  trigger TEXT NOT NULL,
+  consecutive_count INTEGER DEFAULT 1,
+  calculated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+ALTER TABLE users ADD COLUMN style_spectrum REAL;
+```
 
 #### Scenario: 資料表建立
 
 - **WHEN** 執行 D1 migration
-- **THEN** `personality_evolution` 資料表建立成功，含 user_id 索引
-
-#### Scenario: 演化記錄寫入
-
-- **WHEN** 用戶性格從 PGB 演化為 TGB
-- **THEN** 插入一筆 personality_evolution 記錄，from_type = PGB，to_type = TGB，trigger = cron
+- **THEN** personality_evolution 表和 users 欄位建立成功

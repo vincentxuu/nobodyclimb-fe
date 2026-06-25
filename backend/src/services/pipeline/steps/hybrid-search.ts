@@ -1,3 +1,4 @@
+import { ANTI_STYLE_KEYWORDS } from '@nobodyclimb/constants'
 import {
   AgenticStepTrace,
   PipelineContext,
@@ -457,8 +458,24 @@ export const hybridSearchStep: PipelineStep = {
         [queryMatches, hydeMatches, bm25Matches, ...expandedVecResults],
         MERGE_TOP_K
       )
-      candidateMatches = mergedMatches.filter((m) => m.score >= minScore)
-      retrievalScore = mergedMatches.length > 0 ? Math.max(...mergedMatches.map((m) => m.score)) : 0
+
+      // 反風格補充檢索
+      const bodyAxis = ctx.personalityType?.[0]
+      let allMerged = mergedMatches
+      let antiStyleResults = 0
+      if (bodyAxis === 'P' || bodyAxis === 'T') {
+        const antiKeywords = ANTI_STYLE_KEYWORDS[bodyAxis]
+        const antiQuery = antiKeywords.join(' ')
+        const antiTopK = pipelineConfig.personality_anti_retrieve_count
+        const antiBm25 = await qs.searchBM25(antiQuery, antiTopK)
+        antiStyleResults = antiBm25.length
+        if (antiBm25.length > 0) {
+          allMerged = qs.mergeResults([mergedMatches, antiBm25], MERGE_TOP_K + antiTopK)
+        }
+      }
+
+      candidateMatches = allMerged.filter((m) => m.score >= minScore)
+      retrievalScore = allMerged.length > 0 ? Math.max(...allMerged.map((m) => m.score)) : 0
 
       // Retrieval trace
       const tracePaths = ['query_vec']
@@ -511,6 +528,9 @@ export const hybridSearchStep: PipelineStep = {
           trigger_reason: string
           retries: { removed_filter: string; candidates_after: number }[]
         },
+        ...(antiStyleResults > 0
+          ? { anti_style: { body_axis: bodyAxis, results: antiStyleResults } }
+          : {}),
       }
 
       // CRAG fallback

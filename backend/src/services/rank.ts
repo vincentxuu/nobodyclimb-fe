@@ -44,6 +44,8 @@ export async function calculateUserScore(
       route_ascents: 0,
       bucket_list_items: 0,
       bucket_list_completed: 0,
+      quiz_completed: 0,
+      training_completed: 0,
       total: 0,
     }
   }
@@ -54,35 +56,53 @@ export async function calculateUserScore(
     : {}
 
   // 並行查詢各積分來源
-  const [coreStoriesRow, oneLinerRow, storiesRow, ascentsRow, bucketRow, bucketCompletedRow] =
-    await Promise.all([
-      db
-        .prepare('SELECT COUNT(*) as cnt FROM biography_core_stories WHERE biography_id = ?')
-        .bind(bioId)
-        .first<{ cnt: number }>(),
-      db
-        .prepare('SELECT COUNT(*) as cnt FROM biography_one_liners WHERE biography_id = ?')
-        .bind(bioId)
-        .first<{ cnt: number }>(),
-      db
-        .prepare('SELECT COUNT(*) as cnt FROM biography_stories WHERE biography_id = ?')
-        .bind(bioId)
-        .first<{ cnt: number }>(),
-      db
-        .prepare('SELECT COUNT(*) as cnt FROM user_route_ascents WHERE user_id = ?')
-        .bind(userId)
-        .first<{ cnt: number }>(),
-      db
-        .prepare('SELECT COUNT(*) as cnt FROM bucket_list_items WHERE biography_id = ?')
-        .bind(bioId)
-        .first<{ cnt: number }>(),
-      db
-        .prepare(
-          "SELECT COUNT(*) as cnt FROM bucket_list_items WHERE biography_id = ? AND status = 'completed'"
-        )
-        .bind(bioId)
-        .first<{ cnt: number }>(),
-    ])
+  const [
+    coreStoriesRow,
+    oneLinerRow,
+    storiesRow,
+    ascentsRow,
+    bucketRow,
+    bucketCompletedRow,
+    quizRow,
+    trainingRow,
+  ] = await Promise.all([
+    db
+      .prepare('SELECT COUNT(*) as cnt FROM biography_core_stories WHERE biography_id = ?')
+      .bind(bioId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare('SELECT COUNT(*) as cnt FROM biography_one_liners WHERE biography_id = ?')
+      .bind(bioId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare('SELECT COUNT(*) as cnt FROM biography_stories WHERE biography_id = ?')
+      .bind(bioId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare('SELECT COUNT(*) as cnt FROM user_route_ascents WHERE user_id = ?')
+      .bind(userId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare('SELECT COUNT(*) as cnt FROM bucket_list_items WHERE biography_id = ?')
+      .bind(bioId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare(
+        "SELECT COUNT(*) as cnt FROM bucket_list_items WHERE biography_id = ? AND status = 'completed'"
+      )
+      .bind(bioId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare('SELECT COUNT(*) as cnt FROM quiz_results WHERE user_id = ?')
+      .bind(userId)
+      .first<{ cnt: number }>(),
+    db
+      .prepare(
+        'SELECT COUNT(DISTINCT personality_type) as cnt FROM training_progress WHERE user_id = ? AND completed = 1 GROUP BY personality_type HAVING COUNT(*) = 12'
+      )
+      .bind(userId)
+      .first<{ cnt: number }>(),
+  ])
 
   // biography 文字欄位（從 basic_info_data JSON 取值，每填一欄 +3，上限 12）
   // climbing_meaning 已移至 core_stories 計分，不重複計算
@@ -118,6 +138,12 @@ export async function calculateUserScore(
   // 人生清單已完成（上限 10 = 5項 × 2）
   const bucket_list_completed = Math.min((bucketCompletedRow?.cnt ?? 0) * 2, 10)
 
+  // 完成人格測驗（+5）
+  const quiz_completed = (quizRow?.cnt ?? 0) > 0 ? 5 : 0
+
+  // 完成任一型態訓練計畫 12 天全勤（+15，僅計一個）
+  const training_completed = (trainingRow?.cnt ?? 0) > 0 ? 15 : 0
+
   const total =
     biography_fields +
     biography_bucket_list +
@@ -127,7 +153,9 @@ export async function calculateUserScore(
     stories +
     route_ascents +
     bucket_list_items +
-    bucket_list_completed
+    bucket_list_completed +
+    quiz_completed +
+    training_completed
 
   return {
     biography_fields,
@@ -139,6 +167,8 @@ export async function calculateUserScore(
     route_ascents,
     bucket_list_items,
     bucket_list_completed,
+    quiz_completed,
+    training_completed,
     total,
   }
 }

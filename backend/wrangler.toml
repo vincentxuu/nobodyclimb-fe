@@ -9,11 +9,28 @@ compatibility_flags = ["nodejs_compat"]
 account_id = "1ff43f0d4c3ad3bd98ce5ab767546a68"
 
 # ============================================
+# Local Development Bindings
+# ============================================
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nobodyclimb-db-local"
+database_id = "local"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "local"
+
+# Workers AI Binding (local dev)
+[ai]
+binding = "AI"
+
+# ============================================
 # Cron Triggers
 # ============================================
 
 [triggers]
-crons = ["0 16 * * *"]  # UTC 16:00 = 台灣時間 00:00，每日重置等級配額
+crons = ["0 16 * * *", "0 0 * * 1"]  # UTC 16:00 = 台灣 00:00 每日重置；UTC 週一 00:00 = 台灣週一 08:00 人格演化
 
 # ============================================
 

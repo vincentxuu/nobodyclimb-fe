@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- TFS Zen | Slab foothold + Enso circle + Owl silhouette | #6C5CE7 -->
+  <g id="layer-hold">
+    <ellipse cx="100" cy="105" rx="48" ry="52" fill="none" stroke="#6C5CE7" stroke-width="3"/>
+    <ellipse cx="100" cy="105" rx="43" ry="47" fill="#6C5CE7" opacity="0.08"/>
+  </g>
+  <g id="layer-symbol">
+    <path d="M65 105 Q65 65 100 62 Q135 65 138 100 Q140 130 115 140 Q105 145 100 142" fill="none" stroke="#6C5CE7" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="100" cy="142" r="3" fill="#6C5CE7" opacity="0.4"/>
+  </g>
+  <g id="layer-animal" opacity="0.12">
+    <circle cx="100" cy="100" r="14" fill="#6C5CE7"/>
+    <circle cx="93" cy="96" r="5" fill="white" opacity="0.3"/>
+    <circle cx="107" cy="96" r="5" fill="white" opacity="0.3"/>
+    <circle cx="93" cy="96" r="2.5" fill="#6C5CE7"/>
+    <circle cx="107" cy="96" r="2.5" fill="#6C5CE7"/>
+    <path d="M97 103 L100 106 L103 103" fill="none" stroke="white" stroke-width="1" opacity="0.3"/>
+    <path d="M82 88 C78 82 85 78 90 84" fill="#6C5CE7"/>
+    <path d="M118 88 C122 82 115 78 110 84" fill="#6C5CE7"/>
+  </g>
+</svg>

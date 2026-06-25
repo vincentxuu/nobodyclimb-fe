@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"openspec instructions apply --change \\\"add-quiz-training-ui\\\" --json 2>/dev/null | python3 -c \\\"\\nimport sys,json\\nd=json.load(sys.stdin)\\nprint(f'Progress: {d[\\\\\\\"progress\\\\\\\"][\\\\\\\"comple...",
+  "error": "Exit code 1\nTraceback (most recent call last):\n  File \"<string>\", line 3, in <module>\n  File \"/Users/xiaoxu/.pyenv/versions/3.11.15/lib/python3.11/json/__init__.py\", line 293, in load\n    return loads(fp.read(),\n           ^^^^^^^^^^^^^^^^\n  File \"/Users/xiaoxu/.pyenv/versions/3.11.15/lib/python3.11/json/__init__.py\", line 346, in loads\n    return _default_decoder.decode(s)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/xiaoxu/.pyenv/versions/3.11.15/lib/python3.11/json/decoder.py\", line 3...",
+  "timestamp": "2026-06-24T11:26:49.008Z",
+  "retry_count": 1
+}

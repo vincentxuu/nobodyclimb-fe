@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react'
 import ProfileEditorV2Wrapper from '@/components/biography/editor/ProfileEditorV2Wrapper'
+import EvolutionNotificationBanner from '@/components/profile/evolution/EvolutionNotificationBanner'
 import ProfilePageLayout from '@/components/profile/layout/ProfilePageLayout'
 
 function ProfileFallback() {
@@ -15,6 +16,7 @@ function ProfileFallback() {
 export default function ProfilePage() {
   return (
     <ProfilePageLayout>
+      <EvolutionNotificationBanner />
       <Suspense fallback={<ProfileFallback />}>
         <ProfileEditorV2Wrapper />
       </Suspense>

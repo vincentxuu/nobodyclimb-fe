@@ -10,6 +10,7 @@ import { BiographyFootprints } from './BiographyFootprints'
 import { BiographyGallery } from './BiographyGallery'
 import { BiographyHero } from './BiographyHero'
 import { BiographyOneLiners } from './BiographyOneLiners'
+import { BiographyPersonality } from './BiographyPersonality'
 import { BiographyStories } from './BiographyStories'
 import { BiographyTags } from './BiographyTags'
 import { EmptyState } from './EmptyState'
@@ -21,6 +22,14 @@ interface BiographyDetailPageProps {
   isOwner?: boolean
   /** 追蹤者數量變更回調 */
   onFollowerCountChange?: (_count: number) => void
+  /** 人格類型代碼 */
+  personalityType?: string | null
+  /** 力量傾向百分比 */
+  powerPct?: number
+  /** 目標傾向百分比 */
+  goalPct?: number
+  /** 冒險傾向百分比 */
+  boldPct?: number
   /** 自訂樣式 */
   className?: string
 }
@@ -57,6 +66,10 @@ export function BiographyDetailPage({
   biography,
   isOwner = false,
   onFollowerCountChange,
+  personalityType,
+  powerPct = 0,
+  goalPct = 0,
+  boldPct = 0,
   className,
 }: BiographyDetailPageProps) {
   // 處理隱私狀態
@@ -110,6 +123,15 @@ export function BiographyDetailPage({
       <div className="container mx-auto max-w-4xl px-4">
         {/* 2. Identity Tags - 關鍵字標籤 */}
         <BiographyTags biography={biography} />
+
+        {personalityType && (
+          <BiographyPersonality
+            personalityType={personalityType}
+            powerPct={powerPct}
+            goalPct={goalPct}
+            boldPct={boldPct}
+          />
+        )}
       </div>
 
       {/* 3. Chapter 1 - 你與攀岩的相遇 */}

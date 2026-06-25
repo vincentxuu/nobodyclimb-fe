@@ -20,13 +20,17 @@ import {
   Settings,
   Shield,
   Sparkles,
+  TrendingUp,
   User,
 } from 'lucide-react-native'
 import React, { useCallback } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import EvolutionNotificationBanner from '@/components/profile/evolution/EvolutionNotificationBanner'
+import { QuizProfileBadge } from '@/components/quiz/QuizProfileBadge'
 import { Avatar, Button, Divider, Text } from '@/components/ui'
 import { useAuthStore } from '@/store/authStore'
+import { useQuizStore } from '@/store/quizStore'
 
 interface MenuItemProps {
   icon: React.ReactNode
@@ -58,6 +62,7 @@ function MenuItem({ icon, label, onPress, showArrow = true, destructive = false 
 export default function ProfileScreen() {
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuthStore()
+  const { result: quizResult } = useQuizStore()
   const canAccessAdmin = user?.role === 'admin' || user?.role === 'moderator'
 
   const handleLogin = useCallback(() => {
@@ -120,6 +125,22 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        {/* 攀岩人格徽章 */}
+        <View style={styles.quizBadgeSection}>
+          <QuizProfileBadge
+            typeCode={quizResult?.typeCode}
+            size="md"
+            onPress={() =>
+              quizResult
+                ? handleNavigate(`/quiz/result/${quizResult.typeCode}`)
+                : handleNavigate('/quiz')
+            }
+          />
+        </View>
+
+        {/* 演化通知 */}
+        <EvolutionNotificationBanner />
+
         {/* 主要選單 */}
         <View style={styles.menuSection}>
           <MenuItem
@@ -171,6 +192,11 @@ export default function ProfileScreen() {
             icon={<Sparkles size={20} color={WB_COLORS[60]} />}
             label="路線推薦"
             onPress={() => handleNavigate('/profile/recommendations')}
+          />
+          <MenuItem
+            icon={<TrendingUp size={20} color={SEMANTIC_COLORS.success} />}
+            label="人格演化"
+            onPress={() => handleNavigate('/profile/evolution')}
           />
           {canAccessAdmin && (
             <MenuItem
@@ -245,6 +271,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.sm,
     backgroundColor: '#F5F5F5',
+  },
+  quizBadgeSection: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   menuSection: {
     backgroundColor: SEMANTIC_COLORS.cardBg,

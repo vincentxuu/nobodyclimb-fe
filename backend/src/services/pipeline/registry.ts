@@ -5,7 +5,7 @@ const NON_RAG_SKIP: SkipCondition[] = [
   {
     field: 'queryType',
     operator: 'in',
-    value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed'],
+    value: ['general-knowledge', 'sql', 'hybrid', 'clarification-needed', 'multi-tool'],
   },
 ]
 
@@ -47,7 +47,10 @@ export const STEP_REGISTRY: PipelineStepMeta[] = [
       'sqlTemplate',
       'sqlParams',
       'clarificationType',
-      'strategyHint',
+      'toolConfidence',
+      'fallbackEnabled',
+      'alternativeTool',
+      'retrievalMethod',
     ],
   },
   {
@@ -149,6 +152,17 @@ export const STEP_REGISTRY: PipelineStepMeta[] = [
     defaultOrder: 10,
     requires: ['candidateMatches', 'documents'],
     provides: ['sources', 'context'],
+    skipWhen: NON_RAG_SKIP,
+  },
+  {
+    id: 'personality-rerank',
+    name: '人格風格加權排序',
+    description: '根據用戶攀岩人格類型調整路線分數，混合順風格與反風格',
+    phase: 'post-retrieval',
+    defaultEnabled: true,
+    defaultOrder: 10.5,
+    requires: ['rerankedMatches', 'documents'],
+    provides: [],
     skipWhen: NON_RAG_SKIP,
   },
   {

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- TGS Cipher | Thin crimp hold + Gears/lock + Octopus silhouette | #3742FA -->
+  <g id="layer-hold">
+    <path d="M55 80 L80 50 L120 50 L145 80 L140 130 L110 158 L90 158 L60 130 Z" fill="none" stroke="#3742FA" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M59 83 L83 55 L117 55 L141 83 L137 128 L108 153 L92 153 L63 128 Z" fill="#3742FA" opacity="0.08"/>
+  </g>
+  <g id="layer-symbol">
+    <circle cx="88" cy="95" r="15" fill="none" stroke="#3742FA" stroke-width="2" opacity="0.8"/>
+    <circle cx="112" cy="95" r="15" fill="none" stroke="#3742FA" stroke-width="2" opacity="0.8"/>
+    <circle cx="100" cy="115" r="12" fill="none" stroke="#3742FA" stroke-width="2" opacity="0.6"/>
+    <!-- Gear teeth hints -->
+    <line x1="88" y1="78" x2="88" y2="74" stroke="#3742FA" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="75" y1="88" x2="71" y2="86" stroke="#3742FA" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="101" y1="88" x2="99" y2="86" stroke="#3742FA" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="112" y1="78" x2="112" y2="74" stroke="#3742FA" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="125" y1="88" x2="129" y2="86" stroke="#3742FA" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="88" cy="95" r="4" fill="#3742FA" opacity="0.5"/>
+    <circle cx="112" cy="95" r="4" fill="#3742FA" opacity="0.5"/>
+    <circle cx="100" cy="115" r="3" fill="#3742FA" opacity="0.5"/>
+  </g>
+  <g id="layer-animal" opacity="0.12">
+    <circle cx="100" cy="100" r="8" fill="#3742FA"/>
+    <path d="M92 100 Q80 108 75 120" fill="none" stroke="#3742FA" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M108 100 Q120 108 125 120" fill="none" stroke="#3742FA" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M95 106 Q88 118 82 128" fill="none" stroke="#3742FA" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M105 106 Q112 118 118 128" fill="none" stroke="#3742FA" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="96" cy="97" r="1.5" fill="white" opacity="0.5"/>
+    <circle cx="104" cy="97" r="1.5" fill="white" opacity="0.5"/>
+  </g>
+</svg>

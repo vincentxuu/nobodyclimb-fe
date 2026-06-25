@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- TGB Sniper | Side-pull hold + Crosshair + Falcon silhouette | #27AE60 -->
+  <g id="layer-hold">
+    <path d="M60 55 L90 45 L130 55 L145 100 L135 145 L100 160 L65 145 L55 100 Z" fill="none" stroke="#27AE60" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M64 59 L92 50 L128 59 L141 100 L132 142 L100 155 L68 142 L59 100 Z" fill="#27AE60" opacity="0.08"/>
+  </g>
+  <g id="layer-symbol">
+    <circle cx="100" cy="100" r="25" fill="none" stroke="#27AE60" stroke-width="2" opacity="0.8"/>
+    <circle cx="100" cy="100" r="12" fill="none" stroke="#27AE60" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="100" cy="100" r="3" fill="#27AE60" opacity="0.9"/>
+    <line x1="100" y1="70" x2="100" y2="85" stroke="#27AE60" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+    <line x1="100" y1="115" x2="100" y2="130" stroke="#27AE60" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+    <line x1="70" y1="100" x2="85" y2="100" stroke="#27AE60" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+    <line x1="115" y1="100" x2="130" y2="100" stroke="#27AE60" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  </g>
+  <g id="layer-animal" opacity="0.12">
+    <path d="M95 95 L100 88 L105 95" fill="none" stroke="#27AE60" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="97" cy="97" r="1.5" fill="#27AE60"/>
+    <circle cx="103" cy="97" r="1.5" fill="#27AE60"/>
+    <path d="M100 100 L100 103" stroke="#27AE60" stroke-width="1"/>
+  </g>
+</svg>

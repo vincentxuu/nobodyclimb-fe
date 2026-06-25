@@ -12,6 +12,7 @@ import { judgeStep } from './steps/judge'
 import { llmGenerationStep } from './steps/llm-generation'
 import { mmrStep } from './steps/mmr'
 import { multiQueryStep } from './steps/multi-query'
+import { personalityRerankStep } from './steps/personality-rerank'
 import { popularityRerankStep } from './steps/popularity-rerank'
 import { selfReflectionStep } from './steps/self-reflection'
 // Step 實作匯入
@@ -42,6 +43,7 @@ const STEP_MAP: Record<StepId, PipelineStep> = {
   'cross-encoder': crossEncoderStep,
   mmr: mmrStep,
   'popularity-rerank': popularityRerankStep,
+  'personality-rerank': personalityRerankStep,
   'llm-generation': llmGenerationStep,
   judge: judgeStep,
   'self-reflection': selfReflectionStep,
@@ -623,6 +625,7 @@ export class PipelineEngine {
         case 'cross-encoder':
         case 'mmr':
         case 'popularity-rerank':
+        case 'personality-rerank':
           phaseLatency.retrievalMs += entry.duration_ms
           break
         case 'llm-generation':

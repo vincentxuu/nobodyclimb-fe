@@ -77,7 +77,7 @@
 - [x] 10.3 `tool-registry.ts`：註冊第 6 個工具 `multi_tool`（description、triggerSignals、queryType: 'multi-tool'、llmModel: 'main'）
 - [x] 10.4 `ai-prompts.ts`：`TOOL_SELECTION_PROMPT` JSON 輸出格式新增 `multi_tool` 欄位說明及與 `hybrid` 的區分規則
 - [x] 10.5 `tool-selection.ts`：`multi_tool` 分支驗證 steps 結構（非空、每步 tool 名稱有效且排除 multi_tool/general_knowledge、最多 3 步），設定 `ctx.queryType = 'multi-tool'` 和 `ctx.multiToolPlan`
-- [x] 10.6 skipWhen 更新：`'multi-tool'` 加入 text-to-sql、hyde、multi-query、filter-build、embedding、cross-encoder、mmr、popularity-rerank（8 個步驟），hybrid-search 不加
+- [x] 10.6 skipWhen 更新：`'multi-tool'` 加入 NON_RAG_SKIP（涵蓋 hyde、multi-query、filter-build、embedding、hybrid-search、cross-encoder、mmr、popularity-rerank、personality-rerank）
 - [x] 10.7 `hybrid-search.ts`：multi-tool 優先分支，將 `MultiToolPlan` 轉為 `ExecutionPlan` 格式，復用 `executePlan()` + `synthesize()`，失敗時 fallback 走 BM25-only
 - [x] 10.8 `query.ts`：`parseQueryWithLLM()` 驗證 `multi_tool` 結構（steps 非空、每步 tool 有效、最多 3 步），無效時降級為 `search_routes`
 

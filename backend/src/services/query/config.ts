@@ -106,6 +106,14 @@ export async function loadPipelineConfig(db: D1Database): Promise<PipelineConfig
     // Circuit Breaker 熔斷器
     circuit_breaker_threshold: num(cfg['circuit_breaker_threshold'], 5, 1, 20),
     circuit_breaker_reset_ms: num(cfg['circuit_breaker_reset_ms'], 30000, 5000, 120000),
+    // Personality Rerank
+    personality_weight: num(cfg['personality_weight'], 0.15, 0, 1),
+    personality_mode: (() => {
+      const v = cfg['personality_mode'] ?? 'balanced'
+      return v === 'anti_style' ? ('anti_style' as const) : ('balanced' as const)
+    })(),
+    personality_anti_ratio: num(cfg['personality_anti_ratio'], 0.4, 0, 1),
+    personality_anti_retrieve_count: num(cfg['personality_anti_retrieve_count'], 10, 1, 50),
     // Reranker 閾值過濾
     reranker_relevance_threshold: num(cfg['reranker_relevance_threshold'], 0.3, 0, 1),
     reranker_min_keep: num(cfg['reranker_min_keep'], 2, 1, 20),

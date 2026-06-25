@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PFB Wildfire | Volume hold + Spreading flames + Red Fox silhouette | #F7B731 -->
+  <g id="layer-hold">
+    <path d="M50 90 L80 45 L130 50 L155 85 L145 140 L110 165 L65 155 Z" fill="none" stroke="#F7B731" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M55 92 L82 51 L128 55 L150 87 L141 137 L108 160 L68 151 Z" fill="#F7B731" opacity="0.08"/>
+  </g>
+  <g id="layer-symbol">
+    <path d="M95 130 Q90 110 95 95 Q100 80 100 65 Q105 80 110 90 Q115 75 118 60 Q120 80 115 95 Q110 110 105 130" fill="none" stroke="#F7B731" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+    <path d="M80 130 Q78 115 85 100 Q88 90 85 78" fill="none" stroke="#F7B731" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <path d="M120 130 Q122 115 115 100 Q112 90 115 78" fill="none" stroke="#F7B731" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <circle cx="100" cy="65" r="3" fill="#F7B731" opacity="0.7"/>
+    <circle cx="118" cy="60" r="2.5" fill="#F7B731" opacity="0.5"/>
+    <circle cx="85" cy="78" r="2" fill="#F7B731" opacity="0.4"/>
+  </g>
+  <g id="layer-animal" opacity="0.12">
+    <path d="M88 140 Q85 135 88 130 Q95 125 100 128 Q105 125 112 130 Q115 135 112 140" fill="#F7B731"/>
+    <path d="M82 138 Q70 142 65 148" fill="none" stroke="#F7B731" stroke-width="2" stroke-linecap="round"/>
+    <path d="M118 138 Q130 142 135 148" fill="none" stroke="#F7B731" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="94" cy="134" r="1.5" fill="#F7B731" opacity="0.6"/>
+    <circle cx="106" cy="134" r="1.5" fill="#F7B731" opacity="0.6"/>
+  </g>
+</svg>

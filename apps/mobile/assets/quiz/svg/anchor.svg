@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- PFS Anchor | Jug hold + Anchor/mountain + Mountain Goat silhouette | #2C3E50 -->
+  <g id="layer-hold">
+    <path d="M55 75 Q60 50 100 42 Q140 50 145 75 L148 125 Q140 165 100 170 Q60 165 52 125 Z" fill="none" stroke="#2C3E50" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M59 78 Q64 55 100 48 Q136 55 141 78 L143 123 Q136 160 100 164 Q64 160 57 123 Z" fill="#2C3E50" opacity="0.08"/>
+  </g>
+  <g id="layer-symbol">
+    <path d="M70 135 L100 75 L130 135" fill="none" stroke="#2C3E50" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>
+    <line x1="80" y1="115" x2="120" y2="115" stroke="#2C3E50" stroke-width="2" opacity="0.6"/>
+    <circle cx="100" cy="70" r="4" fill="none" stroke="#2C3E50" stroke-width="2" opacity="0.7"/>
+    <line x1="100" y1="74" x2="100" y2="135" stroke="#2C3E50" stroke-width="2" opacity="0.5"/>
+  </g>
+  <g id="layer-animal" opacity="0.12">
+    <path d="M92 108 L100 95 L108 108 L108 120 Q100 125 92 120 Z" fill="#2C3E50"/>
+    <path d="M89 105 C86 100 88 96 91 98" fill="none" stroke="#2C3E50" stroke-width="1.5"/>
+    <path d="M111 105 C114 100 112 96 109 98" fill="none" stroke="#2C3E50" stroke-width="1.5"/>
+    <circle cx="96" cy="106" r="1.5" fill="#2C3E50" opacity="0.5"/>
+    <circle cx="104" cy="106" r="1.5" fill="#2C3E50" opacity="0.5"/>
+  </g>
+</svg>

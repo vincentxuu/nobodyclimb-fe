@@ -31,7 +31,7 @@ export const recommendTool: Tool = {
     if (!ctx.userId) {
       return '為用戶推薦個人化攀岩路線。（目前用戶未登入，無法使用此工具）'
     }
-    return '根據用戶的攀登歷史和能力，推薦適合的攀岩路線。會排除已完攀的路線。'
+    return '根據用戶的攀登歷史或訊息中提到的條件，推薦適合的攀岩路線。會排除已完攀的路線。'
   },
 
   async execute(input: unknown, ctx: ToolContext): Promise<unknown> {

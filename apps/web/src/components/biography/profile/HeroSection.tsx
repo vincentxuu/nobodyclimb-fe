@@ -5,10 +5,14 @@ import { motion } from 'framer-motion'
 import { Eye, MessageCircle, Users } from 'lucide-react'
 import Image from 'next/image'
 import { useMemo, useState } from 'react'
+import { PersonalityBadge } from '@/components/profile/PersonalityBadge'
+import { PersonalityCTA } from '@/components/profile/PersonalityCTA'
 import { RankBadge } from '@/components/rank/RankBadge'
 import { ShareButton } from '@/components/shared/share-button'
+import { useQuizResult } from '@/lib/hooks/useQuizResult'
 import { Biography, BiographySocialLinks } from '@/lib/types'
 import { getDefaultCoverUrl } from '@/lib/utils/image'
+import { useAuthStore } from '@/store/authStore'
 import { BiographyCommentSection } from '../biography-comment-section'
 import { BiographyLikeButton } from '../biography-like-button'
 import { FollowButton } from '../follow-button'
@@ -27,6 +31,11 @@ interface HeroSectionProps {
  * 封面圖橫幅 + 頭像疊在左下角
  */
 export function HeroSection({ person, followerCount, isOwner, onFollowChange }: HeroSectionProps) {
+  const { user } = useAuthStore()
+  const hasPersonality = !!person.personality_type
+  const isViewingOwnProfile = isOwner && !!user
+  const { data: quizResult } = useQuizResult(hasPersonality && isViewingOwnProfile)
+
   // 按讚數狀態
   const [likesCount, setLikesCount] = useState(person.total_likes || 0)
   // 評論區展開狀態
@@ -96,6 +105,20 @@ export function HeroSection({ person, followerCount, isOwner, onFollowChange }: 
                 )}
               </div>
               <p className="text-sm text-text-subtle md:text-base">{person.title}</p>
+
+              {/* 人格徽章 / CTA */}
+              <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-start">
+                {hasPersonality ? (
+                  <PersonalityBadge
+                    personalityType={person.personality_type!}
+                    gritIndex={quizResult?.latest?.grit_index}
+                    flowIndex={quizResult?.latest?.flow_index}
+                  />
+                ) : isViewingOwnProfile ? (
+                  <PersonalityCTA />
+                ) : null}
+              </div>
+
               {/* 社群連結 */}
               <CompactSocialLinks socialLinks={socialLinks} className="mt-2" />
             </div>

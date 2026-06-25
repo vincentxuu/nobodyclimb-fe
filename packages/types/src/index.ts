@@ -16,6 +16,9 @@ export * from './biography'
 export * from './content'
 // 通知相關
 export * from './notification'
+
+// 攀岩人格測驗相關
+export * from './quiz'
 // 攀岩等級相關
 export * from './rank'
 

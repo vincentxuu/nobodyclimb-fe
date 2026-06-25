@@ -1,3 +1,5 @@
+import { getPersonalityType } from '@nobodyclimb/constants'
+import type { PersonalityTypeCode } from '@nobodyclimb/types'
 import type { Tool, ToolContext, ToolResult } from '../types'
 
 /** YDS grade → sortable numeric（5.10a=100, 5.12d=123） */
@@ -39,7 +41,7 @@ export const userProfileTool: Tool = {
     const [user, recentAscents, stats] = await Promise.all([
       db
         .prepare(
-          `SELECT u.id, COALESCE(u.display_name, u.username) AS name, ur.rank_id, ur.score, ur.daily_ai_limit
+          `SELECT u.id, COALESCE(u.display_name, u.username) AS name, u.personality_type, ur.rank_id, ur.score, ur.daily_ai_limit
            FROM users u LEFT JOIN user_ranks ur ON u.id = ur.user_id
            WHERE u.id = ?`
         )
@@ -47,6 +49,7 @@ export const userProfileTool: Tool = {
         .first<{
           id: string
           name: string
+          personality_type: string | null
           rank_id: string | null
           score: number | null
           daily_ai_limit: number | null
@@ -90,17 +93,35 @@ export const userProfileTool: Tool = {
         ? allGrades.reduce((best, g) => (gradeToNumeric(g) > gradeToNumeric(best) ? g : best))
         : null
 
+    let personalityInfo: { code: string; nameZh: string; description: string } | null = null
+    if (user?.personality_type) {
+      const pt = getPersonalityType(user.personality_type as PersonalityTypeCode)
+      if (pt) {
+        personalityInfo = {
+          code: pt.code,
+          nameZh: pt.nameZh,
+          description: pt.keywords.slice(0, 3).join('、'),
+        }
+      }
+    }
+
     return {
       user,
       recentAscents: recentAscents.results ?? [],
       stats: { ...stats, highest_grade: highestGrade },
+      personalityInfo,
     }
   },
 
   formatResult(raw: unknown): ToolResult {
     const data = raw as {
       error?: string
-      user?: { name: string; rank_id: string | null; score: number | null }
+      user?: {
+        name: string
+        personality_type: string | null
+        rank_id: string | null
+        score: number | null
+      }
       recentAscents?: Array<{
         route_name: string
         grade: string
@@ -109,6 +130,7 @@ export const userProfileTool: Tool = {
         crag_name: string | null
       }>
       stats?: { total_ascents: number; highest_grade: string; unique_crags: number }
+      personalityInfo?: { code: string; nameZh: string; description: string } | null
     }
 
     if (data.error) {
@@ -119,6 +141,11 @@ export const userProfileTool: Tool = {
     if (data.user) {
       lines.push(`用戶：${data.user.name}`)
       if (data.user.rank_id) lines.push(`等級：${data.user.rank_id}`)
+    }
+    if (data.personalityInfo) {
+      lines.push(
+        `攀岩性格：${data.personalityInfo.nameZh}（${data.personalityInfo.code}）— ${data.personalityInfo.description}`
+      )
     }
     if (data.stats) {
       lines.push(`總完攀：${data.stats.total_ascents} 條`)

@@ -22,6 +22,7 @@ export function createPipelineContext(opts: {
   memorySummary: string | null
   ascentContext: string | null
   abilityLevel: number | null
+  personalityType?: string | null
   streamingMode: boolean
   onToken?: (token: string) => Promise<void>
   waitUntilCtx?: { waitUntil(promise: Promise<unknown>): void }
@@ -68,6 +69,7 @@ export function createPipelineContext(opts: {
     ascentContext: opts.ascentContext,
     abilityLevel: opts.abilityLevel,
     climbed_route_ids: opts.request.climbed_route_ids ?? null,
+    personalityType: opts.personalityType ?? null,
 
     // Tool Selection 信心
     toolConfidence: 1.0,
