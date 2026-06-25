@@ -97,7 +97,90 @@ module.exports = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': '#1B1A1A',
+            '--tw-prose-headings': '#1B1A1A',
+            '--tw-prose-links': '#1B1A1A',
+            '--tw-prose-bold': '#1B1A1A',
+            '--tw-prose-counters': '#6D6C6C',
+            '--tw-prose-bullets': '#8E8C8C',
+            '--tw-prose-hr': '#EBEAEA',
+            '--tw-prose-quotes': '#3F3D3D',
+            '--tw-prose-quote-borders': '#EBEAEA',
+            '--tw-prose-captions': '#6D6C6C',
+            '--tw-prose-th-borders': '#EBEAEA',
+            '--tw-prose-td-borders': '#EBEAEA',
+            lineHeight: '1.8',
+            a: {
+              color: '#1B1A1A',
+              textDecoration: 'underline',
+              textDecorationColor: '#C8C5C5',
+              textUnderlineOffset: '3px',
+              fontWeight: '500',
+              transition: 'text-decoration-color 0.2s',
+              '&:hover': {
+                textDecorationColor: '#1B1A1A',
+              },
+            },
+            h2: {
+              fontWeight: '700',
+              letterSpacing: '-0.01em',
+              marginTop: '2em',
+              marginBottom: '0.8em',
+              paddingBottom: '0.3em',
+              borderBottom: '1px solid #EBEAEA',
+            },
+            h3: {
+              fontWeight: '600',
+              marginTop: '1.6em',
+              marginBottom: '0.6em',
+            },
+            table: {
+              fontSize: '0.875em',
+              lineHeight: '1.5',
+            },
+            thead: {
+              borderBottomWidth: '2px',
+            },
+            'thead th': {
+              fontWeight: '600',
+              backgroundColor: '#FAFAFA',
+              paddingTop: '0.75em',
+              paddingBottom: '0.75em',
+            },
+            'tbody td': {
+              paddingTop: '0.625em',
+              paddingBottom: '0.625em',
+            },
+            blockquote: {
+              fontStyle: 'normal',
+              borderLeftColor: '#EBEAEA',
+              borderLeftWidth: '3px',
+              color: '#3F3D3D',
+            },
+            strong: {
+              fontWeight: '600',
+            },
+            'ul > li::marker': {
+              color: '#8E8C8C',
+            },
+            'ol > li::marker': {
+              color: '#6D6C6C',
+            },
+            hr: {
+              borderColor: '#EBEAEA',
+              marginTop: '2em',
+              marginBottom: '2em',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+  ],
 }
