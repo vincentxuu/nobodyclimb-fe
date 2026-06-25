@@ -393,7 +393,7 @@ export default function BlogDetailClient() {
                 </section>
               )}
               <section
-                className="blog-content text-sm text-wb-100 sm:text-base [&>p]:mb-4 [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-4 sm:[&>h1]:text-2xl [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-3 sm:[&>h2]:text-xl [&>h3]:text-base [&>h3]:font-semibold [&>h3]:mb-2 sm:[&>h3]:text-lg [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-wb-30 [&>blockquote]:pl-4 [&>blockquote]:italic [&>a]:text-blue-600 [&>a]:underline"
+                className="blog-content prose prose-base sm:prose-lg max-w-none"
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(normalizeNewlines(article.content)),
                 }}
