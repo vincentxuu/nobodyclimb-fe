@@ -6,7 +6,7 @@ const Empty = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'>>(
     <div
       ref={ref}
       className={cn(
-        'flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center',
+        'flex min-h-[300px] flex-col items-center justify-center gap-2 p-8 text-center',
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ const EmptyIcon = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'>>(
     <div
       ref={ref}
       className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-full bg-muted [&>svg]:h-6 [&>svg]:w-6 [&>svg]:text-muted-foreground',
+        'flex h-12 w-12 items-center justify-center rounded-full bg-muted [&>svg]:text-muted-foreground',
         className
       )}
       {...props}
