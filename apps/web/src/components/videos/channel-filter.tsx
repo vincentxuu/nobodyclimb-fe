@@ -23,9 +23,7 @@ const ChannelFilter: React.FC<ChannelFilterProps> = ({
     <div className="w-full md:w-64">
       <Select value={selectedChannel} onValueChange={onChannelChange}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="選擇頻道">
-            {selectedChannel === 'all' ? '全部頻道' : selectedChannel}
-          </SelectValue>
+          <SelectValue placeholder="選擇頻道" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">全部頻道</SelectItem>

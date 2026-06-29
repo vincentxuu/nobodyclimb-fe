@@ -182,6 +182,73 @@
   }
 }
 
+/* scroll-fade: 滾動容器邊緣漸層淡出 */
+@layer utilities {
+  .scroll-fade {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      black 1rem,
+      black calc(100% - 1rem),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      black 1rem,
+      black calc(100% - 1rem),
+      transparent
+    );
+  }
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 1rem,
+      black calc(100% - 1rem),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 1rem,
+      black calc(100% - 1rem),
+      transparent
+    );
+  }
+}
+
+/* shimmer: 文字/區塊閃爍動畫（AI 串流狀態用） */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@layer utilities {
+  .shimmer {
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--muted)) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  .text-shimmer {
+    background: linear-gradient(
+      90deg,
+      currentColor 25%,
+      hsl(var(--muted-foreground)) 50%,
+      currentColor 75%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 2s infinite;
+  }
+}
+
 /* Quiz 模式：隱藏主站導覽列和 footer（由 QuizLayoutWrapper inline style 優先處理 FOUC） */
 body.quiz-mode > div nav,
 body.quiz-mode > div footer {
