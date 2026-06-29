@@ -273,7 +273,9 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
 
   // 6. Output guards（同步）
   const guardResult = runOutputGuards(result.answer)
-  const finalAnswer = guardResult.cleanedAnswer ?? result.answer
+  const finalAnswer = !guardResult.passed
+    ? '抱歉，AI 助理暫時無法處理您的問題，請稍後再試。'
+    : (guardResult.cleanedAnswer ?? result.answer)
 
   // 7. Async judge + memory extraction（非同步，不擋回應）
   if (waitUntilCtx) {
