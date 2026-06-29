@@ -132,6 +132,13 @@ export const recommendTool: Tool = {
 
     filtered = filtered.slice(0, 10)
 
+    // 收集 sources 供 injectRouteLinks 使用
+    for (const s of filtered) {
+      if (s.id && !ctx.collectedSources.some((existing) => existing.id === s.id)) {
+        ctx.collectedSources.push(s)
+      }
+    }
+
     return {
       recentAscents: ascents.results ?? [],
       recommendations: filtered,
@@ -143,7 +150,7 @@ export const recommendTool: Tool = {
     const data = raw as {
       error?: string
       recentAscents?: Array<{ route_name: string; grade: string }>
-      recommendations?: Array<{ title: string; excerpt?: string }>
+      recommendations?: Array<{ title: string; excerpt?: string; url?: string }>
       count?: number
     }
 
@@ -155,7 +162,9 @@ export const recommendTool: Tool = {
     if (data.recommendations?.length) {
       lines.push(`推薦路線（${data.count} 條）：`)
       for (const [i, r] of data.recommendations.entries()) {
-        lines.push(`${i + 1}. ${r.title}${r.excerpt ? `\n   ${r.excerpt}` : ''}`)
+        lines.push(
+          `${i + 1}. ${r.title}${r.excerpt ? `\n   ${r.excerpt}` : ''}${r.url ? `\n   路線連結：${r.url}` : ''}`
+        )
       }
     } else {
       lines.push('目前沒有推薦路線。')

@@ -59,6 +59,14 @@ export const searchRoutesTool: Tool = {
       limit: 10,
       filters: cragId ? { crag_id: cragId } : undefined,
     })
+
+    // 收集 sources 供 injectRouteLinks 使用
+    for (const s of result.results) {
+      if (!ctx.collectedSources.some((existing) => existing.id === s.id)) {
+        ctx.collectedSources.push(s)
+      }
+    }
+
     return result
   },
 
@@ -71,7 +79,8 @@ export const searchRoutesTool: Tool = {
       return { content: '未找到符合條件的路線。', metadata: { resultCount: 0 } }
     }
     const lines = data.results.map(
-      (r, i) => `${i + 1}. ${r.title}${r.excerpt ? `\n   ${r.excerpt}` : ''}`
+      (r, i) =>
+        `${i + 1}. ${r.title}${r.excerpt ? `\n   ${r.excerpt}` : ''}${r.url ? `\n   路線連結：${r.url}` : ''}`
     )
     return {
       content: `找到 ${data.count} 條路線：\n\n${lines.join('\n\n')}`,

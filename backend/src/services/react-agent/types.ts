@@ -1,4 +1,4 @@
-import type { Env } from '../../types'
+import type { AISource, Env } from '../../types'
 import type { LangfuseParent } from '../../utils/langfuse'
 import type { QueryService } from '../query'
 import type { AgentCache } from './cache'
@@ -92,6 +92,8 @@ export interface ToolContext {
   cache: AgentCache
   /** 當前已註冊的 tool 名稱列表（供 prompt() 跨 tool 組合提示） */
   availableTools: string[]
+  /** 工具執行過程中收集的路線/岩場 sources，供最終 injectRouteLinks 使用 */
+  collectedSources: AISource[]
 }
 
 // ---------------------------------------------------------------------------
@@ -167,7 +169,7 @@ export interface ReactAgentOptions {
 
 export interface ReactAgentResult {
   answer: string
-  sources: Array<{ title: string; url: string; excerpt?: string }>
+  sources: AISource[]
   totalTokens: number
   turnCount: number
   toolCallCount: number

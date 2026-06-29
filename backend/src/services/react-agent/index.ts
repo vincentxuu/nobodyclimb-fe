@@ -238,6 +238,7 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
     tracker,
     cache,
     availableTools: registry.getToolNames(),
+    collectedSources: [],
   }
 
   // 3. Build personalized system prompt（工具說明動態生成，基於 registry + ctx）
@@ -276,10 +277,47 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
   if (!guardResult.passed) {
     console.warn('[react-agent] output guard failed', { qualityFlag: guardResult.qualityFlag })
   }
-  const finalAnswer =
+  const guardedAnswer =
     guardResult.qualityFlag === 'tool_call_leak'
       ? '抱歉，AI 助理暫時無法處理您的問題，請稍後再試。'
       : (guardResult.cleanedAnswer ?? result.answer)
+
+  // 6.5 注入路線連結與影片連結（post-processing）
+  let finalAnswer = guardedAnswer
+  const routeSources = toolCtx.collectedSources.filter((s) => s.type === 'route')
+  if (routeSources.length > 0) {
+    // 查詢各路線的最新影片 URL
+    const routeIds = routeSources.map((s) => s.id)
+    const placeholders = routeIds.map(() => '?').join(', ')
+    try {
+      const videoResult = await env.DB.prepare(
+        `SELECT rv.route_id, v.youtube_id
+         FROM route_videos rv
+         JOIN videos v ON rv.video_id = v.id
+         WHERE rv.route_id IN (${placeholders}) AND v.youtube_id IS NOT NULL
+         ORDER BY rv.route_id, COALESCE(v.published_at, rv.created_at) DESC`
+      )
+        .bind(...routeIds)
+        .all<{ route_id: string; youtube_id: string }>()
+
+      const latestVideoMap = new Map<string, string>()
+      const seenRoutes = new Set<string>()
+      for (const row of videoResult.results) {
+        if (!seenRoutes.has(row.route_id)) {
+          latestVideoMap.set(row.route_id, `https://youtube.com/watch?v=${row.youtube_id}`)
+          seenRoutes.add(row.route_id)
+        }
+      }
+      for (const s of toolCtx.collectedSources) {
+        if (s.type === 'route' && latestVideoMap.has(s.id)) {
+          s.latestVideoUrl = latestVideoMap.get(s.id)
+        }
+      }
+    } catch {
+      // 靜默失敗，不中斷回應
+    }
+    finalAnswer = queryService.injectRouteLinks(guardedAnswer, toolCtx.collectedSources)
+  }
 
   // 7. Async judge + memory extraction（非同步，不擋回應）
   if (waitUntilCtx) {
@@ -292,7 +330,7 @@ export async function runReactAgent(params: RunReactAgentParams): Promise<ReactA
   const costSummary = tracker.getCostSummary()
   return {
     answer: finalAnswer,
-    sources: [],
+    sources: toolCtx.collectedSources,
     totalTokens: tracker.getTotalTokens(),
     turnCount: result.turnCount,
     toolCallCount: result.toolCallCount,
