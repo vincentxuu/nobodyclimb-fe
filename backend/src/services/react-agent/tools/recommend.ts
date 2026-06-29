@@ -21,7 +21,11 @@ export const recommendTool: Tool = {
     properties: {
       crag: {
         type: 'string',
-        description: '（可選）限定推薦的岩場',
+        description: '（可選）限定推薦的岩場名稱',
+      },
+      grade: {
+        type: 'string',
+        description: '（可選）限定推薦的難度，例如 5.10、5.11a',
       },
     },
     required: [],
@@ -31,7 +35,7 @@ export const recommendTool: Tool = {
     if (!ctx.userId) {
       return '為用戶推薦個人化攀岩路線。（目前用戶未登入，無法使用此工具）'
     }
-    return '根據用戶的攀登歷史或訊息中提到的條件，推薦適合的攀岩路線。會排除已完攀的路線。'
+    return '根據用戶的攀登歷史，推薦個人化的進階攀岩路線，會排除已完攀的路線。僅適合「推薦我下一條」「適合我的」等以用戶歷史為基礎的推薦場景。若用戶明確指定難度（如 5.11）或想查特定條件路線清單，請改用 search_routes 工具。'
   },
 
   async execute(input: unknown, ctx: ToolContext): Promise<unknown> {
@@ -39,7 +43,7 @@ export const recommendTool: Tool = {
       return { error: '用戶未登入，無法產生個人化推薦' }
     }
 
-    const { crag } = input as { crag?: string }
+    const { crag, grade } = input as { crag?: string; grade?: string }
     const db = ctx.env.DB
 
     // 取得用戶近期攀登記錄
@@ -64,7 +68,9 @@ export const recommendTool: Tool = {
     const climbedRouteIds = new Set((climbedRoutes.results ?? []).map((r) => r.route_id))
 
     // 用 QueryService 搜尋推薦路線
-    const query = crag ? `推薦適合我的 ${crag} 攀岩路線` : '推薦適合我的攀岩路線'
+    const query = crag
+      ? `推薦適合我的 ${crag}${grade ? ` ${grade}` : ''} 攀岩路線`
+      : `推薦適合我的${grade ? ` ${grade}` : ''} 攀岩路線`
 
     // 查 crag_id
     let cragId: string | undefined
@@ -93,9 +99,24 @@ export const recommendTool: Tool = {
       (r: { id?: string }) => !r.id || !climbedRouteIds.has(r.id)
     )
 
-    // 根據用戶程度過濾難度範圍：推薦同級到上一個大級（最多 +10 數值）
-    // 例如用戶最高 5.10c（102）→ 推薦 5.10c～5.11c（102～112），排除 5.12+
-    if (userMaxGrade !== null) {
+    // 若用戶明確指定難度，優先用指定難度過濾（精確符合該大級）
+    if (grade) {
+      const requestedGrade = gradeToNumeric(grade)
+      if (requestedGrade > 0) {
+        // 允許同大級的 a/b/c/d 變體（例如 5.11 → 5.11a~5.11d，數值 110~113）
+        const majorBase = Math.floor(requestedGrade / 10) * 10
+        const gradeFiltered = filtered.filter((r: { excerpt?: string }) => {
+          const gradeNum = gradeToNumeric(r.excerpt?.match(/5\.\d+[a-d]?/)?.[0])
+          if (gradeNum === 0) return true
+          return Math.floor(gradeNum / 10) * 10 === majorBase
+        })
+        if (gradeFiltered.length >= 1) {
+          filtered = gradeFiltered
+        }
+      }
+    } else if (userMaxGrade !== null) {
+      // 根據用戶程度過濾難度範圍：推薦同級到上一個大級（最多 +10 數值）
+      // 例如用戶最高 5.10c（102）→ 推薦 5.10c～5.11c（102～112），排除 5.12+
       const minGrade = userMaxGrade
       const maxGrade = userMaxGrade + 10
       const gradeFiltered = filtered.filter((r: { excerpt?: string }) => {
