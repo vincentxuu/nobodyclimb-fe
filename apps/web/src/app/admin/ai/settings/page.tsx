@@ -1451,7 +1451,7 @@ export default function AdminAISettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="flex flex-wrap gap-1 rounded-lg bg-wb-05 p-1">
+        <TabsList className="flex h-auto flex-wrap gap-1 rounded-lg bg-wb-05 p-1">
           {TABS.map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id} className="text-xs">
               {tab.label}

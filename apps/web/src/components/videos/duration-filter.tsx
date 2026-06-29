@@ -15,9 +15,6 @@ interface DurationFilterProps {
 }
 
 const DurationFilter: React.FC<DurationFilterProps> = ({ selectedDuration, onDurationChange }) => {
-  const selectedLabel =
-    VIDEO_DURATION_OPTIONS.find((opt) => opt.value === selectedDuration)?.label || '全部時長'
-
   return (
     <div className="w-full md:w-48">
       <Select
@@ -25,7 +22,7 @@ const DurationFilter: React.FC<DurationFilterProps> = ({ selectedDuration, onDur
         onValueChange={(value) => onDurationChange(value as VideoDuration | 'all')}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="選擇時長">{selectedLabel}</SelectValue>
+          <SelectValue placeholder="選擇時長" />
         </SelectTrigger>
         <SelectContent>
           {VIDEO_DURATION_OPTIONS.map((option) => (
