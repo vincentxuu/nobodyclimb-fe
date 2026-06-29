@@ -294,6 +294,9 @@ export function ChatMessage({
 
   const isUser = message.role === 'user'
 
+  // 串流佔位訊息（尚未收到任何 token）不渲染，避免空白氣泡
+  if (!isUser && !message.content) return null
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content)
     setCopied(true)

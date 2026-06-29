@@ -19,7 +19,7 @@ export async function runInputGuard(query: string, db: D1Database) {
 
 export interface OutputGuardResult {
   passed: boolean
-  qualityFlag?: 'too_short' | 'prompt_leak'
+  qualityFlag?: 'too_short' | 'tool_call_leak' | 'prompt_leak'
   cleanedAnswer?: string
 }
 
@@ -34,7 +34,7 @@ export function runOutputGuards(answer: string): OutputGuardResult {
 
   // 2. 工具呼叫標記洩漏（LLM 輸出 "[呼叫工具: ...]" 文字而非真正呼叫工具，被 engine 誤當最終答案）
   if (TOOL_CALL_MARKER_RE.test(answer.trim())) {
-    return { passed: false, qualityFlag: 'too_short' }
+    return { passed: false, qualityFlag: 'tool_call_leak' }
   }
 
   // 3. System prompt 洩漏偵測（複用 checkOutput）
