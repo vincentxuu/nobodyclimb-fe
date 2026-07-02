@@ -21,6 +21,7 @@ import { QuizShareCard } from '@/components/quiz/QuizShareCard'
 import { ResultCompat } from '@/components/quiz/ResultCompat'
 import { ResultProfile } from '@/components/quiz/ResultProfile'
 import { ResultStrengths } from '@/components/quiz/ResultStrengths'
+import { ResultTraining } from '@/components/quiz/ResultTraining'
 import { Button, ConfirmDialog, Text, useToast } from '@/components/ui'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -141,6 +142,11 @@ export default function QuizResultScreen() {
         {/* 優劣勢分析 */}
         <View style={styles.section}>
           <ResultStrengths personalityType={personalityType} />
+        </View>
+
+        {/* 專屬訓練計畫 */}
+        <View style={styles.section}>
+          <ResultTraining personality={personalityType} />
         </View>
 
         {/* 相性分析 */}

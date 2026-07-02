@@ -12,7 +12,7 @@ import {
   SPACING,
 } from '@nobodyclimb/constants'
 import { useRouter } from 'expo-router'
-import { ChevronLeft } from 'lucide-react-native'
+import { ChevronLeft, ChevronRight } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -103,6 +103,15 @@ export default function QuizLandingScreen() {
               </Animated.View>
             ))}
           </View>
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={() => router.push('/quiz/collection' as any)}
+            rightIcon={ChevronRight}
+            style={styles.collectionLink}
+          >
+            探索 8 種人格
+          </Button>
         </Animated.View>
 
         {/* 時間提示 */}
@@ -174,6 +183,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: SPACING[3],
+  },
+  collectionLink: {
+    alignSelf: 'center',
+    marginTop: SPACING[3],
   },
   typeCell: {
     width: '47%',

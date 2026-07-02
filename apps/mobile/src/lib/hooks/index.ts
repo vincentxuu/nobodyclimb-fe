@@ -89,3 +89,5 @@ export {
 export { useScrollProgress } from './useScrollProgress'
 // 搜尋相關 hooks
 export { useSearch } from './useSearch'
+// 訓練計畫相關 hooks
+export { useTrainingProgress, useUpdateTrainingProgress } from './useTraining'
