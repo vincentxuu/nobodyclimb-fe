@@ -37,8 +37,8 @@
 | Quiz 訓練計畫 | `ResultTraining` + `/quiz/training/[type]` 完整週次追蹤 | ✅ 已完成（PR-6） | ✅ PR-6 |
 | Quiz 人格收藏集 | `/quiz/collection` | ✅ 已完成（PR-6） | ✅ PR-6 |
 | 原生推播 | 後台廣播系統已就緒（`/admin/broadcast`） | ✅ 已完成（PR-7） | ✅ PR-7 |
-| 按讚者列表 | `ContentInteractorsPanel`（點讚數展開） | ❌ 沒有 | 🔴 PR-8 |
-| Bucket list 引用 | `ReferenceButton`（引用他人清單項目） | ❌ 沒有 | 🔴 PR-8 |
+| 按讚者列表 | `ContentInteractorsPanel`（點讚數展開） | ✅ 已存在（內建於 `ContentLikeButton`） | ⚪ 誤判，PR-8 取消 |
+| Bucket list 引用 | `ReferenceButton`（引用他人清單項目） | ✅ 已存在（內建於 `BucketListCardActions`） | ⚪ 誤判，PR-8 取消 |
 | i18n 多語系 | next-intl，zh / en / ja | ❌ 純繁中硬編碼 | 🟡 待評估 |
 | 繩索遊戲深度 | 16 個遊戲元件（GameCanvas、角色動畫、音效等） | 簡化版內嵌於 2 個頁面（有分數 / 生命機制，無角色動畫） | 🟡 待產品決策 |
 | 分享封面產生器 | `ArticleCoverGenerator`、`CragCoverGenerator`、`GymCoverGenerator` | 僅 `QuizShareCard` | 🟡 待產品決策 |
@@ -57,7 +57,7 @@
 ### 執行順序
 
 ```
-PR-6 (Quiz Training + Collection) → PR-7 (原生推播) → PR-8 (Biography 互動補齊)
+PR-6 (Quiz Training + Collection) → PR-7 (原生推播) → PR-8 (Biography 互動補齊，查證後取消)
 ```
 
 i18n 與繩索遊戲深度、封面產生器另行評估，不排入本輪。
@@ -137,23 +137,21 @@ i18n 與繩索遊戲深度、封面產生器另行評估，不排入本輪。
 
 ---
 
-## PR-8：Biography 互動元件補齊
+## PR-8：Biography 互動元件補齊 ⚪ 查證後取消（功能已存在）
 
-Mobile 的 `ContentInteractionBar` 已有按讚、留言、快速反應、分享，補齊兩個缺口：
+實作前逐項查證發現，兩個子項目在 mobile **皆已實作**，只是以 inline 方式寫在既有元件內，未沿用 web 的獨立元件名，導致最初以元件名 grep 的分析誤判為缺口：
 
-### 8-1 `ContentInteractorsPanel`（按讚者列表）
+### 8-1 按讚者列表 ✅ 已存在
 
-- 對照 web `apps/web/src/components/biography/display/ContentInteractorsPanel.tsx`（91 行，展示型元件）
-- 資料來源：`GET /content/{contentType}/{contentId}/likers`（後端已存在，web `ContentInteractionBar.tsx:67` 使用中）
-- Mobile `ContentLikeButton` 加上 `onFetchLikers` prop，讚數可點擊展開列表
-- 展開動畫用 React Native `Animated` 或 Tamagui animation（取代 web 的 framer-motion）
+- Mobile `ContentLikeButton`（`src/components/biography/display/ContentLikeButton.tsx`）已內建 `onFetchLikers` prop 與 inline 按讚者 panel（頭像 chip 列表、載入與空狀態）
+- `ContentInteractionBar` 已接上 `GET /content/{contentType}/{contentId}/likers`
 
-### 8-2 `ReferenceButton`（bucket list 引用）
+### 8-2 Bucket list 引用 ✅ 已存在
 
-- 對照 web `apps/web/src/components/biography/reference-button.tsx`（135 行）
-- API：`bucketListService.addReference(itemId)` / `cancelReference(itemId)`（後端已存在）
-- 掛載位置：`BucketListItem`、`BiographyBucketList`（對照 web 使用處）
-- 未登入點擊導向 `/auth/login`
+- `BucketListCardActions`（`src/components/bucket-list/BucketListItem.tsx`）已內建引用按鈕：`POST/DELETE /bucket-list/:id/reference`、樂觀更新 + 失敗回滾、未登入導向登入頁
+- `BiographyBucketList` 重用 `BucketListCardActions`；`TrendingGoals` 也有獨立的 reference 呼叫
+
+> **教訓**：跨平台功能盤點不能只用元件名比對，需以「行為 + API 呼叫」查證。
 
 ---
 
