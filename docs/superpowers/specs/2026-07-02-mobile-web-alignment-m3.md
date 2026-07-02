@@ -34,8 +34,8 @@
 
 | 功能 | Web 狀態 | Mobile 狀態 | 判定 |
 |------|---------|------------|------|
-| Quiz 訓練計畫 | `ResultTraining` + `/quiz/training/[type]` 完整週次追蹤 | ❌ 完全沒有 | 🔴 PR-6 |
-| Quiz 人格收藏集 | `/quiz/collection` | ❌ 沒有 | 🔴 PR-6 |
+| Quiz 訓練計畫 | `ResultTraining` + `/quiz/training/[type]` 完整週次追蹤 | ✅ 已完成（PR-6） | ✅ PR-6 |
+| Quiz 人格收藏集 | `/quiz/collection` | ✅ 已完成（PR-6） | ✅ PR-6 |
 | 原生推播 | 後台廣播系統已就緒（`/admin/broadcast`） | ❌ 無 `expo-notifications`，僅 App 內通知中心 | 🔴 PR-7 |
 | 按讚者列表 | `ContentInteractorsPanel`（點讚數展開） | ❌ 沒有 | 🔴 PR-8 |
 | Bucket list 引用 | `ReferenceButton`（引用他人清單項目） | ❌ 沒有 | 🔴 PR-8 |
@@ -64,7 +64,7 @@ i18n 與繩索遊戲深度、封面產生器另行評估，不排入本輪。
 
 ---
 
-## PR-6：Quiz 訓練計畫 + 人格收藏集
+## PR-6：Quiz 訓練計畫 + 人格收藏集 ✅ 已完成
 
 **優先序最高**：quiz 已上線，但 mobile 體驗斷在結果頁 — web 用戶測驗後有專屬訓練計畫與進度追蹤，mobile 沒有。
 
