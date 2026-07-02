@@ -33,6 +33,7 @@ import { Pressable, StyleSheet } from 'react-native'
 import { XStack, YStack } from 'tamagui'
 import { NotificationCenter } from '@/components/shared/NotificationCenter'
 import { Avatar, Button, Divider, Text } from '@/components/ui'
+import { unregisterPushToken } from '@/lib/pushNotifications'
 import { useAuthStore } from '@/store/authStore'
 
 const EXPLORE_ITEMS = [
@@ -108,6 +109,8 @@ export function UserMenu() {
   // 登出
   const handleLogout = useCallback(async () => {
     bottomSheetRef.current?.close()
+    // 趁仍有認證時先解除 push token 註冊
+    await unregisterPushToken()
     await logout()
     router.replace('/auth/login')
   }, [logout, router])

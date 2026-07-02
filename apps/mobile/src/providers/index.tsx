@@ -13,6 +13,7 @@ import { ChatWidget } from '@/components/ai'
 import { AuthInitializer as StoryPromptInitializer } from '@/components/shared/AuthInitializer'
 import { ClaimContentProvider } from '@/components/shared/ClaimContentModal'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { PushNotificationManager } from '@/components/shared/PushNotificationManager'
 import { ShareInvitation } from '@/components/shared/ShareInvitation'
 import { ToastProvider } from '@/components/ui/Toast'
 import { tokenStorage, useAuthStore } from '@/store/authStore'
@@ -65,6 +66,7 @@ export function Providers({ children }: ProvidersProps) {
                   <ClaimContentProvider>
                     {children}
                     <StoryPromptInitializer />
+                    <PushNotificationManager />
                     <ShareInvitation />
                     {ENABLE_AI_CHAT && <ChatWidget />}
                   </ClaimContentProvider>

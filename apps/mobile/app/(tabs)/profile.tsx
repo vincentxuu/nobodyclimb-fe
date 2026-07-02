@@ -29,6 +29,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import EvolutionNotificationBanner from '@/components/profile/evolution/EvolutionNotificationBanner'
 import { QuizProfileBadge } from '@/components/quiz/QuizProfileBadge'
 import { Avatar, Button, Divider, Text } from '@/components/ui'
+import { unregisterPushToken } from '@/lib/pushNotifications'
 import { useAuthStore } from '@/store/authStore'
 import { useQuizStore } from '@/store/quizStore'
 
@@ -70,6 +71,8 @@ export default function ProfileScreen() {
   }, [router])
 
   const handleLogout = useCallback(async () => {
+    // 趁仍有認證時先解除 push token 註冊
+    await unregisterPushToken()
     await logout()
     router.replace('/auth/login')
   }, [logout, router])

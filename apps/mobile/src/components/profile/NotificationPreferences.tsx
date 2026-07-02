@@ -1,7 +1,10 @@
 import { COLORS, SEMANTIC_COLORS } from '@nobodyclimb/constants'
+import * as Notifications from 'expo-notifications'
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Alert, Linking, StyleSheet, View } from 'react-native'
 import { apiClient } from '@/lib/api'
+import { registerPushToken } from '@/lib/pushNotifications'
+import { Button } from '../ui/Button'
 import { Switch } from '../ui/Switch'
 import { Text } from '../ui/Text'
 
@@ -94,10 +97,37 @@ const DEFAULT_SETTINGS: NotificationSetting[] = [
   },
 ]
 
+type PushPermissionStatus = 'granted' | 'denied' | 'undetermined'
+
 export default function NotificationPreferences() {
   const [preferences, setPreferences] = useState<NotificationPreferencesState>(DEFAULT_PREFERENCES)
   const [isLoading, setIsLoading] = useState(true)
   const [savingKeys, setSavingKeys] = useState<Set<NotificationPreferenceKey>>(new Set())
+  const [pushStatus, setPushStatus] = useState<PushPermissionStatus | null>(null)
+  const [isEnablingPush, setIsEnablingPush] = useState(false)
+
+  useEffect(() => {
+    Notifications.getPermissionsAsync()
+      .then(({ status }) => setPushStatus(status as PushPermissionStatus))
+      .catch(() => setPushStatus(null))
+  }, [])
+
+  // 請求推播權限並註冊 token
+  const handleEnablePush = useCallback(async () => {
+    setIsEnablingPush(true)
+    try {
+      if (pushStatus === 'denied') {
+        // 已被拒絕時只能從系統設定開啟
+        await Linking.openSettings()
+        return
+      }
+      await registerPushToken()
+      const { status } = await Notifications.getPermissionsAsync()
+      setPushStatus(status as PushPermissionStatus)
+    } finally {
+      setIsEnablingPush(false)
+    }
+  }, [pushStatus])
 
   useEffect(() => {
     const loadPreferences = async () => {
@@ -154,6 +184,27 @@ export default function NotificationPreferences() {
       <Text variant="bodyBold" style={{ color: SEMANTIC_COLORS.textMain, marginBottom: 16 }}>
         通知設定
       </Text>
+
+      {/* 原生推播權限 */}
+      <View style={[styles.settingRow, styles.settingRowBorder]}>
+        <View style={styles.settingInfo}>
+          <Text variant="body" style={{ color: SEMANTIC_COLORS.textMain }}>
+            推播通知
+          </Text>
+          <Text variant="caption" style={{ color: SEMANTIC_COLORS.textMuted, marginTop: 2 }}>
+            {pushStatus === 'granted'
+              ? '已開啟，重要通知會推送到你的裝置'
+              : pushStatus === 'denied'
+                ? '已停用，可從系統設定重新開啟'
+                : '開啟後重要通知會推送到你的裝置'}
+          </Text>
+        </View>
+        {pushStatus !== 'granted' && (
+          <Button variant="outline" size="sm" loading={isEnablingPush} onPress={handleEnablePush}>
+            {pushStatus === 'denied' ? '前往設定' : '開啟'}
+          </Button>
+        )}
+      </View>
 
       {DEFAULT_SETTINGS.map((setting, index) => (
         <View

@@ -143,6 +143,104 @@ notificationsRoutes.put(
   }
 )
 
+// ═══════════════════════════════════════════════════════════
+// Device Token API（mobile 原生推播）
+// ═══════════════════════════════════════════════════════════
+
+// Device token schema
+const deviceTokenSchema = z.object({
+  token: z.string().min(1),
+  platform: z.enum(['ios', 'android']),
+})
+
+const deviceTokenDeleteSchema = z.object({
+  token: z.string().min(1),
+})
+
+// POST /notifications/device-token - Register device push token
+notificationsRoutes.post(
+  '/device-token',
+  describeRoute({
+    tags: ['Notifications'],
+    summary: '註冊 device push token',
+    description: '註冊或更新當前用戶的 Expo push token，供原生推播使用，需要 Bearer token 認證',
+    responses: {
+      200: { description: '成功註冊 device token' },
+      400: { description: '請求格式錯誤' },
+      401: { description: '未認證' },
+    },
+  }),
+  authMiddleware,
+  validator('json', deviceTokenSchema),
+  async (c) => {
+    const userId = c.get('userId')
+    const { token, platform } = c.req.valid('json')
+
+    const service = initService(c)
+
+    try {
+      await service.registerDeviceToken(userId, token, platform)
+
+      return c.json({
+        success: true,
+        message: 'Device token registered',
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: errorMessage,
+        },
+        400
+      )
+    }
+  }
+)
+
+// DELETE /notifications/device-token - Unregister device push token
+notificationsRoutes.delete(
+  '/device-token',
+  describeRoute({
+    tags: ['Notifications'],
+    summary: '解除註冊 device push token',
+    description: '登出時解除當前用戶的 Expo push token，需要 Bearer token 認證',
+    responses: {
+      200: { description: '成功解除註冊 device token' },
+      400: { description: '請求格式錯誤' },
+      401: { description: '未認證' },
+    },
+  }),
+  authMiddleware,
+  validator('json', deviceTokenDeleteSchema),
+  async (c) => {
+    const userId = c.get('userId')
+    const { token } = c.req.valid('json')
+
+    const service = initService(c)
+
+    try {
+      await service.unregisterDeviceToken(userId, token)
+
+      return c.json({
+        success: true,
+        message: 'Device token unregistered',
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      return c.json(
+        {
+          success: false,
+          error: 'Bad Request',
+          message: errorMessage,
+        },
+        400
+      )
+    }
+  }
+)
+
 // DELETE /notifications/:id - Delete notification
 notificationsRoutes.delete(
   '/:id',

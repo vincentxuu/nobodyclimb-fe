@@ -10,6 +10,7 @@ import {
   TopRecipient,
   TypeStats,
 } from '../repositories/notification-repository'
+import { sendExpoPush } from '../utils/expo-push'
 import { generateId } from '../utils/id'
 
 /**
@@ -248,11 +249,65 @@ export class NotificationService {
       }
     }
 
+    // 發送原生推播（best-effort，失敗不影響廣播結果）
+    await this.sendBroadcastPush(title, message, targetRole)
+
     return {
       totalUsers: users.length,
       successCount,
       failedCount: users.length - successCount,
     }
+  }
+
+  /**
+   * 對目標用戶的裝置發送 Expo 推播，並清理已失效的 token
+   */
+  private async sendBroadcastPush(
+    title: string,
+    message: string,
+    targetRole?: 'all' | 'user' | 'moderator' | 'admin'
+  ): Promise<void> {
+    try {
+      const tokens = await this.repository.findDeviceTokensByRole(targetRole)
+      if (tokens.length === 0) return
+
+      const { invalidTokens } = await sendExpoPush(tokens, title, message, {
+        type: 'system_announcement',
+      })
+
+      if (invalidTokens.length > 0) {
+        await this.repository.deleteDeviceTokens(invalidTokens)
+      }
+    } catch (err) {
+      console.error('Failed to send broadcast push:', err)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Device Token（mobile 原生推播）
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 註冊 device token
+   */
+  async registerDeviceToken(
+    userId: string,
+    token: string,
+    platform: 'ios' | 'android'
+  ): Promise<void> {
+    await this.repository.upsertDeviceToken({
+      id: generateId(),
+      userId,
+      token,
+      platform,
+    })
+  }
+
+  /**
+   * 解除註冊 device token
+   */
+  async unregisterDeviceToken(userId: string, token: string): Promise<void> {
+    await this.repository.deleteDeviceToken(userId, token)
   }
 
   /**

@@ -620,4 +620,78 @@ export class NotificationRepository {
 
     return result.enabled === 1
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // Device Token 操作（mobile 原生推播）
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * 註冊或更新 device token
+   *
+   * token 為 UNIQUE：同一裝置換帳號登入時，直接把 token 轉移給新用戶
+   */
+  async upsertDeviceToken(data: {
+    id: string
+    userId: string
+    token: string
+    platform: 'ios' | 'android'
+  }): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO device_tokens (id, user_id, token, platform)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(token) DO UPDATE SET
+           user_id = excluded.user_id,
+           platform = excluded.platform,
+           updated_at = datetime('now')`
+      )
+      .bind(data.id, data.userId, data.token, data.platform)
+      .run()
+  }
+
+  /**
+   * 刪除 device token（登出時解除註冊）
+   */
+  async deleteDeviceToken(userId: string, token: string): Promise<void> {
+    await this.db
+      .prepare('DELETE FROM device_tokens WHERE user_id = ? AND token = ?')
+      .bind(userId, token)
+      .run()
+  }
+
+  /**
+   * 查詢目標用戶的 device tokens（供廣播推播）
+   */
+  async findDeviceTokensByRole(
+    targetRole?: 'all' | 'user' | 'moderator' | 'admin'
+  ): Promise<string[]> {
+    let query = `SELECT dt.token FROM device_tokens dt
+       JOIN users u ON dt.user_id = u.id
+       WHERE u.is_active = 1`
+    const params: string[] = []
+
+    if (targetRole && targetRole !== 'all') {
+      query += ' AND u.role = ?'
+      params.push(targetRole)
+    }
+
+    const result = await this.db
+      .prepare(query)
+      .bind(...params)
+      .all<{ token: string }>()
+
+    return (result.results || []).map((r) => r.token)
+  }
+
+  /**
+   * 移除已失效的 device tokens（Expo 回報 DeviceNotRegistered）
+   */
+  async deleteDeviceTokens(tokens: string[]): Promise<void> {
+    if (tokens.length === 0) return
+    const placeholders = tokens.map(() => '?').join(', ')
+    await this.db
+      .prepare(`DELETE FROM device_tokens WHERE token IN (${placeholders})`)
+      .bind(...tokens)
+      .run()
+  }
 }
