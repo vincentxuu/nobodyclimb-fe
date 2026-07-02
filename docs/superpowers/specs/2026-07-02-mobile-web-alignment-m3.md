@@ -36,7 +36,7 @@
 |------|---------|------------|------|
 | Quiz 訓練計畫 | `ResultTraining` + `/quiz/training/[type]` 完整週次追蹤 | ✅ 已完成（PR-6） | ✅ PR-6 |
 | Quiz 人格收藏集 | `/quiz/collection` | ✅ 已完成（PR-6） | ✅ PR-6 |
-| 原生推播 | 後台廣播系統已就緒（`/admin/broadcast`） | ❌ 無 `expo-notifications`，僅 App 內通知中心 | 🔴 PR-7 |
+| 原生推播 | 後台廣播系統已就緒（`/admin/broadcast`） | ✅ 已完成（PR-7） | ✅ PR-7 |
 | 按讚者列表 | `ContentInteractorsPanel`（點讚數展開） | ❌ 沒有 | 🔴 PR-8 |
 | Bucket list 引用 | `ReferenceButton`（引用他人清單項目） | ❌ 沒有 | 🔴 PR-8 |
 | i18n 多語系 | next-intl，zh / en / ja | ❌ 純繁中硬編碼 | 🟡 待評估 |
@@ -110,7 +110,9 @@ i18n 與繩索遊戲深度、封面產生器另行評估，不排入本輪。
 
 ---
 
-## PR-7：原生推播通知
+## PR-7：原生推播通知 ✅ 已完成
+
+> **部署備註**：需在 EAS 設定 projectId（`app.json` 的 `extra.eas.projectId`）後，`getExpoPushTokenAsync` 才能取得 token；缺 projectId 時 app 會靜默降級不影響使用。Migration `0073_device_tokens.sql` 需跑 `pnpm db:migrate:remote`。
 
 **Mobile 獨有價值**：web 端廣播後台（`/admin/broadcast`）已就緒，但 mobile 收不到原生 push，通知僅存在於 App 內 `NotificationCenter`。
 
