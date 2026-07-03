@@ -1,6 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { upsertMemory } from '../repositories/memory'
 import { AI } from '../types'
+import { toTraditionalChinese } from '../utils/opencc'
 import { extractResponseText } from './query/types'
 
 const LIGHTWEIGHT_MODEL = '@cf/meta/llama-3.1-8b-instruct'
@@ -88,7 +89,7 @@ export async function extractMemoriesFromQuery(
         userId,
         item.memory_key,
         item.memory_type as 'preference' | 'behavior' | 'fact',
-        item.content.trim(),
+        toTraditionalChinese(item.content.trim()),
         db
       )
     }
