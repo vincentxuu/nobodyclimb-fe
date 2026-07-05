@@ -660,6 +660,42 @@ export class NotificationRepository {
   }
 
   /**
+   * 查詢單一用戶的 device tokens（供個人通知推播）
+   */
+  async findDeviceTokensByUserId(userId: string): Promise<string[]> {
+    const result = await this.db
+      .prepare('SELECT token FROM device_tokens WHERE user_id = ?')
+      .bind(userId)
+      .all<{ token: string }>()
+
+    return (result.results || []).map((r) => r.token)
+  }
+
+  /**
+   * 依 user_id 查該用戶的 biography slug（供 new_follower 推播組連結）
+   */
+  async findBiographySlugByUserId(userId: string): Promise<string | null> {
+    const result = await this.db
+      .prepare('SELECT slug FROM biographies WHERE user_id = ? LIMIT 1')
+      .bind(userId)
+      .first<{ slug: string }>()
+
+    return result?.slug ?? null
+  }
+
+  /**
+   * 依 biography id 查 slug（供 biography_commented 推播組連結）
+   */
+  async findBiographySlugById(biographyId: string): Promise<string | null> {
+    const result = await this.db
+      .prepare('SELECT slug FROM biographies WHERE id = ? LIMIT 1')
+      .bind(biographyId)
+      .first<{ slug: string }>()
+
+    return result?.slug ?? null
+  }
+
+  /**
    * 查詢目標用戶的 device tokens（供廣播推播）
    */
   async findDeviceTokensByRole(

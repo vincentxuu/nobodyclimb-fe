@@ -543,14 +543,19 @@ postsRoutes.post(
     if (post.author_id !== userId) {
       const contentPreview =
         body.content.trim().slice(0, 50) + (body.content.length > 50 ? '...' : '')
-      await createNotification(c.env.DB, {
-        userId: post.author_id,
-        type: 'post_commented',
-        actorId: userId,
-        targetId: postId,
-        title: '你的文章有新留言',
-        message: `${user?.display_name || user?.username || '有人'} 在你的文章「${post.title}」留言：${contentPreview}`,
-      })
+      await createNotification(
+        c.env.DB,
+        {
+          userId: post.author_id,
+          type: 'post_commented',
+          actorId: userId,
+          targetId: postId,
+          title: '你的文章有新留言',
+          message: `${user?.display_name || user?.username || '有人'} 在你的文章「${post.title}」留言：${contentPreview}`,
+        },
+        undefined,
+        c.executionCtx
+      )
     }
 
     return c.json(
@@ -732,14 +737,18 @@ postsRoutes.post(
 
     // 發送通知給貼文作者（按讚時且不是自己的貼文）
     if (toggled && post.author_id !== userId) {
-      await createLikeNotificationWithAggregation(c.env.DB, {
-        userId: post.author_id,
-        type: 'post_liked',
-        actorId: userId,
-        actorName: user?.display_name || user?.username || '有人',
-        targetId: postId,
-        targetTitle: post.title,
-      })
+      await createLikeNotificationWithAggregation(
+        c.env.DB,
+        {
+          userId: post.author_id,
+          type: 'post_liked',
+          actorId: userId,
+          actorName: user?.display_name || user?.username || '有人',
+          targetId: postId,
+          targetTitle: post.title,
+        },
+        c.executionCtx
+      )
     }
 
     return c.json({

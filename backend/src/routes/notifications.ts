@@ -3,7 +3,7 @@ import { describeRoute, validator } from 'hono-openapi'
 import { z } from 'zod'
 import { authMiddleware } from '../middleware/auth'
 import { NotificationRepository, NotificationType } from '../repositories/notification-repository'
-import { NotificationService } from '../services/notification-service'
+import { NotificationService, WaitUntilCtx } from '../services/notification-service'
 import { Env } from '../types'
 import { parsePagination } from '../utils/id'
 
@@ -606,12 +606,13 @@ export async function createNotification(
     skipDedup?: boolean // 跳過去重檢查
     skipPrefsCheck?: boolean // 跳過偏好設定檢查
     dedupMinutes?: number // 去重時間範圍（分鐘），預設 5
-  }
+  },
+  waitUntilCtx?: WaitUntilCtx
 ): Promise<string | null> {
   const repository = new NotificationRepository(db)
   const service = new NotificationService(repository, db)
 
-  return service.createNotification(data, options)
+  return service.createNotification(data, options, waitUntilCtx)
 }
 
 /**
@@ -634,10 +635,11 @@ export async function createLikeNotificationWithAggregation(
     actorName: string
     targetId: string
     targetTitle: string
-  }
+  },
+  waitUntilCtx?: WaitUntilCtx
 ): Promise<string | null> {
   const repository = new NotificationRepository(db)
   const service = new NotificationService(repository, db)
 
-  return service.createLikeNotificationWithAggregation(data)
+  return service.createLikeNotificationWithAggregation(data, waitUntilCtx)
 }

@@ -1090,14 +1090,18 @@ bucketListRoutes.post(
 
       const likerName = liker?.display_name || liker?.username || '有人'
 
-      await createLikeNotificationWithAggregation(c.env.DB, {
-        userId: item.owner_id,
-        type: 'goal_liked',
-        actorId: userId,
-        actorName: likerName,
-        targetId: id,
-        targetTitle: item.title,
-      })
+      await createLikeNotificationWithAggregation(
+        c.env.DB,
+        {
+          userId: item.owner_id,
+          type: 'goal_liked',
+          actorId: userId,
+          actorName: likerName,
+          targetId: id,
+          targetTitle: item.title,
+        },
+        c.executionCtx
+      )
     }
 
     return c.json({
@@ -1280,14 +1284,19 @@ bucketListRoutes.post(
 
       const commenterName = commenter?.display_name || commenter?.username || '有人'
 
-      await createNotification(c.env.DB, {
-        userId: item.owner_id,
-        type: 'goal_commented',
-        actorId: userId,
-        targetId: id,
-        title: '有人留言你的目標',
-        message: `${commenterName} 在你的目標「${item.title}」留言`,
-      })
+      await createNotification(
+        c.env.DB,
+        {
+          userId: item.owner_id,
+          type: 'goal_commented',
+          actorId: userId,
+          targetId: id,
+          title: '有人留言你的目標',
+          message: `${commenterName} 在你的目標「${item.title}」留言`,
+        },
+        undefined,
+        c.executionCtx
+      )
     }
 
     return c.json(
@@ -1482,14 +1491,19 @@ bucketListRoutes.post(
 
       const referencerName = referencer?.display_name || referencer?.username || '有人'
 
-      await createNotification(c.env.DB, {
-        userId: sourceItem.owner_id,
-        type: 'goal_referenced',
-        actorId: userId,
-        targetId: id,
-        title: '有人也想達成你的目標',
-        message: `${referencerName} 把你的目標「${sourceItem.title}」加入了他的清單`,
-      })
+      await createNotification(
+        c.env.DB,
+        {
+          userId: sourceItem.owner_id,
+          type: 'goal_referenced',
+          actorId: userId,
+          targetId: id,
+          title: '有人也想達成你的目標',
+          message: `${referencerName} 把你的目標「${sourceItem.title}」加入了他的清單`,
+        },
+        undefined,
+        c.executionCtx
+      )
     }
 
     return c.json(

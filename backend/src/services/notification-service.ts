@@ -12,6 +12,13 @@ import {
 } from '../repositories/notification-repository'
 import { sendExpoPush } from '../utils/expo-push'
 import { generateId } from '../utils/id'
+import { buildNotificationPath } from '../utils/notification-url'
+
+/**
+ * 可延後執行的 context（Cloudflare Workers executionCtx）
+ * 有傳入時推播以 waitUntil 在回應送出後執行，避免拖慢觸發請求
+ */
+export type WaitUntilCtx = { waitUntil(promise: Promise<unknown>): void }
 
 /**
  * 通知偏好回應格式
@@ -311,6 +318,59 @@ export class NotificationService {
   }
 
   /**
+   * 對單一用戶的裝置發送個人通知推播，並清理失效 token
+   *
+   * best-effort：查無 token 直接略過，發送失敗不影響通知本體
+   */
+  private async pushToUser(params: {
+    userId: string
+    type: NotificationType
+    title: string
+    message: string
+    actorId?: string | null
+    targetId?: string | null
+  }): Promise<void> {
+    const { userId, type, title, message, actorId, targetId } = params
+    try {
+      const tokens = await this.repository.findDeviceTokensByUserId(userId)
+      if (tokens.length === 0) return
+
+      const url = await this.resolveNotificationUrl(type, actorId, targetId)
+      const data: Record<string, string> = { type }
+      if (url) data.url = url
+
+      const { invalidTokens } = await sendExpoPush(tokens, title, message, data)
+
+      if (invalidTokens.length > 0) {
+        await this.repository.deleteDeviceTokens(invalidTokens)
+      }
+    } catch (err) {
+      console.error('Failed to send notification push:', err)
+    }
+  }
+
+  /**
+   * 依通知類型解析 deep-link 路徑
+   * 需要 slug 的類型（new_follower / biography_commented）額外查詢
+   */
+  private async resolveNotificationUrl(
+    type: NotificationType,
+    actorId?: string | null,
+    targetId?: string | null
+  ): Promise<string | null> {
+    let actorSlug: string | null = null
+    let targetSlug: string | null = null
+
+    if (type === 'new_follower' && actorId) {
+      actorSlug = await this.repository.findBiographySlugByUserId(actorId)
+    } else if (type === 'biography_commented' && targetId) {
+      targetSlug = await this.repository.findBiographySlugById(targetId)
+    }
+
+    return buildNotificationPath(type, { targetId, actorSlug, targetSlug })
+  }
+
+  /**
    * 取得廣播歷史
    */
   async getBroadcastHistory(
@@ -461,7 +521,8 @@ export class NotificationService {
       skipDedup?: boolean // 跳過去重檢查
       skipPrefsCheck?: boolean // 跳過偏好設定檢查
       dedupMinutes?: number // 去重時間範圍（分鐘），預設 5
-    }
+    },
+    waitUntilCtx?: WaitUntilCtx
   ): Promise<string | null> {
     const dedupMinutes = options?.dedupMinutes ?? 5
 
@@ -502,7 +563,43 @@ export class NotificationService {
       message: data.message,
     })
 
+    // 發送原生推播（有 executionCtx 則於回應後執行，否則直接 await）
+    await this.dispatchPush(
+      {
+        userId: data.userId,
+        type: data.type,
+        title: data.title,
+        message: data.message,
+        actorId: data.actorId,
+        targetId: data.targetId,
+      },
+      waitUntilCtx
+    )
+
     return id
+  }
+
+  /**
+   * 派發個人通知推播
+   * - 有 waitUntilCtx：交給它於回應送出後執行，不阻塞觸發請求
+   * - 無 waitUntilCtx：直接 await 送出，確保 Workers 不會在回應後中斷未追蹤的 promise
+   */
+  private async dispatchPush(
+    params: {
+      userId: string
+      type: NotificationType
+      title: string
+      message: string
+      actorId?: string | null
+      targetId?: string | null
+    },
+    waitUntilCtx?: WaitUntilCtx
+  ): Promise<void> {
+    if (waitUntilCtx) {
+      waitUntilCtx.waitUntil(this.pushToUser(params))
+    } else {
+      await this.pushToUser(params)
+    }
   }
 
   /**
@@ -516,14 +613,17 @@ export class NotificationService {
    * - 聚合時間範圍：1 小時內
    * - 同一個目標的按讚會聚合成一則通知
    */
-  async createLikeNotificationWithAggregation(data: {
-    userId: string
-    type: 'goal_liked' | 'post_liked'
-    actorId: string
-    actorName: string
-    targetId: string
-    targetTitle: string
-  }): Promise<string | null> {
+  async createLikeNotificationWithAggregation(
+    data: {
+      userId: string
+      type: 'goal_liked' | 'post_liked'
+      actorId: string
+      actorName: string
+      targetId: string
+      targetTitle: string
+    },
+    waitUntilCtx?: WaitUntilCtx
+  ): Promise<string | null> {
     // 偏好設定檢查：如果用戶已關閉該類型通知，則不創建
     const enabled = await this.repository.isNotificationTypeEnabled(data.userId, data.type)
 
@@ -559,6 +659,19 @@ export class NotificationService {
 
       await this.repository.updateNotification(existing.id, newMessage, data.actorId)
 
+      // 聚合更新後也推播（訊息已更新為「X 和其他 N 人…」）
+      await this.dispatchPush(
+        {
+          userId: data.userId,
+          type: data.type,
+          title: `你的${targetType}獲得按讚`,
+          message: newMessage,
+          actorId: data.actorId,
+          targetId: data.targetId,
+        },
+        waitUntilCtx
+      )
+
       return existing.id
     }
 
@@ -573,7 +686,8 @@ export class NotificationService {
         title: `你的${targetType}獲得按讚`,
         message: `${data.actorName} 對你的${targetType}「${data.targetTitle}」按讚`,
       },
-      { skipDedup: true }
+      { skipDedup: true },
+      waitUntilCtx
     )
   }
 }

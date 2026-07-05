@@ -1193,14 +1193,19 @@ biographiesRoutes.post(
 
     const followerName = follower?.display_name || follower?.username || '有人'
 
-    await createNotification(c.env.DB, {
-      userId: biography.user_id,
-      type: 'new_follower',
-      actorId: userId,
-      targetId: id,
-      title: '有人追蹤了你',
-      message: `${followerName} 開始追蹤你了`,
-    })
+    await createNotification(
+      c.env.DB,
+      {
+        userId: biography.user_id,
+        type: 'new_follower',
+        actorId: userId,
+        targetId: id,
+        title: '有人追蹤了你',
+        message: `${followerName} 開始追蹤你了`,
+      },
+      undefined,
+      c.executionCtx
+    )
 
     return c.json({
       success: true,
@@ -2240,14 +2245,19 @@ biographiesRoutes.post(
             .first<{ display_name: string | null; username: string }>()
           const likerName = liker?.display_name || liker?.username || '有人'
 
-          await createNotification(c.env.DB, {
-            userId: biography.user_id,
-            type: 'goal_liked',
-            actorId: userId,
-            targetId: biographyId,
-            title: '有人喜歡你的人物誌',
-            message: `${likerName} 對你的人物誌按讚了`,
-          })
+          await createNotification(
+            c.env.DB,
+            {
+              userId: biography.user_id,
+              type: 'goal_liked',
+              actorId: userId,
+              targetId: biographyId,
+              title: '有人喜歡你的人物誌',
+              message: `${likerName} 對你的人物誌按讚了`,
+            },
+            undefined,
+            c.executionCtx
+          )
         } catch (err) {
           console.error('Failed to create notification:', err)
         }
@@ -2489,14 +2499,19 @@ biographiesRoutes.post(
 
     // Create notification for biography owner (if not commenting on own biography)
     if (biography.user_id && biography.user_id !== userId) {
-      await createNotification(c.env.DB, {
-        userId: biography.user_id,
-        type: 'biography_commented',
-        actorId: userId,
-        targetId: biographyId,
-        title: '新留言',
-        message: `${user?.display_name || user?.username || '某位用戶'} 在你的人物誌留言了`,
-      })
+      await createNotification(
+        c.env.DB,
+        {
+          userId: biography.user_id,
+          type: 'biography_commented',
+          actorId: userId,
+          targetId: biographyId,
+          title: '新留言',
+          message: `${user?.display_name || user?.username || '某位用戶'} 在你的人物誌留言了`,
+        },
+        undefined,
+        c.executionCtx
+      )
     }
 
     return c.json({
