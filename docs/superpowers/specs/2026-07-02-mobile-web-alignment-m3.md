@@ -155,6 +155,30 @@ i18n 與繩索遊戲深度、封面產生器另行評估，不排入本輪。
 
 ---
 
+## PR-7.5：個人互動通知推播 + deep-link ✅ 已完成
+
+PR-7 完成後發現一個實質限制：原生推播**只有 admin 廣播會發**，個人互動通知（按讚/留言/追蹤/引用）僅寫 in-app、不推播，且廣播 payload 沒帶 deep-link。這使推播無法發揮「提升互動回訪」的核心價值，故補做本 PR。
+
+### 後端
+
+| 項目 | 說明 |
+|------|------|
+| `createNotification` / 聚合按讚流程 | 寫入通知後發送個人推播，payload 帶 `type` + deep-link `url` |
+| `utils/notification-url.ts` | 依通知類型組前端路徑，與 mobile `getNotificationRoute`、web `getNotificationLink` 對齊 |
+| Repository | 新增 `findDeviceTokensByUserId`、`findBiographySlugByUserId`、`findBiographySlugById`（後兩者供 new_follower / biography_commented 組 slug 連結） |
+| 派發策略 | `executionCtx.waitUntil` 於回應後執行，不拖慢按讚/留言；posts / bucket-list / biographies 傳入 `c.executionCtx`，無 ctx 的路徑（content-interactions service）則 await 確保 Workers 不中斷 |
+| 失效清理 | Expo 回報 `DeviceNotRegistered` 的 token 自動移除 |
+
+### Mobile
+
+- 無需改動：`PushNotificationManager`（PR-7）已讀 `data.url` 導頁，deep-link 直接生效
+
+### 已知既有 quirk（非本 PR 引入）
+
+- biography 按讚以 `goal_liked` 型別、target 為 biography id，導向 `/bucket-list/{id}` 與 in-app 路由對照一致但可能非預期；屬既有資料模型議題，另案處理
+
+---
+
 ## 待評估項目（不排入本輪）
 
 | 項目 | 評估重點 |
