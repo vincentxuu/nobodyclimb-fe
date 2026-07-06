@@ -64,7 +64,8 @@
       "!**/.expo",
       "!**/.worktrees",
       "!**/*.min.js",
-      "!**/public/data"
+      "!**/public/data",
+      "!**/.claude/settings.local.json"
     ]
   }
 }
