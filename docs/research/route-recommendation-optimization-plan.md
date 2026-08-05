@@ -95,122 +95,163 @@ recommend tool 只在有指定 crag 時傳 `crag_id`，從不傳 `route_type`。
 
 ---
 
-## 三、對照參考資料的優化規劃
+## 三、v2 架構與 feature flag 切換
 
-### Phase 0：地基修復（缺陷 1、2）
+### 3.1 既有 feature flag 機制（沿用，不另造輪子）
 
-| 項目 | 檔案 | 備註 |
+專案已有成熟的執行期開關機制，v2 直接沿用：
+
+| 元件 | 位置 | 說明 |
 |------|------|------|
-| 統一 `gradeToNumeric` | `utils/grade.ts` + 刪 6 份 inline | 純重構，無行為變更 |
-| 難度數值支援 V-scale / French | `utils/grade.ts`、`indexing.ts` | **需重建 Vectorize 索引** |
-| `grade_system` 寫入 metadata | `indexing.ts`、`query/filters.ts` | 過濾時依系統分流 |
+| 設定表 | `ai_config`（key/value） | migration 0046 建立 |
+| 載入 | `query/config.ts` 的 `loadPipelineConfig()` | 附 `num()` 夾值與預設值 |
+| 管理 API | `routes/admin-ai.ts` 的 `GET/PUT /config` | 免部署即可切換 |
 
-**驗收**：抱石路線的 `grade_numeric` 不再是 0；同一難度字串在所有模組得到同一數值。
+既有的三種 flag 寫法，v2 照抄：
 
-### Phase 1：安全硬約束（缺陷 3、4）
-
-對應書中結論：**圖譜／規則負責可解釋與硬約束，嵌入負責行為訊號與長尾相似**。
-
-推薦流程改成兩段：
-
-```
-1. 硬過濾（規則，不可放寬）
-   route_type ∈ 使用者已具備能力的型式
-   grade_numeric ≤ 使用者上限（依 grade_system 分流）
-   safety_rating / protection 不在排除清單
-        ↓
-2. 相似度排序（向量）
+```ts
+// 布林（預設關）
+semantic_cache_enabled: cfg['semantic_cache_enabled'] === '1'
+// 布林（預設開）
+adaptive_plan_enabled: cfg['adaptive_plan_enabled'] !== '0'
+// 列舉白名單
+rag_strategy: ['baseline','agentic','plan-execute','react','auto'].includes(v) ? v : 'baseline'
+// 整組引擎切換（最接近我們要的）
+use_langgraph_engine: cfg['use_langgraph_engine'] === '1'
 ```
 
-實作要點：
-- 難度過濾下推到 `queryService.search()` 的 `filters.grade_min/grade_max`
-- 移除 `if (gradeFiltered.length >= 1)` 這類「結果太少就放寬」的邏輯 — 寧可零結果進到 Phase 2 的擴展，也不要放寬安全條件
-- 「使用者具備哪些型式」的判定：從 `user_route_ascents.ascent_type` 推導（有 `lead` / `trad` 紀錄才推 trad）
+`use_langgraph_engine` 是最好的前例 —— 一整套替代引擎掛在單一開關後面，舊路徑原封不動。v2 推薦用同樣的形狀。
 
-**驗收**：測試案例 — 只有 sport toprope 紀錄的使用者，推薦結果不含 trad 與 `safety_rating` 為 R/X 的路線。
+> ⚠️ **前置阻塞**：`ai_config` 只存在於 migrations，**沒有寫進 `schema.sql`**（違反不變量 4），
+> 且 `0070_personality_rerank_config.sql` 寫入了 `description` 欄位，但 `ai_config` 的 DDL 沒有這個欄位
+> —— 這支 migration 在任何尚未跑過它的環境都會失敗。因為 `config.ts` 對每個 key 都有 fallback 預設值，
+> 失敗是靜默的（personality 參數一直在吃 hardcode 預設）。
+> **v2 的 flag 也要寫進 `ai_config`，所以這件事必須先修**，否則同一個地雷會再踩一次。
 
-### Phase 2：查詢擴展與零結果處理（缺陷 5）
+### 3.2 模組結構
 
-對應書中圖 6-32（烏龍麵 → 拉麵／日式料理／蕎麥麵）。
+兩條推薦路徑（`RecommendationService` 與 react-agent 的 `recommend` tool）改為共用同一個入口，
+由 flag 決定走 legacy 還是 v2：
 
-擴展順序（由近而遠，每層都重跑硬過濾）：
+```
+backend/src/services/recommendation/
+  index.ts        # 入口：依 recommendation_strategy 分流
+  config.ts       # loadRecommendationConfig()，讀同一張 ai_config
+  legacy.ts       # 現行 recommendation.ts 原樣搬入，行為不改
+  types.ts
+  v2/
+    ability.ts    # 能力估計（onsight / redpoint 分離）
+    candidates.ts # 多路召回
+    filter.ts     # 硬過濾
+    score.ts      # 打分（單峰難度適配 + 加權）
+    expand.ts     # 零結果查詢擴展
+    rerank.ts     # 多樣性 + 探索位
+    index.ts
+```
 
-| 層級 | 擴展方式 | 現成工具 |
-|------|---------|---------|
-| 1 | 同岩區其他路線 | `sector_id` / `area_id` |
-| 2 | 鄰近難度 | `similarGradeRange()` ✅ 已存在 |
-| 3 | 同岩場其他岩區 | `crag_id` |
-| 4 | 同地區其他岩場 | `region` |
+原則：**legacy 一行不改**。v2 全新寫，flag 關著就完全不執行。等 v2 穩定再刪 legacy。
 
-回傳時要**標明擴展層級**，讓前端能顯示「你所在區域沒有符合的路線，以下是鄰近難度的推薦」。書中沒做這件事，但攀岩情境下使用者需要知道推薦為什麼偏離了原始條件。
+### 3.3 Flag 清單
 
-**驗收**：查詢一個沒有對應路線的條件，回傳非空且標明擴展原因。
+主開關：
 
-### Phase 3：多樣性與新路線曝光
+| key | 型別 | 預設 | 說明 |
+|-----|------|------|------|
+| `recommendation_strategy` | `'legacy' \| 'v2'` | `legacy` | 主切換 |
 
-對應書中「Skylar 愛吃拉麵也不能只推拉麵」與新餐廳 UCB 冷啟動。
+v2 內部的分項開關（讓每個能力可以單獨開關、單獨評估）：
 
-1. **多樣性**：推薦清單中同一 `sector_id` 最多 N 條（建議 2），確保跨岩區
-2. **探索位**：固定保留 1–2 個名額給 `ascent_count = 0` 或曝光數低的路線
-3. **UCB**：等 Phase 4 有印象數之後再上；在那之前用簡化版（新路線固定加權）
+| key | 型別 | 預設 | 說明 |
+|-----|------|------|------|
+| `reco_ability_model` | `'max_grade' \| 'onsight_redpoint'` | `max_grade` | 能力估計方式 |
+| `reco_grade_fit` | `'range' \| 'peak'` | `range` | 難度適配：區間過濾 vs 單峰分數 |
+| `reco_type_mismatch_policy` | `'off' \| 'demote' \| 'exclude'` | `demote` | 型式/safety 不符時的處理 |
+| `reco_expansion_enabled` | `'1' \| '0'` | `0` | 零結果查詢擴展 |
+| `reco_diversity_enabled` | `'1' \| '0'` | `0` | 多樣性重排 |
+| `reco_max_per_sector` | number 1–5 | `2` | 同岩區上限 |
+| `reco_exploration_slots` | number 0–3 | `0` | 探索位數量 |
 
-書中的 UCB 分數隨印象數遞減、逐步把權重交還相關性 — 這個機制需要印象數，所以順序上必須在 Phase 4 之後。
+排序權重（照 `reranker_weight` / `popularity_weight` 的正規化寫法，總和歸一）：
 
-### Phase 4：曝光與回饋紀錄（缺陷 6）
+| key | 預設 |
+|-----|------|
+| `reco_w_grade_fit` | `0.40` |
+| `reco_w_style` | `0.25` |
+| `reco_w_quality` | `0.15` |
+| `reco_w_access` | `0.10` |
+| `reco_w_exposure` | `0.10` |
 
-新增 migration（**下一個編號是 `0073`**；注意 0053 與 0071 歷史上有重複編號，新增前務必再確認一次）：
+`reco_type_mismatch_policy` 特別做成三值而非布林，是因為第 5 節那個「該硬排除還是降權標註」的問題目前沒有共識 ——
+做成 flag 就能直接用資料回答，不必先吵出結論。
+
+### 3.4 觀測必須先於切換
+
+用 flag 做 A/B 的前提是**看得到結果**。這改變了原本的階段順序：埋點從最後一階提到第二階。
+
+新增 migration（下一個編號是 `0073`；0053 與 0071 歷史上有重複編號，新增前務必再確認一次）：
 
 ```
 route_recommendation_events
   id, user_id, route_id, recommendation_id
-  event_type: 'impression' | 'click' | 'ascent'
-  expansion_level  -- Phase 2 的擴展層級，用於評估擴展品質
+  strategy          -- 'legacy' | 'v2'，用於分組比較
+  event_type        -- 'impression' | 'click' | 'ascent'
+  expansion_level   -- 擴展層級（0 = 未擴展），評估擴展品質用
+  position          -- 在清單中的排名，評估排序用
   created_at
 ```
 
-同時修正 `user_recommendations.user_id` 的型別（TEXT）。
+同時：
+- `user_recommendations` 加 `strategy` 欄位（記錄由哪一版產生）
+- 修正 `user_recommendations.user_id` 型別（現為 `INTEGER`，但 `users.id` 是 TEXT，違反不變量 9）
+- 依不變量 4，`backend/src/db/schema.sql` 與 `backend/migrations/0073_*.sql` **同步修改**
+- 順帶把漏掉的 `ai_config` 補進 `schema.sql`、補上 `description` 欄位
 
-> 依不變量 4：`backend/src/db/schema.sql` 與 `backend/migrations/0073_*.sql` 必須同步修改。
+評估指標（對應書中「預測用戶下次是否還會下單」的長期訊號）：
 
-**用途**：
-- 計算路線印象數 → Phase 3 的 UCB
-- 長期指標：對應書中「預測用戶下次是否還會下單」→ 攀岩版是「推薦後使用者是否真的留下 ascent 紀錄」
+| 指標 | 定義 |
+|------|------|
+| CTR | click / impression |
+| 完攀轉換 | 推薦後 N 天內出現該路線的 ascent 紀錄 |
+| 覆蓋率 | 被推薦過的相異路線數 / 總路線數 |
+| 擴展命中率 | `expansion_level > 0` 的推薦的 CTR |
 
-### Phase 5（後續）：路線知識圖譜
+> 但要先看清楚一件事：攀岩的完攀轉換週期以「週」為單位，訊號極度稀疏。
+> 完攀轉換這個指標可能要累積很久才有統計意義，短期只能看 CTR。
+> 這也是第 5 節第 1 點要先確認資料量級的原因。
 
-目前 `routes` 表有 `route_type`、`safety_rating`、`protection`、`anchor_type`、`tips`，`crags` 有 `rock_type`、`approach_time`、`best_seasons` — **但沒有攀登風格標註**（指力點／平衡／外傾／煙囪…）。
+### 3.5 分階段推進（每階段皆可獨立上線、獨立回退）
 
-書中反覆強調「線下標註是關鍵，沒標到的線上就搜不到」。要做到「爬完這條想找類似的」，缺的就是這層 style 標註。
+| 階段 | 內容 | Flag 狀態 | 可回退 |
+|------|------|-----------|--------|
+| **S0** 前置 | 修 `ai_config` schema 缺口；統一 `gradeToNumeric`（缺陷 1）；抱石難度數值（缺陷 2） | 無 flag，純重構 | git revert |
+| **S1** 埋點 | migration 0073；legacy 路徑先接上埋點，取得基準線 | 無 flag | — |
+| **S2** v2 骨架 | 新模組 + `recommendation_strategy`，v2 先做到與 legacy 等價 | `legacy`（暗渡） | 切回 flag |
+| **S3** 能力估計 | onsight / redpoint 分離，用 `attempts_count`、`perceived_grade` | `reco_ability_model=onsight_redpoint` | 切回 flag |
+| **S4** 難度適配 | 單峰分數取代區間過濾 | `reco_grade_fit=peak` | 切回 flag |
+| **S5** 過濾政策 | 型式/safety 的 demote vs exclude 實測 | `reco_type_mismatch_policy` | 切回 flag |
+| **S6** 查詢擴展 | 零結果沿 sector → 難度 → crag → region 擴展 | `reco_expansion_enabled=1` | 切回 flag |
+| **S7** 多樣性/探索 | 同 sector 上限、探索位 | `reco_diversity_enabled=1` | 切回 flag |
 
-建議做法：先加 `route_styles` 關聯表 + 標註流程，不必一開始就上圖資料庫。等標註覆蓋率夠了再談 route2vec（用 `user_route_ascents` 同一天／同一趟的共現訓練嵌入，對應書中 query2vec 的 context 定義）。
+S0 是唯一沒有 flag 保護的階段（純重構 + schema 修復），所以要獨立 PR、獨立驗證。
+S2 之後每一階段都是「寫好 → flag 關著上線 → 開 flag 觀察 → 不對就關掉」。
 
----
+### 3.6 這樣做的代價
 
-## 四、建議執行順序
+誠實說一下 flag 化的成本：
 
-```
-Phase 0（地基）──→ Phase 1（安全）──→ Phase 2（擴展）
-                                          ↓
-                       Phase 4（埋點）──→ Phase 3（多樣性/UCB）
-                                          ↓
-                                     Phase 5（圖譜/route2vec）
-```
+- **兩套邏輯並存**期間，`recommendation/` 底下的程式碼量大約翻倍，且 legacy 不能動
+- **分項 flag 有組合爆炸**：7 個分項 flag 理論上 2⁷ 種組合，實務上不可能每種都測。建議只保證「全關 = legacy 等價」與「全開 = v2 完整」兩條路徑有測試，中間狀態當作臨時實驗用
+- **flag 要有退場計畫**：v2 定案後應該刪掉 legacy 與對應 flag，否則 `ai_config` 會像現在一樣越積越多（目前已有 50+ 個 key）
 
-Phase 0 與 1 建議各自獨立 PR：Phase 0 是純重構、可獨立驗證；Phase 1 改的是安全相關行為，diff 要小到能逐行 review。
+## 四、待確認事項
 
-Phase 3 依賴 Phase 4 的印象數，所以埋點要先做。
+1. **ascent 紀錄的實際量級** —— 決定 S1 的評估指標多久才有意義，也決定要不要把重心從行為訊號移回內容/圖譜
+2. **`reco_type_mismatch_policy` 的預設值** —— 我傾向 `demote`（照樣顯示但排後面並標註「傳攀路線，需自行架設保護」），而非 `exclude`。理由是 NobodyClimb 是資訊平台不是確保者，藏起路線既家長式也傷害探索。但這是產品判斷
+3. **「會不會 lead」的判定門檻** —— 用 `ascent_type` 推導是我的提案，幾次 `lead` 紀錄才算會 lead 需要攀岩專業判斷
+4. **Vectorize 索引是否真的要重建** —— 替代方案：抱石用 `route_type='boulder'` 分流，難度過濾只套用在非抱石，`grade_numeric` 維持 0 也無妨，可免重建。代價是邏輯多一個分支
+5. **admin UI 要不要一併加表單** —— `GET/PUT /config` 已經能改，但目前是否有對應的管理介面欄位需要確認
 
----
-
-## 五、待確認事項
-
-1. **Phase 0 需要重建 Vectorize 索引** — 重建成本與時機需要確認（正式環境的索引重建流程目前沒有文件）
-2. **「使用者具備哪些型式」的判定規則** — 用 `ascent_type` 推導是我的提案，實際門檻（幾次 lead 才算會 lead？）需要攀岩專業判斷
-3. **兩條推薦路徑要不要合併** — 路徑 A（RAG 自然語言）與路徑 B（vector search）目前邏輯完全不共用；建議至少把「硬過濾」抽成共用函式，但完全合併的必要性待評估
-
----
-
-## 六、相關文件
+## 五、相關文件
 
 - `docs/research/uber-eats-food-knowledge-graph.md` — 本規劃的參考資料
 - `docs/climbing-routes-database-plan.md` — 路線資料庫規劃
