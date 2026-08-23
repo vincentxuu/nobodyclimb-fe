@@ -1,4 +1,7 @@
 -- 人格感知推薦 pipeline 參數
+-- 補上 ai_config 缺少的 description 欄位（0046 建表時未定義）
+ALTER TABLE ai_config ADD COLUMN description TEXT;
+
 INSERT OR IGNORE INTO ai_config (key, value, description) VALUES
   ('personality_weight', '0.15', 'personality rerank 在最終分數中的權重'),
   ('personality_mode', 'balanced', 'balanced 或 anti_style'),

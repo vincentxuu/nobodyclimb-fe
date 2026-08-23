@@ -2,7 +2,24 @@
 
 ## 專案規範
 
-進行任何開發工作（規劃、實作、除錯、review）前，先讀 `.claude/skills/project-rules/SKILL.md` 了解專案規範。
+進行任何開發工作（規劃、實作、除錯、review）前，先讀 `.claude/skills/project-rules/SKILL.md`
+（專案憲法：不變量、禁令、查證過的事實表）。與本檔或舊 docs/ 衝突時，以 project-rules 為準。
+
+## AI 開發制度（依任務載入對應 skill）
+
+| 情境 | Skill / 工具 |
+|------|-------------|
+| 新增 / 修改 backend API | `add-api-endpoint` |
+| 改 DB 結構 | `add-db-migration` |
+| 新增 web 頁面 / 功能 | `add-web-page` |
+| 新增 mobile 畫面 / 功能 | `add-mobile-screen` |
+| 改共用 packages | `add-shared-code` |
+| commit 前驗證 | `verify-changes` |
+| 指令失敗 / 環境詭異 | `troubleshooting` |
+| 慣例機械檢查（diff-aware） | `bash scripts/check-conventions.sh` |
+
+新環境第一次跑檢查前：`pnpm install --frozen-lockfile && pnpm --filter "./packages/*" build`
+（apps 消費 packages 的 `dist/`，沒 build 會假失敗）。
 
 ## Project Overview
 
@@ -69,7 +86,7 @@ cd apps/web
 pnpm dev                            # Start Next.js dev server
 pnpm build                          # Build for production
 pnpm build:cf                       # Build for Cloudflare
-pnpm lint                           # Run ESLint
+pnpm lint                           # Run Biome (biome check .)
 pnpm test                           # Run Jest tests
 ```
 
@@ -295,10 +312,11 @@ Next.js image configuration supports:
 
 ## Testing
 
-- Jest configured for unit and component testing
-- React Testing Library for component tests
-- Run tests: `pnpm test`
-- No custom Jest config file found (using Next.js defaults)
+- Web：Jest + React Testing Library（`apps/web/jest.config.js`，via next/jest）
+  - `pnpm --filter @nobodyclimb/web test`，跑單一測試加 `-- <檔名關鍵字>`
+- Mobile：Jest（jest-expo preset）— `pnpm --filter @nobodyclimb/mobile test`
+- Backend：Vitest（無 npm script）— `cd backend && npx vitest run`（目前僅 AI services 有測試）
+- packages/constants：Vitest — `pnpm --filter @nobodyclimb/constants test`
 
 ## Analytics Configuration
 
