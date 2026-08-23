@@ -24,6 +24,7 @@ import {
 import { CircuitBreaker } from '../../utils/circuit-breaker'
 import type { LangfuseParent } from '../../utils/langfuse'
 import { createLangfuseClient, createTrace, flushLangfuse } from '../../utils/langfuse'
+import { toTraditionalChinese } from '../../utils/opencc'
 import { TimeoutError, withTimeout } from '../../utils/timeout'
 import { runAIGraph } from '../ai-graph'
 import { EmbeddingService } from '../embedding'
@@ -87,6 +88,13 @@ export class QueryService {
     this.embeddingService = new EmbeddingService(env)
   }
 
+  // 將最終回答與建議問題轉為繁體中文（台灣用語），作為 prompt 指令外的保底防線
+  private finalizeResponse(response: AIAskResponse): AIAskResponse {
+    response.answer = toTraditionalChinese(response.answer)
+    response.suggested_questions = response.suggested_questions.map(toTraditionalChinese)
+    return response
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Pipeline-based RAG 流程
   // ──────────────────────────────────────────────────────────────────────────
@@ -147,7 +155,7 @@ export class QueryService {
           cacheHit: true,
           pipelineTrace: JSON.stringify({ cache: { type: 'kv' } }),
         }).catch(() => {})
-        return JSON.parse(cached) as AIAskResponse
+        return this.finalizeResponse(JSON.parse(cached) as AIAskResponse)
       }
     }
 
@@ -325,12 +333,12 @@ export class QueryService {
             parseSuggestedQuestions(reactResult.answer)
 
           // KV cache 寫入
-          const response: AIAskResponse = {
+          const response: AIAskResponse = this.finalizeResponse({
             answer: parsedReactAnswer,
             sources: reactSources,
             query_id: queryId,
             suggested_questions: reactSuggestions,
-          }
+          })
 
           if (!request.no_cache && ctx) {
             ctx.waitUntil(
@@ -362,7 +370,7 @@ export class QueryService {
           pipelineCfg.pipeline_timeout_ms,
           'pipeline'
         )
-        return result.earlyReturn ?? result.finalResponse!
+        return this.finalizeResponse(result.earlyReturn ?? result.finalResponse!)
       } else {
         // 原有引擎（feature flag 預設 false）
         const engine = new PipelineEngine(this.env)
@@ -371,7 +379,7 @@ export class QueryService {
           pipelineCfg.pipeline_timeout_ms,
           'pipeline'
         )
-        return result.earlyReturn ?? result.finalResponse!
+        return this.finalizeResponse(result.earlyReturn ?? result.finalResponse!)
       }
     } catch (err) {
       controller.abort()
@@ -393,7 +401,7 @@ export class QueryService {
     extraTrace?: Record<string, unknown>
   ): Promise<AIAskResponse> {
     const onToken = async (token: string) => {
-      await write(JSON.stringify({ type: 'token', token }))
+      await write(JSON.stringify({ type: 'token', token: toTraditionalChinese(token) }))
     }
     try {
       return await this.ask(request, userId, ctx, onToken, extraTrace)

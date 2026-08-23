@@ -40,6 +40,7 @@
     "hono-openapi": "^1.2.0",
     "jose": "^5.9.0",
     "langfuse": "^3.38.6",
+    "opencc-js": "^1.4.0",
     "zod": "^3.25.76",
     "zod-openapi": "4"
   }
